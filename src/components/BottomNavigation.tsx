@@ -23,9 +23,9 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
     },
     {
       id: 'ia',
-      label: 'Agente IA',
+      label: 'Diagnóstico',
       icon: Brain,
-      ariaLabel: 'Acessar agente de IA para pré-diagnóstico'
+      ariaLabel: 'Acessar ferramenta de pré-diagnóstico'
     },
     {
       id: 'ajudar',

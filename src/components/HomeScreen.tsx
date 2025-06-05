@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,13 @@ import {
   Star,
   CheckCircle
 } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const HomeScreen = () => {
   const quickActions = [
@@ -84,11 +90,11 @@ const HomeScreen = () => {
       <header className="bg-cv-purple-soft text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1">
+            <div className="w-10 h-10 flex items-center justify-center">
               <img 
                 src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png" 
                 alt="Instituto Coração Valente" 
-                className="w-full h-full object-cover rounded-full"
+                className="w-10 h-10 object-contain"
               />
             </div>
             <div>
@@ -174,7 +180,7 @@ const HomeScreen = () => {
         </div>
       </section>
 
-      {/* Recent News */}
+      {/* Recent News - Updated to use Carousel */}
       <section className="p-6" aria-labelledby="news-title">
         <div className="flex items-center justify-between mb-4">
           <h3 id="news-title" className="text-h2 font-heading font-bold text-cv-purple-dark">
@@ -184,44 +190,49 @@ const HomeScreen = () => {
             Ver todas
           </Button>
         </div>
-        <div className="space-y-4">
-          {recentNews.map((news, index) => (
-            <Card 
-              key={news.id}
-              className="bg-white border-none shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer animate-slide-up"
-              style={{ animationDelay: `${index * 150}ms` }}
-              role="article"
-              aria-labelledby={`news-title-${news.id}`}
-            >
-              <CardContent className="p-0">
-                <div className="flex space-x-4">
-                  <img 
-                    src={news.image} 
-                    alt={`Imagem relacionada a ${news.title}`}
-                    className="w-20 h-20 object-cover rounded-l-lg flex-shrink-0"
-                  />
-                  <div className="flex-1 p-4 space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant="secondary" 
-                        className="bg-cv-yellow-soft text-cv-purple-dark text-xs"
-                      >
-                        {news.category}
-                      </Badge>
-                      <span className="text-caption text-cv-gray-light">{news.date}</span>
+        <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {recentNews.map((news, index) => (
+              <CarouselItem key={news.id} className="pl-2 md:pl-4 basis-[85%]">
+                <Card 
+                  className="bg-white border-none shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer animate-slide-up"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                  role="article"
+                  aria-labelledby={`news-title-${news.id}`}
+                >
+                  <CardContent className="p-0">
+                    <div className="flex space-x-4">
+                      <img 
+                        src={news.image} 
+                        alt={`Imagem relacionada a ${news.title}`}
+                        className="w-20 h-20 object-cover rounded-l-lg flex-shrink-0"
+                      />
+                      <div className="flex-1 p-4 space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant="secondary" 
+                            className="bg-cv-yellow-soft text-cv-purple-dark text-xs"
+                          >
+                            {news.category}
+                          </Badge>
+                          <span className="text-caption text-cv-gray-light">{news.date}</span>
+                        </div>
+                        <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-purple-dark line-clamp-2">
+                          {news.title}
+                        </h4>
+                        <p className="text-caption text-cv-gray-light line-clamp-2">
+                          {news.description}
+                        </p>
+                      </div>
                     </div>
-                    <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-purple-dark line-clamp-2">
-                      {news.title}
-                    </h4>
-                    <p className="text-caption text-cv-gray-light line-clamp-2">
-                      {news.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-2 bg-white/80 hover:bg-white text-cv-purple-dark" />
+          <CarouselNext className="right-2 bg-white/80 hover:bg-white text-cv-purple-dark" />
+        </Carousel>
       </section>
 
       {/* Bottom spacing for navigation */}
