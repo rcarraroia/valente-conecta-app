@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -19,6 +20,15 @@ export default {
 		},
 		extend: {
 			colors: {
+				// Cores personalizadas do Coração Valente
+				'cv-blue-soft': '#5F9EA0', // Azul Suave/Turquesa
+				'cv-green-mint': '#66CDAA', // Verde Água/Menta
+				'cv-coral': '#FA8072', // Rosa Pêssego/Coral Suave
+				'cv-yellow-soft': '#F0E68C', // Amarelo Suave
+				'cv-off-white': '#F5F5DC', // Branco Off-White
+				'cv-gray-light': '#D3D3D3', // Cinza Claro
+				'cv-gray-dark': '#4F4F4F', // Cinza Escuro
+				
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -63,6 +73,17 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+			fontFamily: {
+				'sans': ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
+				'heading': ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
+			},
+			fontSize: {
+				'h1': ['2rem', { lineHeight: '2.5rem', fontWeight: '700' }], // 32pt
+				'h2': ['1.625rem', { lineHeight: '2rem', fontWeight: '700' }], // 26pt
+				'h3': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }], // 20pt
+				'body': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '400' }], // 18pt
+				'caption': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '400' }], // 14pt
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
@@ -84,11 +105,33 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'slide-up': {
+					'0%': {
+						transform: 'translateY(20px)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'slide-up': 'slide-up 0.4s ease-out'
 			}
 		}
 	},
