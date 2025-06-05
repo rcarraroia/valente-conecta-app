@@ -84,11 +84,11 @@ const HomeScreen = () => {
       <header className="bg-cv-purple-soft text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1">
               <img 
                 src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png" 
                 alt="Instituto Coração Valente" 
-                className="w-8 h-8 object-contain"
+                className="w-full h-full object-cover rounded-full"
               />
             </div>
             <div>
