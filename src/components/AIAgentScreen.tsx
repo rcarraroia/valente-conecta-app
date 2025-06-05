@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +37,10 @@ const AIAgentScreen = () => {
         }
       ]);
     }
+  };
+
+  const handleConsentChange = (checked) => {
+    setConsentAccepted(checked === true);
   };
 
   const sendMessage = () => {
@@ -158,7 +161,7 @@ const AIAgentScreen = () => {
               <Checkbox 
                 id="consent" 
                 checked={consentAccepted}
-                onCheckedChange={setConsentAccepted}
+                onCheckedChange={handleConsentChange}
                 className="mt-1"
               />
               <label htmlFor="consent" className="text-body text-cv-gray-dark cursor-pointer">
