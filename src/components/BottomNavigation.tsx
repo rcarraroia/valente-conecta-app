@@ -59,7 +59,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
               className={`flex flex-col items-center justify-center min-h-[64px] px-3 py-2 rounded-lg transition-all duration-300 relative ${
                 isActive 
                   ? 'bg-cv-green-mint text-white shadow-lg scale-105' 
-                  : 'text-cv-gray-dark hover:text-cv-blue-soft hover:bg-cv-off-white'
+                  : 'text-cv-purple-dark hover:text-cv-blue-heart hover:bg-cv-off-white'
               }`}
               aria-label={item.ariaLabel}
               aria-current={isActive ? 'page' : undefined}

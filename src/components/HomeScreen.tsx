@@ -32,7 +32,7 @@ const HomeScreen = () => {
       title: "Nossos Serviços",
       description: "Conheça nossa missão",
       icon: Heart,
-      color: "bg-cv-blue-soft",
+      color: "bg-cv-blue-heart",
       textColor: "text-white"
     },
     {
@@ -40,7 +40,7 @@ const HomeScreen = () => {
       description: "Artigos e guias",
       icon: Book,
       color: "bg-cv-yellow-soft",
-      textColor: "text-cv-gray-dark"
+      textColor: "text-cv-purple-dark"
     },
     {
       title: "Quero Ajudar",
@@ -81,11 +81,15 @@ const HomeScreen = () => {
   return (
     <div className="min-h-screen bg-cv-off-white">
       {/* Header */}
-      <header className="bg-cv-blue-soft text-white p-4 shadow-lg">
+      <header className="bg-cv-purple-soft text-white p-4 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <Heart className="w-6 h-6 text-cv-coral" />
+              <img 
+                src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png" 
+                alt="Instituto Coração Valente" 
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <div>
               <h1 className="text-h3 font-heading font-bold">Coração Valente</h1>
@@ -99,7 +103,7 @@ const HomeScreen = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-cv-blue-soft via-cv-green-mint to-cv-coral p-6 text-white">
+      <section className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark p-6 text-white">
         <div className="relative z-10 space-y-4 animate-fade-in">
           <h2 className="text-h1 font-heading font-bold leading-tight">
             Descubra o Poder do Acolhimento
@@ -108,7 +112,7 @@ const HomeScreen = () => {
             Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
           </p>
           <Button 
-            className="bg-white text-cv-blue-soft hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
+            className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
             size="lg"
             aria-label="Iniciar jornada de orientação"
           >
@@ -122,7 +126,7 @@ const HomeScreen = () => {
 
       {/* Quick Actions */}
       <section className="p-6" aria-labelledby="quick-actions-title">
-        <h3 id="quick-actions-title" className="text-h2 font-heading font-bold text-cv-gray-dark mb-4">
+        <h3 id="quick-actions-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4">
           Acesso Rápido
         </h3>
         <div className="grid grid-cols-2 gap-4">
@@ -151,21 +155,21 @@ const HomeScreen = () => {
 
       {/* Impact Section */}
       <section className="p-6 bg-white mx-4 rounded-2xl shadow-lg mb-6" aria-labelledby="impact-title">
-        <h3 id="impact-title" className="text-h2 font-heading font-bold text-cv-gray-dark mb-4 text-center">
+        <h3 id="impact-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4 text-center">
           Nosso Impacto
         </h3>
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="space-y-2">
             <div className="text-h1 font-bold text-cv-green-mint">2.5K+</div>
-            <p className="text-caption text-cv-gray-dark">Famílias Atendidas</p>
+            <p className="text-caption text-cv-purple-dark">Famílias Atendidas</p>
           </div>
           <div className="space-y-2">
             <div className="text-h1 font-bold text-cv-coral">98%</div>
-            <p className="text-caption text-cv-gray-dark">Satisfação</p>
+            <p className="text-caption text-cv-purple-dark">Satisfação</p>
           </div>
           <div className="space-y-2">
-            <div className="text-h1 font-bold text-cv-blue-soft">15</div>
-            <p className="text-caption text-cv-gray-dark">Especialistas</p>
+            <div className="text-h1 font-bold text-cv-blue-heart">15</div>
+            <p className="text-caption text-cv-purple-dark">Especialistas</p>
           </div>
         </div>
       </section>
@@ -173,10 +177,10 @@ const HomeScreen = () => {
       {/* Recent News */}
       <section className="p-6" aria-labelledby="news-title">
         <div className="flex items-center justify-between mb-4">
-          <h3 id="news-title" className="text-h2 font-heading font-bold text-cv-gray-dark">
+          <h3 id="news-title" className="text-h2 font-heading font-bold text-cv-purple-dark">
             Últimas Notícias
           </h3>
-          <Button variant="ghost" size="sm" className="text-cv-blue-soft hover:text-cv-green-mint">
+          <Button variant="ghost" size="sm" className="text-cv-blue-heart hover:text-cv-green-mint">
             Ver todas
           </Button>
         </div>
@@ -200,13 +204,13 @@ const HomeScreen = () => {
                     <div className="flex items-center space-x-2">
                       <Badge 
                         variant="secondary" 
-                        className="bg-cv-yellow-soft text-cv-gray-dark text-xs"
+                        className="bg-cv-yellow-soft text-cv-purple-dark text-xs"
                       >
                         {news.category}
                       </Badge>
                       <span className="text-caption text-cv-gray-light">{news.date}</span>
                     </div>
-                    <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-gray-dark line-clamp-2">
+                    <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-purple-dark line-clamp-2">
                       {news.title}
                     </h4>
                     <p className="text-caption text-cv-gray-light line-clamp-2">

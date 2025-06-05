@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,14 +19,19 @@ export default {
 		},
 		extend: {
 			colors: {
-				// Cores personalizadas do Coração Valente
-				'cv-blue-soft': '#5F9EA0', // Azul Suave/Turquesa
-				'cv-green-mint': '#66CDAA', // Verde Água/Menta
-				'cv-coral': '#FA8072', // Rosa Pêssego/Coral Suave
-				'cv-yellow-soft': '#F0E68C', // Amarelo Suave
+				// Nova paleta baseada no logotipo do Instituto Coração Valente
+				'cv-purple-soft': '#7C529C', // Roxo/Lilás Suave do fundo do logo
+				'cv-blue-heart': '#54B2D8', // Azul do coração do logo
+				'cv-purple-dark': '#4C2D80', // Roxo escuro do coração do logo
+				'cv-green-mint': '#66CDAA', // Verde Água/Menta (mantido)
+				'cv-coral': '#FA8072', // Rosa Pêssego/Coral Suave (mantido)
+				'cv-yellow-soft': '#F0E68C', // Amarelo Suave (mantido)
 				'cv-off-white': '#F5F5DC', // Branco Off-White
 				'cv-gray-light': '#D3D3D3', // Cinza Claro
 				'cv-gray-dark': '#4F4F4F', // Cinza Escuro
+				
+				// Cores legadas mantidas para compatibilidade (serão removidas gradualmente)
+				'cv-blue-soft': '#7C529C', // Mapeado para purple-soft
 				
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

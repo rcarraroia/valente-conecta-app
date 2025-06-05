@@ -27,10 +27,10 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
       {/* Header */}
       <div className="flex items-center space-x-4 mb-8">
         <Button variant="ghost" size="icon" aria-label="Voltar">
-          <ArrowLeft className="h-6 w-6 text-cv-gray-dark" />
+          <ArrowLeft className="h-6 w-6 text-cv-purple-dark" />
         </Button>
         <div>
-          <h1 className="text-h2 font-heading font-bold text-cv-gray-dark">Orientação Inteligente</h1>
+          <h1 className="text-h2 font-heading font-bold text-cv-purple-dark">Orientação Inteligente</h1>
           <p className="text-body text-cv-gray-light">Powered by IA</p>
         </div>
       </div>
@@ -45,7 +45,7 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
       {/* Introduction */}
       <Card className="bg-white border-none shadow-lg mb-6">
         <CardHeader className="text-center">
-          <CardTitle className="text-h2 font-heading text-cv-gray-dark">
+          <CardTitle className="text-h2 font-heading text-cv-purple-dark">
             Como posso te ajudar?
           </CardTitle>
           <CardDescription className="text-body text-cv-gray-light">
@@ -56,18 +56,18 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
           <div className="bg-cv-yellow-soft/20 p-4 rounded-lg border-l-4 border-cv-yellow-soft">
             <div className="flex items-center space-x-2 mb-2">
               <AlertTriangle className="w-5 h-5 text-cv-coral" />
-              <span className="font-semibold text-cv-gray-dark">Importante</span>
+              <span className="font-semibold text-cv-purple-dark">Importante</span>
             </div>
-            <p className="text-body text-cv-gray-dark">
+            <p className="text-body text-cv-purple-dark">
               Esta ferramenta oferece uma orientação inicial e <strong>NÃO substitui</strong> o diagnóstico profissional.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 mt-6">
-            <div className="flex items-center space-x-3 p-3 bg-cv-blue-soft/10 rounded-lg">
-              <Shield className="w-6 h-6 text-cv-blue-soft" />
+            <div className="flex items-center space-x-3 p-3 bg-cv-blue-heart/10 rounded-lg">
+              <Shield className="w-6 h-6 text-cv-blue-heart" />
               <div>
-                <h4 className="font-semibold text-cv-gray-dark">Seguro e Confidencial</h4>
+                <h4 className="font-semibold text-cv-purple-dark">Seguro e Confidencial</h4>
                 <p className="text-caption text-cv-gray-light">Suas informações são protegidas</p>
               </div>
             </div>
@@ -75,7 +75,7 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
             <div className="flex items-center space-x-3 p-3 bg-cv-green-mint/10 rounded-lg">
               <Clock className="w-6 h-6 text-cv-green-mint" />
               <div>
-                <h4 className="font-semibold text-cv-gray-dark">Rápido e Eficiente</h4>
+                <h4 className="font-semibold text-cv-purple-dark">Rápido e Eficiente</h4>
                 <p className="text-caption text-cv-gray-light">Processo leva cerca de 10-15 minutos</p>
               </div>
             </div>
@@ -86,12 +86,12 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
       {/* Consent Section */}
       <Card className="bg-white border-none shadow-lg">
         <CardHeader>
-          <CardTitle className="text-h3 font-heading text-cv-gray-dark">
+          <CardTitle className="text-h3 font-heading text-cv-purple-dark">
             Termo de Consentimento
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3 text-body text-cv-gray-dark">
+          <div className="space-y-3 text-body text-cv-purple-dark">
             <p>Ao prosseguir, você declara que:</p>
             <ul className="space-y-2 list-disc list-inside text-cv-gray-light">
               <li>Entende que esta é uma orientação inicial</li>
@@ -108,7 +108,7 @@ const AIIntroScreen: React.FC<AIIntroScreenProps> = ({
               onCheckedChange={onConsentChange}
               className="mt-1"
             />
-            <label htmlFor="consent" className="text-body text-cv-gray-dark cursor-pointer">
+            <label htmlFor="consent" className="text-body text-cv-purple-dark cursor-pointer">
               Li e aceito os termos acima. Entendo que esta ferramenta oferece orientação inicial e não substitui avaliação profissional.
             </label>
           </div>

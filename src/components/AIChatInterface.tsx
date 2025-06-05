@@ -42,7 +42,7 @@ const AIChatInterface: React.FC<AIChatInterfaceProps> = ({
   return (
     <div className="min-h-screen bg-cv-off-white flex flex-col">
       {/* Header */}
-      <div className="bg-cv-blue-soft text-white p-4 shadow-lg">
+      <div className="bg-cv-purple-soft text-white p-4 shadow-lg">
         <div className="flex items-center space-x-3">
           <Button variant="ghost" size="icon" className="text-white" aria-label="Voltar">
             <ArrowLeft className="h-6 w-6" />
@@ -70,7 +70,7 @@ const AIChatInterface: React.FC<AIChatInterfaceProps> = ({
               className={`max-w-[85%] p-4 rounded-2xl shadow-md ${
                 message.sender === 'user' 
                   ? 'bg-cv-green-mint text-white ml-12' 
-                  : 'bg-white text-cv-gray-dark mr-12'
+                  : 'bg-white text-cv-purple-dark mr-12'
               }`}
             >
               <p className="text-body">{message.message}</p>
@@ -85,7 +85,7 @@ const AIChatInterface: React.FC<AIChatInterfaceProps> = ({
         
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-white text-cv-gray-dark p-4 rounded-2xl shadow-md mr-12">
+            <div className="bg-white text-cv-purple-dark p-4 rounded-2xl shadow-md mr-12">
               <div className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-cv-gray-light rounded-full animate-pulse"></div>
                 <div className="w-2 h-2 bg-cv-gray-light rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
@@ -107,7 +107,7 @@ const AIChatInterface: React.FC<AIChatInterfaceProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onQuickReply(reply)}
-                className="text-cv-gray-dark border-cv-gray-light hover:border-cv-green-mint hover:text-cv-green-mint"
+                className="text-cv-purple-dark border-cv-gray-light hover:border-cv-green-mint hover:text-cv-green-mint"
               >
                 {reply}
               </Button>
