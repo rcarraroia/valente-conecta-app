@@ -16,6 +16,11 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Se o usuário fez logout, redirecionar para a página inicial
+        if (event === 'SIGNED_OUT') {
+          window.location.href = '/auth';
+        }
       }
     );
 
@@ -34,6 +39,7 @@ export const useAuth = () => {
     if (error) {
       console.error('Error signing out:', error);
     }
+    // O redirecionamento será feito pelo onAuthStateChange
     return { error };
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -95,13 +94,10 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
             phone: phone,
@@ -125,16 +121,24 @@ const Auth = () => {
           });
         }
       } else if (data.user) {
-        toast({
-          title: 'Conta criada com sucesso!',
-          description: 'Você pode fazer login agora.',
+        // Fazer login automaticamente após o cadastro
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: signupEmail,
+          password: signupPassword,
         });
-        // Limpar formulário
-        setSignupEmail('');
-        setSignupPassword('');
-        setFullName('');
-        setPhone('');
-        setCity('');
+
+        if (loginError) {
+          toast({
+            title: 'Conta criada!',
+            description: 'Faça login com suas credenciais.',
+          });
+        } else {
+          toast({
+            title: 'Conta criada e login realizado!',
+            description: 'Redirecionando...',
+          });
+          window.location.href = '/';
+        }
       }
     } catch (error) {
       toast({
