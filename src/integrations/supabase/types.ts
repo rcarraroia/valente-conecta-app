@@ -9,7 +9,126 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      diagnostics: {
+        Row: {
+          ai_response: string | null
+          created_at: string
+          id: string
+          recommendations: string | null
+          severity_level: number | null
+          status: string | null
+          symptoms: string
+          user_id: string
+        }
+        Insert: {
+          ai_response?: string | null
+          created_at?: string
+          id?: string
+          recommendations?: string | null
+          severity_level?: number | null
+          status?: string | null
+          symptoms: string
+          user_id: string
+        }
+        Update: {
+          ai_response?: string | null
+          created_at?: string
+          id?: string
+          recommendations?: string | null
+          severity_level?: number | null
+          status?: string | null
+          symptoms?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      news_articles: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          published_at: string
+          summary: string | null
+          title: string
+          view_count: number | null
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string
+          summary?: string | null
+          title: string
+          view_count?: number | null
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string
+          summary?: string | null
+          title?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          medical_conditions: string | null
+          medications: string | null
+          phone: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id: string
+          medical_conditions?: string | null
+          medications?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          medical_conditions?: string | null
+          medications?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
