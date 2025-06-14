@@ -1,63 +1,50 @@
 
-import React, { useState, useEffect } from 'react';
-import { Book, User } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useState } from 'react';
 import HomeScreen from '@/components/HomeScreen';
+import LibraryScreen from '@/components/LibraryScreen';
 import AIAgentScreen from '@/components/AIAgentScreen';
 import HelpScreen from '@/components/HelpScreen';
-import LibraryScreen from '@/components/LibraryScreen';
 import ProfileScreen from '@/components/ProfileScreen';
+import ServicesScreen from '@/components/ServicesScreen';
 import BottomNavigation from '@/components/BottomNavigation';
 
 const Index = () => {
-  const [currentScreen, setCurrentScreen] = useState('home');
-  const { user, loading } = useAuth();
-
-  // Redirecionar para login se não autenticado
-  useEffect(() => {
-    if (!loading && !user) {
-      window.location.href = '/auth';
-    }
-  }, [user, loading]);
-
-  // Mostrar loading enquanto verifica autenticação
-  if (loading) {
-    return (
-      <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-cv-coral border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-cv-gray-light">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Se não autenticado, não renderizar nada (será redirecionado)
-  if (!user) {
-    return null;
-  }
+  const [currentScreen, setCurrentScreen] = useState<string>('home');
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'home':
         return <HomeScreen />;
-      case 'ia':
-        return <AIAgentScreen />;
-      case 'ajudar':
-        return <HelpScreen />;
-      case 'biblioteca':
-        return <LibraryScreen />;
-      case 'perfil':
-        return <ProfileScreen />;
+      case 'library':
+        return <LibraryScreen onBack={() => setCurrentScreen('home')} />;
+      case 'diagnosis':
+        return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
+      case 'help':
+        return <HelpScreen onBack={() => setCurrentScreen('home')} />;
+      case 'profile':
+        return <ProfileScreen onBack={() => setCurrentScreen('home')} />;
+      case 'services':
+        return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
         return <HomeScreen />;
     }
   };
 
+  const handleNavigate = (screen: string) => {
+    setCurrentScreen(screen);
+  };
+
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen relative">
+    <div className="min-h-screen bg-cv-off-white relative">
       {renderScreen()}
-      <BottomNavigation currentTab={currentScreen} onTabChange={setCurrentScreen} />
+      
+      {/* Show bottom navigation only on main screens */}
+      {['home', 'library', 'diagnosis', 'help', 'profile'].includes(currentScreen) && (
+        <BottomNavigation 
+          currentScreen={currentScreen} 
+          onNavigate={handleNavigate}
+        />
+      )}
     </div>
   );
 };
