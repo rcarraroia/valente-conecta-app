@@ -15,16 +15,16 @@ const Index = () => {
     switch (currentScreen) {
       case 'home':
         return <HomeScreen />;
-      case 'library':
-        return <LibraryScreen onBack={() => setCurrentScreen('home')} />;
-      case 'diagnosis':
+      case 'biblioteca':
+        return <LibraryScreen />;
+      case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
-      case 'help':
-        return <HelpScreen onBack={() => setCurrentScreen('home')} />;
-      case 'profile':
-        return <ProfileScreen onBack={() => setCurrentScreen('home')} />;
+      case 'ajudar':
+        return <HelpScreen />;
+      case 'perfil':
+        return <ProfileScreen />;
       case 'services':
-        return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
+        return <ServicesScreen />;
       default:
         return <HomeScreen />;
     }
@@ -39,10 +39,10 @@ const Index = () => {
       {renderScreen()}
       
       {/* Show bottom navigation only on main screens */}
-      {['home', 'library', 'diagnosis', 'help', 'profile'].includes(currentScreen) && (
+      {['home', 'biblioteca', 'ia', 'ajudar', 'perfil'].includes(currentScreen) && (
         <BottomNavigation 
-          currentScreen={currentScreen} 
-          onNavigate={handleNavigate}
+          currentTab={currentScreen} 
+          onTabChange={handleNavigate}
         />
       )}
     </div>

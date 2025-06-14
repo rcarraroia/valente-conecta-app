@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Skip } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SkipForward } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -78,7 +78,7 @@ const OnboardingScreen = ({ onComplete }: OnboardingScreenProps) => {
           onClick={handleSkip}
           className="text-white hover:bg-white/20"
         >
-          <Skip className="h-4 w-4 mr-2" />
+          <SkipForward className="h-4 w-4 mr-2" />
           Pular
         </Button>
       </div>

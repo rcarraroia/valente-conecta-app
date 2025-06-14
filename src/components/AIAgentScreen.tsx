@@ -10,30 +10,31 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-const AIAgentScreen = () => {
+interface AIAgentScreenProps {
+  onBack: () => void;
+}
+
+const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
   const [currentStep, setCurrentStep] = useState('intro'); // intro, chat, results
-  const [consentAccepted, setConsentAccepted] = useState(false);
   const [userMessage, setUserMessage] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
-  const handleStartChat = () => {
-    if (consentAccepted) {
-      setCurrentStep('chat');
-      // Simulate initial AI message
-      setChatMessages([
-        {
-          id: 1,
-          sender: 'ai',
-          message: 'Olá! Sou o assistente do Coração Valente. Vou fazer algumas perguntas para te ajudar a identificar possíveis sinais relacionados ao neurodesenvolvimento. Vamos começar?',
-          timestamp: new Date()
-        }
-      ]);
-    }
+  const handleStart = () => {
+    setCurrentStep('chat');
+    // Simulate initial AI message
+    setChatMessages([
+      {
+        id: 1,
+        sender: 'ai',
+        message: 'Olá! Sou o assistente do Coração Valente. Vou fazer algumas perguntas para te ajudar a identificar possíveis sinais relacionados ao neurodesenvolvimento. Vamos começar?',
+        timestamp: new Date()
+      }
+    ]);
   };
 
-  const handleConsentChange = (checked: any) => {
-    setConsentAccepted(checked === true);
+  const handleCancel = () => {
+    onBack();
   };
 
   const sendMessage = () => {
@@ -70,9 +71,8 @@ const AIAgentScreen = () => {
   if (currentStep === 'intro') {
     return (
       <AIIntroScreen
-        consentAccepted={consentAccepted}
-        onConsentChange={handleConsentChange}
-        onStartChat={handleStartChat}
+        onStart={handleStart}
+        onCancel={handleCancel}
       />
     );
   }
