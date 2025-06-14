@@ -20,11 +20,11 @@ const Index = () => {
       case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
       case 'ajudar':
-        return <HelpScreen />;
+        return <HelpScreen onBack={() => setCurrentScreen('home')} />;
       case 'perfil':
         return <ProfileScreen />;
       case 'services':
-        return <ServicesScreen />;
+        return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
         return <HomeScreen />;
     }
