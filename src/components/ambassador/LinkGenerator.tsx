@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAmbassadorLinks } from '@/hooks/useAmbassadorLinks';
-import { Copy, Users } from 'lucide-react';
+import { Copy, Users, Zap } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,8 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 const LinkGenerator = () => {
   const [ambassadorLink, setAmbassadorLink] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [needsGeneration, setNeedsGeneration] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { loading: generatingLinks, generateExistingAmbassadorLinks } = useAmbassadorLinks();
 
   useEffect(() => {
     if (user) {
@@ -40,11 +42,24 @@ const LinkGenerator = () => {
         const baseUrl = 'https://coracaovalente.com.br';
         const link = `${baseUrl}/landing?ref=${profile.ambassador_code}`;
         setAmbassadorLink(link);
+        setNeedsGeneration(false);
+      } else {
+        setNeedsGeneration(true);
       }
     } catch (error) {
       console.error('Erro ao carregar link do embaixador:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateCode = async () => {
+    const result = await generateExistingAmbassadorLinks();
+    if (result) {
+      // Recarregar o link após a geração
+      setTimeout(() => {
+        loadAmbassadorLink();
+      }, 1000);
     }
   };
 
@@ -116,10 +131,26 @@ const LinkGenerator = () => {
               </Button>
             </div>
           </div>
+        ) : needsGeneration ? (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+              <p className="text-sm text-yellow-800 mb-3">
+                Seu código de embaixador ainda não foi gerado. Clique no botão abaixo para gerar seu link personalizado.
+              </p>
+              <Button
+                onClick={handleGenerateCode}
+                disabled={generatingLinks}
+                className="w-full bg-cv-green hover:bg-cv-green/90"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                {generatingLinks ? 'Gerando...' : 'Gerar Meu Código de Embaixador'}
+              </Button>
+            </div>
+          </div>
         ) : (
-          <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-            <p className="text-sm text-yellow-800">
-              Seu link de embaixador ainda não foi gerado. Entre em contato com o suporte.
+          <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+            <p className="text-sm text-red-800">
+              Houve um problema ao carregar seu link de embaixador. Entre em contato com o suporte.
             </p>
           </div>
         )}
