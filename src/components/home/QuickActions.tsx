@@ -1,101 +1,93 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Heart, Book, HandHeart } from 'lucide-react';
-
-interface QuickAction {
-  title: string;
-  description: string;
-  icon: typeof Brain;
-  color: string;
-  textColor: string;
-  ariaLabel: string;
-  action: () => void;
-}
+import { Brain, BookOpen, Heart, Users, HeadphonesIcon } from 'lucide-react';
 
 interface QuickActionsProps {
   onNavigate?: (screen: string) => void;
 }
 
 const QuickActions = ({ onNavigate }: QuickActionsProps) => {
-  const quickActions: QuickAction[] = [
+  const actions = [
     {
-      title: "Pré-Diagnóstico IA",
-      description: "Orientação inteligente",
+      id: 'ia',
+      title: 'Pré-Diagnóstico',
+      description: 'Avaliação inicial com IA',
       icon: Brain,
-      color: "bg-cv-green-mint",
-      textColor: "text-white",
-      ariaLabel: "Iniciar pré-diagnóstico com inteligência artificial",
-      action: () => onNavigate?.('ia')
+      bgColor: 'bg-cv-blue-heart',
+      textColor: 'text-white'
     },
     {
-      title: "Nossos Serviços",
-      description: "Conheça nossa missão",
+      id: 'biblioteca',
+      title: 'Biblioteca',
+      description: 'Recursos educacionais',
+      icon: BookOpen,
+      bgColor: 'bg-cv-green-mint',
+      textColor: 'text-white'
+    },
+    {
+      id: 'partners',
+      title: 'Profissionais',
+      description: 'Nossos parceiros',
+      icon: Users,
+      bgColor: 'bg-cv-purple-soft',
+      textColor: 'text-white'
+    },
+    {
+      id: 'ajudar',
+      title: 'Ajudar',
+      description: 'Faça sua doação',
       icon: Heart,
-      color: "bg-cv-blue-heart",
-      textColor: "text-white",
-      ariaLabel: "Conhecer serviços do Instituto Coração Valente",
-      action: () => onNavigate?.('services')
+      bgColor: 'bg-cv-coral',
+      textColor: 'text-white'
     },
     {
-      title: "Biblioteca",
-      description: "Artigos e guias",
-      icon: Book,
-      color: "bg-cv-yellow-soft",
-      textColor: "text-cv-purple-dark",
-      ariaLabel: "Acessar biblioteca de artigos e guias",
-      action: () => onNavigate?.('biblioteca')
-    },
-    {
-      title: "Quero Ajudar",
-      description: "Seja um mantenedor",
-      icon: HandHeart,
-      color: "bg-cv-coral",
-      textColor: "text-white",
-      ariaLabel: "Descobrir como ajudar o Instituto",
-      action: () => onNavigate?.('ajudar')
+      id: 'services',
+      title: 'Serviços',
+      description: 'Nossos serviços',
+      icon: HeadphonesIcon,
+      bgColor: 'bg-cv-yellow-warm',
+      textColor: 'text-cv-gray-dark'
     }
   ];
 
-  const handleCardClick = (action: () => void) => {
-    action();
+  const handleActionClick = (actionId: string) => {
+    if (onNavigate) {
+      onNavigate(actionId);
+    }
   };
 
   return (
-    <section className="px-4 py-6" aria-labelledby="quick-actions-title">
-      <h3 id="quick-actions-title" className="text-xl font-heading font-bold text-cv-purple-dark mb-4">
+    <div className="px-6 py-8">
+      <h2 className="text-xl font-heading font-bold text-cv-gray-dark mb-6 text-center">
         Acesso Rápido
-      </h3>
-      <div className="grid grid-cols-2 gap-3" role="grid">
-        {quickActions.map((action, index) => (
-          <Card 
-            key={action.title}
-            className={`${action.color} border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer animate-slide-up touch-target`}
-            style={{ animationDelay: `${index * 100}ms` }}
-            role="gridcell"
-            tabIndex={0}
-            aria-label={action.ariaLabel}
-            onClick={() => handleCardClick(action.action)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleCardClick(action.action);
-              }
-            }}
-          >
-            <CardContent className="p-3 text-center space-y-2">
-              <action.icon className={`w-6 h-6 mx-auto ${action.textColor}`} aria-hidden="true" />
-              <h4 className={`font-semibold text-sm ${action.textColor}`}>
-                {action.title}
-              </h4>
-              <p className={`text-xs opacity-90 ${action.textColor} leading-tight`}>
-                {action.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      </h2>
+      
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {actions.map((action) => {
+          const IconComponent = action.icon;
+          return (
+            <Card 
+              key={action.id}
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 shadow-sm"
+              onClick={() => handleActionClick(action.id)}
+            >
+              <CardContent className="p-4 text-center">
+                <div className={`w-12 h-12 mx-auto mb-3 rounded-full ${action.bgColor} flex items-center justify-center`}>
+                  <IconComponent className={`w-6 h-6 ${action.textColor}`} />
+                </div>
+                <h3 className="font-semibold text-sm text-cv-gray-dark mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-xs text-cv-gray-light">
+                  {action.description}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
 };
 

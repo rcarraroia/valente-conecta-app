@@ -2,12 +2,13 @@
 import React from 'react';
 import HomeHeader from './home/HomeHeader';
 import HomeHero from './home/HomeHero';
+import PartnersCarousel from './home/PartnersCarousel';
 import QuickActions from './home/QuickActions';
 import ImpactSection from './home/ImpactSection';
 import NewsCarousel from './home/NewsCarousel';
 
 interface HomeScreenProps {
-  onNavigate?: (screen: string) => void;
+  onNavigate?: (screen: string, partnerId?: string) => void;
 }
 
 const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
@@ -19,6 +20,7 @@ const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
     <div className="min-h-screen bg-cv-off-white">
       <HomeHeader />
       <HomeHero onJourneyStart={handleJourneyStart} />
+      <PartnersCarousel onNavigate={onNavigate} />
       <QuickActions onNavigate={onNavigate} />
       <ImpactSection />
       <NewsCarousel onNavigate={onNavigate} />

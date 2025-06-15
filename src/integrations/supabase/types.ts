@@ -83,6 +83,60 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          partner_id: string
+          schedule_id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_id: string
+          schedule_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          schedule_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           created_at: string
@@ -395,6 +449,54 @@ export type Database = {
         }
         Relationships: []
       }
+      partners: {
+        Row: {
+          bio: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string | null
+          crm_crp_register: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          professional_photo_url: string | null
+          specialties: Json | null
+          specialty: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          crm_crp_register?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          professional_photo_url?: string | null
+          specialties?: Json | null
+          specialty?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          crm_crp_register?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          professional_photo_url?: string | null
+          specialties?: Json | null
+          specialty?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       pre_diagnosis_questions: {
         Row: {
           category: string | null
@@ -486,6 +588,7 @@ export type Database = {
           phone: string | null
           state: string | null
           updated_at: string
+          user_type: string | null
         }
         Insert: {
           ambassador_code?: string | null
@@ -505,6 +608,7 @@ export type Database = {
           phone?: string | null
           state?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Update: {
           ambassador_code?: string | null
@@ -524,8 +628,53 @@ export type Database = {
           phone?: string | null
           state?: string | null
           updated_at?: string
+          user_type?: string | null
         }
         Relationships: []
+      }
+      schedules: {
+        Row: {
+          created_at: string | null
+          day_of_week: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          max_appointments: number | null
+          partner_id: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          max_appointments?: number | null
+          partner_id: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          max_appointments?: number | null
+          partner_id?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedules_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
