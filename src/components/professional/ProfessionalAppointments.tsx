@@ -56,7 +56,9 @@ const ProfessionalAppointments = ({ partnerId, onUpdate }: ProfessionalAppointme
       // Filter out any appointments with profile errors and ensure type safety
       const validAppointments = (data || []).map(appointment => ({
         ...appointment,
-        profiles: appointment.profiles && typeof appointment.profiles === 'object' && 'full_name' in appointment.profiles 
+        profiles: appointment.profiles && 
+                 typeof appointment.profiles === 'object' && 
+                 'full_name' in appointment.profiles 
           ? appointment.profiles as { full_name: string; phone: string }
           : null
       }));
