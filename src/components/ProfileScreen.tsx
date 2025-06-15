@@ -1,300 +1,260 @@
-
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Phone, MapPin, Calendar, Heart, Shield, LogOut } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-
-interface Profile {
-  full_name?: string;
-  phone?: string;
-  date_of_birth?: string;
-  gender?: string;
-  city?: string;
-  state?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  medical_conditions?: string;
-  medications?: string;
-}
+import { Separator } from '@/components/ui/separator';
+import { User, Copy, ExternalLink, TrendingUp, Link, HandHeart } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAmbassadorLinks } from '@/hooks/useAmbassadorLinks';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfileScreen = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { loading, generateLink, getMyLinks, getPerformance } = useAmbassadorLinks();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<Profile>({});
+  const [isAmbassador, setIsAmbassador] = useState(false);
+  const [myLinks, setMyLinks] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<any>(null);
+  const [destinationUrl, setDestinationUrl] = useState('');
 
   useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
+    checkAmbassadorStatus();
+    loadAmbassadorData();
   }, [user]);
 
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        toast({
-          title: 'Erro ao carregar perfil',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else if (data) {
-        setProfile(data);
-      }
-    } catch (error) {
-      console.error('Error loading profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkAmbassadorStatus = async () => {
     if (!user) return;
-
+    
     try {
-      setSaving(true);
-      const { error } = await supabase
+      const { data } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          ...profile,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        toast({
-          title: 'Erro ao salvar perfil',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Perfil atualizado!',
-          description: 'Suas informações foram salvas com sucesso.',
-        });
-      }
+        .select('is_volunteer, ambassador_code')
+        .eq('id', user.id)
+        .single();
+      
+      setIsAmbassador(data?.is_volunteer && data?.ambassador_code);
     } catch (error) {
-      console.error('Error updating profile:', error);
-    } finally {
-      setSaving(false);
+      console.error('Erro ao verificar status de embaixador:', error);
     }
   };
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (!error) {
-      window.location.href = '/auth';
+  const loadAmbassadorData = async () => {
+    if (!isAmbassador) return;
+    
+    const [links, perf] = await Promise.all([
+      getMyLinks(),
+      getPerformance()
+    ]);
+    
+    setMyLinks(links || []);
+    setPerformance(perf);
+  };
+
+  const handleGenerateLink = async () => {
+    if (!destinationUrl.trim()) {
+      toast({
+        title: 'URL necessária',
+        description: 'Por favor, insira uma URL de destino.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newLink = await generateLink(destinationUrl);
+    if (newLink) {
+      setMyLinks(prev => [newLink, ...prev]);
+      setDestinationUrl('');
     }
   };
 
-  const updateField = (field: keyof Profile, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: 'Copiado!',
+        description: 'Link copiado para a área de transferência.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível copiar o link.',
+        variant: 'destructive',
+      });
+    }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-cv-off-white flex items-center justify-center p-6 pb-20">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-cv-coral border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-cv-gray-light">Carregando perfil...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 bg-cv-blue-heart rounded-full flex items-center justify-center mx-auto">
-            <User className="w-10 h-10 text-white" />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="bg-cv-purple-soft p-3 rounded-full">
+            <User className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-h1 font-heading font-bold text-cv-gray-dark">Meu Perfil</h1>
-            <p className="text-body text-cv-gray-light">{user?.email}</p>
+            <h1 className="text-2xl font-heading font-bold text-cv-gray-dark">
+              Meu Perfil
+            </h1>
+            <p className="text-cv-gray-light">
+              {user?.email}
+            </p>
           </div>
         </div>
 
-        {/* Informações Básicas */}
+        {/* Profile Info */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Informações Pessoais
-            </CardTitle>
-            <CardDescription>
-              Mantenha seus dados atualizados para um melhor atendimento
-            </CardDescription>
+            <CardTitle className="text-cv-gray-dark">Informações Pessoais</CardTitle>
           </CardHeader>
-          <form onSubmit={updateProfile}>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Nome Completo</Label>
-                  <Input
-                    id="full_name"
-                    value={profile.full_name || ''}
-                    onChange={(e) => updateField('full_name', e.target.value)}
-                    placeholder="Seu nome completo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="phone"
-                      className="pl-10"
-                      value={profile.phone || ''}
-                      onChange={(e) => updateField('phone', e.target.value)}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date_of_birth">Data de Nascimento</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="date_of_birth"
-                      type="date"
-                      className="pl-10"
-                      value={profile.date_of_birth || ''}
-                      onChange={(e) => updateField('date_of_birth', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gênero</Label>
-                  <select
-                    id="gender"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={profile.gender || ''}
-                    onChange={(e) => updateField('gender', e.target.value)}
-                  >
-                    <option value="">Selecione</option>
-                    <option value="masculino">Masculino</option>
-                    <option value="feminino">Feminino</option>
-                    <option value="outro">Outro</option>
-                    <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="city"
-                      className="pl-10"
-                      value={profile.city || ''}
-                      onChange={(e) => updateField('city', e.target.value)}
-                      placeholder="Sua cidade"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado</Label>
-                  <Input
-                    id="state"
-                    value={profile.state || ''}
-                    onChange={(e) => updateField('state', e.target.value)}
-                    placeholder="Seu estado"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-cv-gray-dark mb-4 flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Contato de Emergência
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="emergency_contact_name">Nome do Contato</Label>
-                    <Input
-                      id="emergency_contact_name"
-                      value={profile.emergency_contact_name || ''}
-                      onChange={(e) => updateField('emergency_contact_name', e.target.value)}
-                      placeholder="Nome completo"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="emergency_contact_phone">Telefone do Contato</Label>
-                    <Input
-                      id="emergency_contact_phone"
-                      value={profile.emergency_contact_phone || ''}
-                      onChange={(e) => updateField('emergency_contact_phone', e.target.value)}
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-cv-gray-dark mb-4 flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Informações Médicas
-                </h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="medical_conditions">Condições Médicas</Label>
-                    <textarea
-                      id="medical_conditions"
-                      className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={profile.medical_conditions || ''}
-                      onChange={(e) => updateField('medical_conditions', e.target.value)}
-                      placeholder="Descreva suas condições médicas (opcional)"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="medications">Medicamentos</Label>
-                    <textarea
-                      id="medications"
-                      className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={profile.medications || ''}
-                      onChange={(e) => updateField('medications', e.target.value)}
-                      placeholder="Liste seus medicamentos atuais (opcional)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 bg-cv-green-mint hover:bg-cv-green-mint/90"
-                  disabled={saving}
-                >
-                  {saving ? 'Salvando...' : 'Salvar Perfil'}
-                </Button>
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair
-                </Button>
-              </div>
-            </CardContent>
-          </form>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
+            <p className="text-sm text-cv-gray-light">
+              Para alterar informações pessoais, entre em contato conosco.
+            </p>
+          </CardContent>
         </Card>
+
+        {/* Ambassador Section */}
+        {isAmbassador && (
+          <>
+            <Separator />
+            
+            {/* Performance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-cv-gray-dark flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Performance de Embaixador
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-cv-blue-heart">
+                      {performance?.total_clicks || 0}
+                    </p>
+                    <p className="text-sm text-cv-gray-light">Cliques</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-cv-green-mint">
+                      {performance?.total_donations_count || 0}
+                    </p>
+                    <p className="text-sm text-cv-gray-light">Doações</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-cv-coral">
+                      {performance?.points || 0}
+                    </p>
+                    <p className="text-sm text-cv-gray-light">Pontos</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Generate New Link */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-cv-gray-dark flex items-center gap-2">
+                  <Link className="w-5 h-5" />
+                  Gerar Novo Link Rastreável
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="destination">URL de Destino</Label>
+                  <Input
+                    id="destination"
+                    type="url"
+                    placeholder="https://exemplo.com"
+                    value={destinationUrl}
+                    onChange={(e) => setDestinationUrl(e.target.value)}
+                  />
+                </div>
+                <Button 
+                  onClick={handleGenerateLink}
+                  disabled={loading}
+                  className="w-full bg-cv-green-mint hover:bg-cv-green-mint/90"
+                >
+                  {loading ? 'Gerando...' : 'Gerar Link'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* My Links */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-cv-gray-dark">Meus Links</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {myLinks.length === 0 ? (
+                  <p className="text-cv-gray-light text-center py-4">
+                    Você ainda não possui links gerados.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {myLinks.map((link) => (
+                      <div key={link.id} className="border rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-cv-gray-light">
+                            {new Date(link.created_at).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 bg-gray-100 p-2 rounded text-sm">
+                            {link.short_url}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => copyToClipboard(link.short_url)}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(link.short_url, '_blank')}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* Non-Ambassador Info */}
+        {!isAmbassador && (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <HandHeart className="w-12 h-12 mx-auto mb-4 text-cv-coral" />
+              <h3 className="text-lg font-semibold text-cv-gray-dark mb-2">
+                Torne-se um Embaixador
+              </h3>
+              <p className="text-cv-gray-light mb-4">
+                Ajude a divulgar nossa causa e ganhe reconhecimento pelos seus esforços.
+              </p>
+              <Button className="bg-cv-coral hover:bg-cv-coral/90">
+                Saiba Mais
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
