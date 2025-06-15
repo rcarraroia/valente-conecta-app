@@ -46,6 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Dados do pagamento recebidos:', {
       amount: paymentData.amount,
       type: paymentData.type,
+      frequency: paymentData.frequency,
       paymentMethod: paymentData.paymentMethod,
       ambassadorCode: paymentData.ambassadorCode,
       donorName: paymentData.donor.name
@@ -152,10 +153,12 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('Split configurado:', { ambassadorShare, instituteShare });
     }
 
-    // 5. Criar pagamento na Asaas
+    // 5. Criar pagamento/assinatura na Asaas
     const externalReference = `${paymentData.type.toUpperCase()}_${Date.now()}`;
     
     let asaasResponse;
+    let asaasResult;
+    
     if (paymentData.type === 'donation') {
       const paymentPayload = {
         customer: customer.id,
@@ -177,10 +180,20 @@ const handler = async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify(paymentPayload),
       });
-    } else {
+
+      if (!asaasResponse.ok) {
+        const errorData = await asaasResponse.text();
+        console.error('Erro da Asaas (doação):', errorData);
+        throw new Error('Erro ao processar doação');
+      }
+
+      asaasResult = await asaasResponse.json();
+      console.log('Doação criada:', asaasResult.id);
+
+    } else if (paymentData.type === 'subscription') {
       const subscriptionPayload = {
         customer: customer.id,
-        billingType: paymentData.paymentMethod,
+        billingType: paymentData.paymentMethod || 'CREDIT_CARD',
         value: totalAmountInReais,
         cycle: paymentData.frequency === 'monthly' ? 'MONTHLY' : 'YEARLY',
         description: `Apoio ${paymentData.frequency === 'monthly' ? 'Mensal' : 'Anual'} - Instituto Coração Valente`,
@@ -199,16 +212,39 @@ const handler = async (req: Request): Promise<Response> => {
         },
         body: JSON.stringify(subscriptionPayload),
       });
-    }
 
-    if (!asaasResponse.ok) {
-      const errorData = await asaasResponse.text();
-      console.error('Erro da Asaas:', errorData);
-      throw new Error('Erro ao processar pagamento');
-    }
+      if (!asaasResponse.ok) {
+        const errorData = await asaasResponse.text();
+        console.error('Erro da Asaas (assinatura):', errorData);
+        throw new Error('Erro ao processar assinatura');
+      }
 
-    const result = await asaasResponse.json();
-    console.log('Pagamento criado:', result.id);
+      asaasResult = await asaasResponse.json();
+      console.log('Assinatura criada:', asaasResult.id);
+
+      // Para assinaturas, buscar a primeira cobrança gerada
+      console.log('Buscando primeira cobrança da assinatura...');
+      
+      const paymentsResponse = await fetch(`https://www.asaas.com/api/v3/payments?subscription=${asaasResult.id}`, {
+        method: 'GET',
+        headers: {
+          'access_token': asaasApiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (paymentsResponse.ok) {
+        const paymentsData = await paymentsResponse.json();
+        if (paymentsData.data && paymentsData.data.length > 0) {
+          const firstPayment = paymentsData.data[0];
+          console.log('Primeira cobrança encontrada:', firstPayment.id);
+          
+          // Usar dados da primeira cobrança para o checkout
+          asaasResult.invoiceUrl = firstPayment.invoiceUrl;
+          asaasResult.pixQrCodeBase64 = firstPayment.pixQrCodeBase64;
+        }
+      }
+    }
 
     // 6. Salvar no banco
     const { error: dbError } = await supabase.from('donations').insert({
@@ -216,7 +252,7 @@ const handler = async (req: Request): Promise<Response> => {
       donor_name: paymentData.donor.name,
       donor_email: paymentData.donor.email,
       payment_method: paymentData.paymentMethod,
-      transaction_id: result.id,
+      transaction_id: asaasResult.id,
       status: 'pending',
       ambassador_link_id: ambassadorLinkId,
       currency: 'BRL'
@@ -230,9 +266,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({
       success: true,
-      payment: result,
-      paymentUrl: result.invoiceUrl,
-      pixQrCode: result.pixQrCodeBase64,
+      payment: asaasResult,
+      paymentUrl: asaasResult.invoiceUrl,
+      pixQrCode: asaasResult.pixQrCodeBase64,
       split: {
         total: totalAmountInReais,
         instituto: instituteShare,
