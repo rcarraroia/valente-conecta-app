@@ -37,6 +37,8 @@ const SignupForm = () => {
     setLoading(true);
 
     try {
+      console.log('Iniciando cadastro...', { email, userType });
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -51,6 +53,7 @@ const SignupForm = () => {
       });
 
       if (error) {
+        console.error('Erro no signup:', error);
         if (error.message.includes('User already registered')) {
           toast({
             title: 'Email já cadastrado',
@@ -68,23 +71,39 @@ const SignupForm = () => {
       } 
 
       if (data.user) {
+        console.log('Usuário criado:', data.user.id);
+
         // If it's a partner, create the record in the partners table
         if (userType === 'parceiro') {
-          const specialtiesArray = professionalData.specialties.split(',').map(s => s.trim()).filter(s => s.length > 0);
+          console.log('Criando perfil de parceiro...');
           
-          const { error: partnerError } = await supabase
+          // Wait a moment to ensure the user is properly authenticated
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const specialtiesArray = professionalData.specialties
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          
+          const partnerData = {
+            user_id: data.user.id,
+            full_name: fullName,
+            specialty: professionalData.specialty,
+            specialties: specialtiesArray,
+            bio: professionalData.bio || null,
+            contact_email: professionalData.contactEmail || email,
+            contact_phone: professionalData.contactPhone || phone,
+            crm_crp_register: professionalData.crmCrpRegister || null,
+            is_active: true
+          };
+
+          console.log('Dados do parceiro:', partnerData);
+          
+          const { data: partnerResult, error: partnerError } = await supabase
             .from('partners')
-            .insert({
-              user_id: data.user.id,
-              full_name: fullName,
-              specialty: professionalData.specialty,
-              specialties: specialtiesArray,
-              bio: professionalData.bio,
-              contact_email: professionalData.contactEmail || email,
-              contact_phone: professionalData.contactPhone || phone,
-              crm_crp_register: professionalData.crmCrpRegister,
-              is_active: true
-            });
+            .insert(partnerData)
+            .select()
+            .single();
 
           if (partnerError) {
             console.error('Erro ao criar perfil de parceiro:', partnerError);
@@ -95,28 +114,35 @@ const SignupForm = () => {
             });
             return;
           }
+
+          console.log('Perfil de parceiro criado com sucesso:', partnerResult);
         }
 
-        // Automatically log in after registration
-        const { error: loginError } = await supabase.auth.signInWithPassword({
+        // Try to automatically log in after registration
+        const { data: sessionData, error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (loginError) {
+          console.error('Erro no login automático:', loginError);
           toast({
             title: 'Conta criada!',
             description: 'Faça login com suas credenciais.',
           });
         } else {
+          console.log('Login automático realizado com sucesso');
           toast({
             title: userType === 'parceiro' ? 'Perfil profissional criado!' : 'Conta criada e login realizado!',
             description: 'Redirecionando...',
           });
-          window.location.href = '/';
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
         }
       }
     } catch (error) {
+      console.error('Erro inesperado:', error);
       toast({
         title: 'Erro inesperado',
         description: 'Ocorreu um erro. Tente novamente.',
