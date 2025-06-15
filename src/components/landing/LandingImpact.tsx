@@ -2,13 +2,20 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LandingImpact = () => {
+  const navigate = useNavigate();
+
   const scrollToTestimonials = () => {
     const testimonialsSection = document.getElementById('testimonials-section');
     if (testimonialsSection) {
       testimonialsSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleAjudeNossaCausa = () => {
+    navigate('/auth');
   };
 
   return (
@@ -24,8 +31,8 @@ const LandingImpact = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="w-16 h-16 bg-cv-coral/10 rounded-full flex items-center justify-center mb-6">
+          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-cv-blue-heart/10">
+            <div className="w-16 h-16 bg-cv-blue-heart/10 rounded-full flex items-center justify-center mb-6">
               <span className="text-3xl">🧠</span>
             </div>
             <h3 className="text-xl font-semibold text-cv-gray-dark mb-4">Neuropsicologia</h3>
@@ -39,8 +46,8 @@ const LandingImpact = () => {
             </ul>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-cv-coral/20">
-            <div className="w-16 h-16 bg-cv-coral/10 rounded-full flex items-center justify-center mb-6">
+          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-cv-purple-soft/20">
+            <div className="w-16 h-16 bg-cv-purple-soft/10 rounded-full flex items-center justify-center mb-6">
               <span className="text-3xl">💬</span>
             </div>
             <h3 className="text-xl font-semibold text-cv-gray-dark mb-4">Fonoaudiologia</h3>
@@ -52,13 +59,13 @@ const LandingImpact = () => {
               <li>• Comunicação alternativa</li>
               <li>• Orientação familiar</li>
             </ul>
-            <div className="mt-4 px-3 py-1 bg-cv-coral/10 text-cv-coral text-xs font-semibold rounded-full inline-block">
+            <div className="mt-4 px-3 py-1 bg-cv-purple-soft/10 text-cv-purple-soft text-xs font-semibold rounded-full inline-block">
               Especialidade Principal
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="w-16 h-16 bg-cv-coral/10 rounded-full flex items-center justify-center mb-6">
+          <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-cv-blue-heart/10">
+            <div className="w-16 h-16 bg-cv-blue-heart/10 rounded-full flex items-center justify-center mb-6">
               <span className="text-3xl">🎯</span>
             </div>
             <h3 className="text-xl font-semibold text-cv-gray-dark mb-4">Terapia Ocupacional</h3>
@@ -73,8 +80,8 @@ const LandingImpact = () => {
           </div>
         </div>
 
-        {/* Seção de números de impacto */}
-        <div className="bg-gradient-to-r from-cv-coral to-cv-green p-8 rounded-2xl text-white text-center">
+        {/* Seção de números de impacto com tons de azul */}
+        <div className="bg-gradient-to-r from-cv-blue-heart to-cv-purple-soft p-8 rounded-2xl text-white text-center">
           <h3 className="text-2xl font-bold mb-8">Nosso Impacto em Números</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
@@ -99,9 +106,9 @@ const LandingImpact = () => {
         {/* CTA para conhecer mais */}
         <div className="text-center mt-12">
           <Button
-            onClick={scrollToTestimonials}
+            onClick={handleAjudeNossaCausa}
             size="lg"
-            className="bg-cv-coral hover:bg-cv-coral/90 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            className="bg-cv-blue-heart hover:bg-cv-blue-heart/90 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             <Heart className="w-5 h-5 mr-2" />
             Ajude Nossa Causa
