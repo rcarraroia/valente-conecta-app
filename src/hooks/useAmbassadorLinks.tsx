@@ -3,59 +3,9 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
-interface AmbassadorLink {
-  link_id: string;
-  generated_url: string;
-  short_url: string;
-  destination_url: string;
-  created_at: string;
-}
-
 export const useAmbassadorLinks = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  const generateLink = async (destinationUrl: string = '', campaignId?: string): Promise<AmbassadorLink | null> => {
-    setLoading(true);
-    try {
-      console.log('Gerando link com:', { destinationUrl, campaignId });
-      
-      const { data, error } = await supabase.functions.invoke('links-generate', {
-        body: {
-          destination_url: destinationUrl,
-          campaign_id: campaignId
-        }
-      });
-      
-      if (error) {
-        console.error('Erro na função edge:', error);
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('Nenhum dado retornado da função');
-      }
-
-      console.log('Link gerado com sucesso:', data);
-
-      toast({
-        title: 'Link gerado!',
-        description: 'Seu link rastreável foi criado com sucesso.',
-      });
-
-      return data;
-    } catch (error: any) {
-      console.error('Erro ao gerar link:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível gerar o link. Tente novamente.',
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getMyLinks = async () => {
     try {
@@ -98,10 +48,39 @@ export const useAmbassadorLinks = () => {
     }
   };
 
+  // Função para gerar códigos para usuários existentes (apenas para admin)
+  const generateExistingAmbassadorLinks = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-existing-ambassador-links');
+      
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Códigos gerados!',
+        description: `${data.successful} códigos de embaixador foram gerados com sucesso.`,
+      });
+
+      return data;
+    } catch (error: any) {
+      console.error('Erro ao gerar códigos:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível gerar os códigos.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
-    generateLink,
     getMyLinks,
-    getPerformance
+    getPerformance,
+    generateExistingAmbassadorLinks
   };
 };

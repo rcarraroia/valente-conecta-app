@@ -26,6 +26,20 @@ export const useSignup = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Função para gerar código único de embaixador
+  const generateAmbassadorCode = (fullName: string, userId: string) => {
+    // Usar as primeiras letras do nome + parte do ID do usuário
+    const nameCode = fullName
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 3);
+    
+    const userIdCode = userId.replace(/-/g, '').substring(0, 5).toUpperCase();
+    return `${nameCode}${userIdCode}`;
+  };
+
   const handleSignup = async (data: SignupData) => {
     setLoading(true);
 
@@ -100,7 +114,10 @@ export const useSignup = () => {
       // 3. Aguardar para garantir que a sessão esteja estabelecida
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // 4. Atualizar o user_type no perfil primeiro
+      // 4. Gerar código do embaixador automaticamente
+      const ambassadorCode = generateAmbassadorCode(data.fullName, sessionData.user.id);
+
+      // 5. Atualizar o perfil com dados completos incluindo código de embaixador
       console.log('=== ATUALIZANDO PERFIL ===');
       const { error: profileError } = await supabase
         .from('profiles')
@@ -108,7 +125,10 @@ export const useSignup = () => {
           user_type: data.userType,
           full_name: data.fullName,
           phone: data.phone,
-          city: data.city
+          city: data.city,
+          is_volunteer: true, // Todo usuário novo vira embaixador automaticamente
+          ambassador_code: ambassadorCode,
+          ambassador_opt_in_at: new Date().toISOString()
         })
         .eq('id', sessionData.user.id);
 
@@ -122,9 +142,25 @@ export const useSignup = () => {
         return;
       }
 
-      console.log('Perfil atualizado com sucesso');
+      console.log('Perfil atualizado com código de embaixador:', ambassadorCode);
 
-      // 5. Se for profissional, criar perfil na tabela partners
+      // 6. Criar registro de performance do embaixador
+      const { error: performanceError } = await supabase
+        .from('ambassador_performance')
+        .insert({
+          ambassador_user_id: sessionData.user.id,
+          current_level: 'Iniciante',
+          total_clicks: 0,
+          total_donations_count: 0,
+          total_donations_amount: 0,
+          points: 0
+        });
+
+      if (performanceError) {
+        console.warn('Erro ao criar performance do embaixador:', performanceError);
+      }
+
+      // 7. Se for profissional, criar perfil na tabela partners
       if (data.userType === 'parceiro' && data.professionalData) {
         console.log('=== CRIANDO PERFIL PROFISSIONAL ===');
         
@@ -171,14 +207,14 @@ export const useSignup = () => {
 
         toast({
           title: 'Perfil profissional criado!',
-          description: 'Redirecionando para seu painel...',
+          description: 'Você agora é um embaixador com perfil profissional. Redirecionando...',
         });
 
       } else {
         // Para usuários comuns
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Redirecionando...',
+          description: 'Você agora é um embaixador do Instituto. Redirecionando...',
         });
       }
 
