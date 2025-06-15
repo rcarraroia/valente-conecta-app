@@ -66,12 +66,12 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
           </div>
         )}
 
-        {/* Logomarca do Instituto */}
+        {/* Logomarca circular do Instituto */}
         <div className="mb-8">
           <img
-            src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png"
+            src="/lovable-uploads/9343bd02-f7b0-4bb6-81a4-b8e8ee1af9e9.png"
             alt="Instituto Coração Valente"
-            className="mx-auto h-32 md:h-40 w-auto"
+            className="mx-auto h-40 md:h-48 w-auto"
           />
         </div>
         

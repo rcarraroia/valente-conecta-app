@@ -10,8 +10,11 @@ const LandingFooter = () => {
           {/* Logo e descrição */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <Heart className="w-8 h-8 text-cv-coral" />
-              <h3 className="text-2xl font-heading font-bold">Instituto Coração Valente</h3>
+              <img
+                src="/lovable-uploads/96de9681-7a55-45c7-8b32-f405f2bc4e19.png"
+                alt="Instituto Coração Valente"
+                className="h-12 w-auto"
+              />
             </div>
             <p className="text-gray-300 leading-relaxed mb-6">
               Dedicados ao desenvolvimento integral de crianças e adolescentes com necessidades especiais, 
