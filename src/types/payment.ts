@@ -9,6 +9,7 @@ export interface DonationData {
     phone?: string;
     document?: string;
   };
+  ambassadorCode?: string;
 }
 
 export interface AsaasCustomer {
@@ -27,6 +28,13 @@ export interface AsaasCustomer {
   state?: string;
 }
 
+export interface AsaasSplit {
+  walletId: string;
+  fixedValue?: number;
+  percentualValue?: number;
+  totalFixedValue?: number;
+}
+
 export interface AsaasPayment {
   id?: string;
   customer: string;
@@ -35,6 +43,7 @@ export interface AsaasPayment {
   dueDate: string;
   description?: string;
   externalReference?: string;
+  split?: AsaasSplit[];
 }
 
 export interface AsaasSubscription {
@@ -45,4 +54,20 @@ export interface AsaasSubscription {
   cycle: 'MONTHLY' | 'YEARLY';
   description?: string;
   nextDueDate: string;
+  split?: AsaasSplit[];
+}
+
+export interface SplitConfiguration {
+  instituteWalletId: string;
+  ambassadorCommissionPercent: number;
+  ambassadorWallets: {
+    [ambassadorCode: string]: string;
+  };
+}
+
+export interface PaymentSplit {
+  ambassadorCode?: string;
+  ambassadorShare: number;
+  instituteShare: number;
+  splits: AsaasSplit[];
 }

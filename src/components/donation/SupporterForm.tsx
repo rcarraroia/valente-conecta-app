@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CreditCard, Calendar, Heart } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft, CreditCard, Calendar, Heart, Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { calculatePaymentSplit } from '@/utils/paymentSplit';
 
 interface SupporterFormProps {
   onBack: () => void;
@@ -14,6 +15,7 @@ interface SupporterFormProps {
 const SupporterForm = ({ onBack }: SupporterFormProps) => {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [amount, setAmount] = useState('');
+  const [ambassadorCode, setAmbassadorCode] = useState('');
   const [supporterData, setSupporterData] = useState({
     name: '',
     email: '',
@@ -44,16 +46,27 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
     setAmount(value);
   };
 
+  const calculateSplitPreview = () => {
+    if (!amount) return null;
+    const amountInCents = parseInt(amount);
+    const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
+    return split;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
 
     try {
-      // TODO: Implementar integração com Asaas para assinaturas
+      const amountInCents = parseInt(amount);
+      const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
+
       console.log('Dados da assinatura:', {
-        amount: parseInt(amount) / 100,
+        amount: amountInCents / 100,
         frequency: selectedPlan,
-        supporterData
+        supporterData,
+        ambassadorCode: ambassadorCode || null,
+        split
       });
 
       toast({
@@ -70,6 +83,8 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
       setIsProcessing(false);
     }
   };
+
+  const splitPreview = calculateSplitPreview();
 
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
@@ -176,6 +191,55 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
                   className="text-lg text-center"
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Ambassador Code */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Código do Embaixador (Opcional)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ambassador-code">
+                  Se você foi indicado por um embaixador, digite o código dele
+                </Label>
+                <Input
+                  id="ambassador-code"
+                  type="text"
+                  placeholder="Ex: AMB001"
+                  value={ambassadorCode}
+                  onChange={(e) => setAmbassadorCode(e.target.value.toUpperCase())}
+                  className="uppercase"
+                />
+              </div>
+              
+              {splitPreview && ambassadorCode && (
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    Divisão do Apoio {selectedPlan === 'monthly' ? 'Mensal' : 'Anual'}:
+                  </h4>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Instituto Coração Valente:</span>
+                      <span className="font-medium">
+                        {formatCurrency(splitPreview.instituteShare.toString())}
+                      </span>
+                    </div>
+                    {splitPreview.ambassadorShare > 0 && (
+                      <div className="flex justify-between">
+                        <span>Comissão Embaixador ({ambassadorCode}):</span>
+                        <span className="font-medium">
+                          {formatCurrency(splitPreview.ambassadorShare.toString())}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
