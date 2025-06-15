@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Star, Quote } from 'lucide-react';
+import { Star, Quote, Heart, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const LandingTestimonials = () => {
   const testimonials = [
@@ -24,8 +25,15 @@ const LandingTestimonials = () => {
     }
   ];
 
+  const scrollToAbout = () => {
+    const aboutSection = document.getElementById('about-section');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="py-20 bg-white">
+    <section id="testimonials-section" className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-heading font-bold text-cv-gray-dark mb-6">
@@ -36,7 +44,7 @@ const LandingTestimonials = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {testimonials.map((testimonial, index) => (
             <div key={index} className="bg-cv-off-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 relative">
               <Quote className="w-8 h-8 text-cv-coral/30 absolute top-4 right-4" />
@@ -57,6 +65,25 @@ const LandingTestimonials = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* CTA Final */}
+        <div className="text-center bg-gradient-to-r from-cv-coral/5 to-cv-green/5 p-12 rounded-2xl">
+          <h3 className="text-2xl font-heading font-semibold text-cv-gray-dark mb-4">
+            Faça Parte Desta Transformação
+          </h3>
+          <p className="text-cv-gray-light mb-8 max-w-2xl mx-auto">
+            Junte-se a nós nesta missão de promover o desenvolvimento pleno de crianças e adolescentes. Sua participação faz toda a diferença.
+          </p>
+          <Button
+            onClick={scrollToAbout}
+            size="lg"
+            className="bg-cv-coral hover:bg-cv-coral/90 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <Heart className="w-5 h-5 mr-2" />
+            Ajude Nossa Causa
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
         </div>
 
         {/* Seção adicional de credibilidade */}

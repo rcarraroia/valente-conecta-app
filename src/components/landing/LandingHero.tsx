@@ -14,10 +14,10 @@ interface LandingHeroProps {
 }
 
 const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
-  const scrollToDonation = () => {
-    const donationSection = document.getElementById('donation-section');
-    if (donationSection) {
-      donationSection.scrollIntoView({ behavior: 'smooth' });
+  const scrollToAbout = () => {
+    const aboutSection = document.getElementById('about-section');
+    if (aboutSection) {
+      aboutSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -54,44 +54,44 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
               </div>
             </div>
             <p className="text-cv-gray-dark">
-              Estou aqui para te convidar a fazer a diferença! Junte-se a mim nessa missão de transformar vidas.
+              Conheça o trabalho transformador do Instituto Coração Valente e descubra como ajudamos crianças e famílias.
             </p>
           </div>
         )}
 
         {/* Headline Principal */}
         <h1 className="text-4xl md:text-6xl font-heading font-bold text-cv-gray-dark mb-6 leading-tight">
-          Um Abraço que{' '}
-          <span className="text-cv-coral">Transforma Vidas</span>
+          Instituto{' '}
+          <span className="text-cv-coral">Coração Valente</span>
         </h1>
         
         <h2 className="text-xl md:text-2xl text-cv-gray-light mb-8 max-w-3xl mx-auto leading-relaxed">
-          Apoie o Neurodesenvolvimento Infantil e ajude crianças com TEA, TDAH e outras condições a alcançarem seu potencial máximo
+          Promovendo o desenvolvimento integral de crianças com TEA, TDAH, Dislexia e outras condições do neurodesenvolvimento
         </h2>
 
         {/* CTA Principal */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
           <Button
-            onClick={scrollToDonation}
+            onClick={scrollToAbout}
             size="lg"
             className="bg-cv-coral hover:bg-cv-coral/90 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             <Heart className="w-5 h-5 mr-2" />
-            Quero Doar Agora!
+            Ajude Nossa Causa
           </Button>
           
           <Button
             variant="outline"
             size="lg"
-            onClick={() => document.getElementById('about-section')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => document.getElementById('pre-diagnosis-section')?.scrollIntoView({ behavior: 'smooth' })}
             className="border-cv-coral text-cv-coral hover:bg-cv-coral hover:text-white px-8 py-4 text-lg rounded-full transition-all duration-300"
           >
-            Saiba Mais Sobre Nossa Causa
+            Conheça Nosso Pré-Diagnóstico
           </Button>
         </div>
 
         {/* Indicadores de Impacto */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-lg">
             <div className="text-3xl font-bold text-cv-coral mb-2">500+</div>
             <div className="text-cv-gray-dark">Crianças Atendidas</div>

@@ -5,9 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingAbout from '@/components/landing/LandingAbout';
+import LandingPreDiagnosis from '@/components/landing/LandingPreDiagnosis';
 import LandingImpact from '@/components/landing/LandingImpact';
 import LandingTestimonials from '@/components/landing/LandingTestimonials';
-import LandingDonation from '@/components/landing/LandingDonation';
 import LandingFooter from '@/components/landing/LandingFooter';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -100,9 +100,9 @@ const LandingPage = () => {
     <div className="min-h-screen bg-cv-off-white">
       <LandingHero ambassadorData={ambassadorData} />
       <LandingAbout />
+      <LandingPreDiagnosis />
       <LandingImpact />
       <LandingTestimonials />
-      <LandingDonation ambassadorCode={ref} />
       <LandingFooter />
     </div>
   );
