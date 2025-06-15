@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +35,7 @@ const ProfileScreen = () => {
         .eq('id', user.id)
         .single();
       
-      setIsAmbassador(data?.is_volunteer && data?.ambassador_code);
+      setIsAmbassador(Boolean(data?.is_volunteer && data?.ambassador_code));
     } catch (error) {
       console.error('Erro ao verificar status de embaixador:', error);
     }
