@@ -2,13 +2,8 @@
 import React, { useState } from 'react';
 import AIIntroScreen from './AIIntroScreen';
 import AIChatInterface from './AIChatInterface';
-
-interface ChatMessage {
-  id: number;
-  sender: 'user' | 'ai';
-  message: string;
-  timestamp: Date;
-}
+import AIResultScreen from './AIResultScreen';
+import { usePreDiagnosis } from '@/hooks/usePreDiagnosis';
 
 interface AIAgentScreenProps {
   onBack: () => void;
@@ -16,56 +11,33 @@ interface AIAgentScreenProps {
 
 const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
   const [currentStep, setCurrentStep] = useState('intro'); // intro, chat, results
-  const [userMessage, setUserMessage] = useState('');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const { session, loading, startSession, submitAnswer, resetSession } = usePreDiagnosis();
 
-  const handleStart = () => {
-    setCurrentStep('chat');
-    // Simulate initial AI message
-    setChatMessages([
-      {
-        id: 1,
-        sender: 'ai',
-        message: 'Olá! Sou o assistente do Coração Valente. Vou fazer algumas perguntas para te ajudar a identificar possíveis sinais relacionados ao neurodesenvolvimento. Vamos começar?',
-        timestamp: new Date()
-      }
-    ]);
-  };
-
-  const handleCancel = () => {
-    onBack();
-  };
-
-  const sendMessage = () => {
-    if (userMessage.trim()) {
-      const newMessage: ChatMessage = {
-        id: chatMessages.length + 1,
-        sender: 'user',
-        message: userMessage,
-        timestamp: new Date()
-      };
-      
-      setChatMessages(prev => [...prev, newMessage]);
-      setUserMessage('');
-      setIsTyping(true);
-      
-      // Simulate AI response
-      setTimeout(() => {
-        const aiResponse: ChatMessage = {
-          id: chatMessages.length + 2,
-          sender: 'ai',
-          message: 'Entendi. Pode me contar mais sobre isso? Quando você notou esses sinais pela primeira vez?',
-          timestamp: new Date()
-        };
-        setChatMessages(prev => [...prev, aiResponse]);
-        setIsTyping(false);
-      }, 2000);
+  const handleStart = async () => {
+    const newSession = await startSession();
+    if (newSession) {
+      setCurrentStep('chat');
     }
   };
 
-  const handleQuickReply = (reply: string) => {
-    setUserMessage(reply);
+  const handleCancel = () => {
+    resetSession();
+    onBack();
+  };
+
+  const handleAnswer = async (answer: any, answerText?: string) => {
+    if (!session?.question) return;
+
+    const result = await submitAnswer(session.question.id, answer, answerText);
+    
+    if (result?.completed) {
+      setCurrentStep('results');
+    }
+  };
+
+  const handleRestart = () => {
+    resetSession();
+    setCurrentStep('intro');
   };
 
   if (currentStep === 'intro') {
@@ -73,6 +45,7 @@ const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
       <AIIntroScreen
         onStart={handleStart}
         onCancel={handleCancel}
+        loading={loading}
       />
     );
   }
@@ -80,17 +53,24 @@ const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
   if (currentStep === 'chat') {
     return (
       <AIChatInterface
-        chatMessages={chatMessages}
-        userMessage={userMessage}
-        isTyping={isTyping}
-        onUserMessageChange={setUserMessage}
-        onSendMessage={sendMessage}
-        onQuickReply={handleQuickReply}
+        session={session}
+        loading={loading}
+        onAnswer={handleAnswer}
+        onCancel={handleCancel}
       />
     );
   }
 
-  // Results screen would go here
+  if (currentStep === 'results' && session?.result) {
+    return (
+      <AIResultScreen
+        result={session.result}
+        onRestart={handleRestart}
+        onBack={onBack}
+      />
+    );
+  }
+
   return null;
 };
 

@@ -1,148 +1,129 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Brain, 
-  Shield, 
-  Clock, 
-  Users, 
-  ArrowRight, 
-  CheckCircle,
-  AlertTriangle,
-  Heart
-} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Brain, Heart, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface AIIntroScreenProps {
   onStart: () => void;
   onCancel: () => void;
+  loading?: boolean;
 }
 
-const AIIntroScreen = ({ onStart, onCancel }: AIIntroScreenProps) => {
-  const features = [
-    {
-      icon: Brain,
-      title: "Inteligência Artificial Especializada",
-      description: "Nossa IA foi treinada com dados científicos sobre neurodesenvolvimento"
-    },
-    {
-      icon: Shield,
-      title: "Totalmente Confidencial",
-      description: "Suas informações são protegidas e não são compartilhadas com terceiros"
-    },
-    {
-      icon: Clock,
-      title: "Disponível 24/7",
-      description: "Acesse orientações a qualquer momento, quando precisar"
-    },
-    {
-      icon: Users,
-      title: "Apoio Especializado",
-      description: "Desenvolvido em parceria com profissionais da área"
-    }
-  ];
-
+const AIIntroScreen = ({ onStart, onCancel, loading = false }: AIIntroScreenProps) => {
   return (
-    <div className="min-h-screen bg-cv-off-white p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" onClick={onCancel} className="text-cv-purple-dark">
-          ← Voltar
-        </Button>
-        <Badge variant="secondary" className="bg-cv-yellow-soft text-cv-purple-dark">
-          Pré-Diagnóstico IA
-        </Badge>
-      </div>
-
+    <div className="min-h-screen bg-cv-off-white p-6 pb-20">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Main intro card */}
-        <Card className="border-none shadow-lg bg-gradient-to-br from-cv-purple-soft to-cv-blue-heart text-white">
-          <CardHeader className="text-center space-y-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onCancel}
+            className="text-cv-gray-light hover:text-cv-gray-dark"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
+
+        {/* Intro Card */}
+        <Card className="border-cv-blue-light bg-white">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-cv-blue-heart rounded-full flex items-center justify-center mx-auto mb-4">
               <Brain className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-h2 font-heading">
-              Orientação Inteligente com IA
+            <CardTitle className="text-h1 font-heading font-bold text-cv-gray-dark">
+              Pré-Diagnóstico Inteligente
             </CardTitle>
-            <CardDescription className="text-white/90 text-body">
-              Nossa ferramenta de pré-diagnóstico oferece orientações personalizadas baseadas 
-              em evidências científicas para apoiar sua jornada.
+            <CardDescription className="text-body text-cv-gray-light">
+              Nossa ferramenta de orientação inicial para identificar possíveis sinais relacionados ao neurodesenvolvimento
             </CardDescription>
           </CardHeader>
-        </Card>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {features.map((feature, index) => (
-            <Card key={index} className="border-none shadow-md">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-cv-green-mint/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <feature.icon className="w-5 h-5 text-cv-green-mint" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-semibold text-cv-purple-dark">{feature.title}</h3>
-                    <p className="text-caption text-cv-gray-light">{feature.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Important notice */}
-        <Card className="border-cv-coral/20 bg-cv-coral/5">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-cv-coral flex-shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <h3 className="font-semibold text-cv-purple-dark">Importante</h3>
-                <p className="text-caption text-cv-gray-light">
-                  Esta ferramenta oferece orientações iniciais e não substitui a avaliação de um profissional 
-                  qualificado. Para um diagnóstico oficial, sempre consulte especialistas em neurodesenvolvimento.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Consent section */}
-        <Card className="border-cv-green-mint/20 bg-cv-green-mint/5">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="w-5 h-5 text-cv-green-mint flex-shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <h3 className="font-semibold text-cv-purple-dark">Seu Consentimento</h3>
-                <p className="text-caption text-cv-gray-light">
-                  Ao prosseguir, você autoriza o uso das informações fornecidas para gerar orientações 
-                  personalizadas. Seus dados são tratados com total confidencialidade.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action buttons */}
-        <div className="flex flex-col space-y-3 pt-4">
-          <Button 
-            onClick={onStart}
-            className="bg-cv-green-mint hover:bg-cv-green-mint/90 text-white font-semibold py-4"
-            size="lg"
-          >
-            <Heart className="w-5 h-5 mr-2" />
-            Iniciar Pré-Diagnóstico
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
           
-          <Button 
-            variant="outline" 
-            onClick={onCancel}
-            className="border-cv-purple-dark text-cv-purple-dark hover:bg-cv-purple-dark hover:text-white"
-          >
-            Talvez mais tarde
-          </Button>
-        </div>
+          <CardContent className="space-y-6">
+            {/* Como funciona */}
+            <div className="space-y-4">
+              <h3 className="text-h3 font-heading font-semibold text-cv-gray-dark">
+                Como funciona:
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-cv-green-mint rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-white">1</span>
+                  </div>
+                  <p className="text-body text-cv-gray-dark">
+                    Você responderá algumas perguntas sobre desenvolvimento e comportamento
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-cv-green-mint rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-white">2</span>
+                  </div>
+                  <p className="text-body text-cv-gray-dark">
+                    Nossa IA analisa suas respostas baseada em critérios estabelecidos por especialistas
+                  </p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-cv-green-mint rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-bold text-white">3</span>
+                  </div>
+                  <p className="text-body text-cv-gray-dark">
+                    Você recebe orientações personalizadas e próximos passos recomendados
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Importante */}
+            <div className="bg-cv-coral/10 border border-cv-coral/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Heart className="w-5 h-5 text-cv-coral mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-semibold text-cv-coral mb-1">Importante lembrar:</h4>
+                  <p className="text-sm text-cv-gray-dark">
+                    Este pré-diagnóstico é uma ferramenta de orientação inicial e não substitui 
+                    uma avaliação profissional. Os resultados devem sempre ser discutidos com 
+                    um profissional de saúde qualificado.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tempo estimado */}
+            <div className="text-center py-4">
+              <p className="text-body text-cv-gray-light">
+                ⏱️ Tempo estimado: 5-10 minutos
+              </p>
+            </div>
+
+            {/* Botões */}
+            <div className="flex flex-col gap-3">
+              <Button 
+                onClick={onStart}
+                disabled={loading}
+                className="bg-cv-blue-heart hover:bg-cv-blue-heart/90 text-white"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Iniciando...
+                  </>
+                ) : (
+                  'Iniciar Pré-Diagnóstico'
+                )}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={onCancel}
+                className="border-cv-gray-light text-cv-gray-dark hover:bg-gray-50"
+              >
+                Voltar ao Menu
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
