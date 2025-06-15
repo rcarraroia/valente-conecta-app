@@ -4,10 +4,16 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
 interface HomeHeroProps {
-  onJourneyStart: () => void;
+  onNavigate?: (screen: string, articleId?: string) => void;
 }
 
-const HomeHero = ({ onJourneyStart }: HomeHeroProps) => {
+const HomeHero = ({ onNavigate }: HomeHeroProps) => {
+  const handleJourneyStart = () => {
+    if (onNavigate) {
+      onNavigate('ia');
+    }
+  };
+
   return (
     <section 
       className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark px-4 py-6 text-white"
@@ -22,7 +28,7 @@ const HomeHero = ({ onJourneyStart }: HomeHeroProps) => {
           Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
         </p>
         <Button 
-          onClick={onJourneyStart}
+          onClick={handleJourneyStart}
           className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
           size="lg"
           aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
