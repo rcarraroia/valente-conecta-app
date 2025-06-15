@@ -65,21 +65,23 @@ export const recordDonationWithAmbassador = async (
 
     if (ambassadorCode) {
       // Buscar o link do embaixador
-      const { data: linkData } = await supabase
-        .from('ambassador_links')
+      const { data: profileData } = await supabase
+        .from('profiles')
         .select('id')
-        .eq('ambassador_user_id', (
-          select: supabase
-            .from('profiles')
-            .select('id')
-            .eq('ambassador_code', ambassadorCode)
-            .single()
-        ))
-        .eq('status', 'active')
+        .eq('ambassador_code', ambassadorCode)
         .single();
 
-      if (linkData) {
-        ambassadorLinkId = linkData.id;
+      if (profileData) {
+        const { data: linkData } = await supabase
+          .from('ambassador_links')
+          .select('id')
+          .eq('ambassador_user_id', profileData.id)
+          .eq('status', 'active')
+          .single();
+
+        if (linkData) {
+          ambassadorLinkId = linkData.id;
+        }
       }
     }
 
