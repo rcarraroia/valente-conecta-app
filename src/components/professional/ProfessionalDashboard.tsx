@@ -328,10 +328,7 @@ const ProfessionalDashboard = ({ onBack }: ProfessionalDashboardProps) => {
 
         {/* Appointments Tab */}
         {activeTab === 'appointments' && (
-          <ProfessionalAppointments 
-            partnerId={partner.id}
-            onUpdate={() => loadStats()}
-          />
+          <ProfessionalAppointments />
         )}
       </div>
     </div>

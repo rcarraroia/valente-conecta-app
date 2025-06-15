@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ interface Appointment {
   appointment_time: string;
   status: string;
   notes: string | null;
-  profiles: {
+  user_profile: {
     full_name: string;
     phone: string;
   } | null;
@@ -33,7 +34,26 @@ const ProfessionalAppointments = () => {
 
   const loadAppointments = async () => {
     try {
-      const { data, error } = await supabase
+      // Primeiro buscar o partner_id do usuário atual
+      const { data: partnerData, error: partnerError } = await supabase
+        .from('partners')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (partnerError) {
+        console.error('Erro ao buscar dados do parceiro:', partnerError);
+        setAppointments([]);
+        return;
+      }
+
+      if (!partnerData) {
+        setAppointments([]);
+        return;
+      }
+
+      // Agora buscar os agendamentos com os dados do usuário
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
           id,
@@ -41,17 +61,38 @@ const ProfessionalAppointments = () => {
           appointment_time,
           status,
           notes,
-          profiles:profiles!appointments_user_id_fkey (
-            full_name,
-            phone
-          )
+          user_id
         `)
-        .eq('partner_id', user?.id)
+        .eq('partner_id', partnerData.id)
         .order('appointment_date', { ascending: true })
         .order('appointment_time', { ascending: true });
 
-      if (error) throw error;
-      setAppointments(data || []);
+      if (appointmentsError) throw appointmentsError;
+
+      // Buscar os perfis dos usuários separadamente
+      const userIds = appointmentsData?.map(apt => apt.user_id) || [];
+      
+      let profilesData: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, phone')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Erro ao buscar perfis:', profilesError);
+        } else {
+          profilesData = profiles || [];
+        }
+      }
+
+      // Combinar os dados
+      const appointmentsWithProfiles = appointmentsData?.map(appointment => ({
+        ...appointment,
+        user_profile: profilesData.find(profile => profile.id === appointment.user_id) || null
+      })) || [];
+
+      setAppointments(appointmentsWithProfiles);
     } catch (error: any) {
       console.error('Erro ao carregar agendamentos:', error);
       toast({
@@ -167,13 +208,13 @@ const ProfessionalAppointments = () => {
                       
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-cv-blue-heart" />
-                        <span>{appointment.profiles?.full_name || 'Nome não disponível'}</span>
+                        <span>{appointment.user_profile?.full_name || 'Nome não disponível'}</span>
                       </div>
                       
-                      {appointment.profiles?.phone && (
+                      {appointment.user_profile?.phone && (
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-cv-green-mint" />
-                          <span>{appointment.profiles.phone}</span>
+                          <span>{appointment.user_profile.phone}</span>
                         </div>
                       )}
                     </div>
