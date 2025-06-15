@@ -122,7 +122,7 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact_email">Email de Contato</Label>
+            <Label htmlFor="contact_email">Email de Contato Profissional</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
               <Input
@@ -137,7 +137,7 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact_phone">Telefone de Contato</Label>
+            <Label htmlFor="contact_phone">Telefone de Contato Profissional</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
               <Input
@@ -151,8 +151,8 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="crm_crp_register">CRM/CRP/Registro</Label>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="crm_crp_register">CRM/CRP</Label>
             <div className="relative">
               <FileText className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
               <Input
@@ -165,7 +165,7 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="specialties">Outras Especialidades</Label>
             <Input
               id="specialties"
