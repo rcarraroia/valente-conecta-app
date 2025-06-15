@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import LandingHero from '@/components/landing/LandingHero';
@@ -18,7 +18,13 @@ interface AmbassadorData {
 }
 
 const LandingPage = () => {
-  const { ref } = useParams<{ ref: string }>();
+  const { ref: paramRef } = useParams<{ ref: string }>();
+  const [searchParams] = useSearchParams();
+  const queryRef = searchParams.get('ref');
+  
+  // Priorizar o ref da URL ou query parameter
+  const ref = paramRef || queryRef;
+  
   const [ambassadorData, setAmbassadorData] = useState<AmbassadorData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -31,6 +37,8 @@ const LandingPage = () => {
       }
 
       try {
+        console.log('Buscando embaixador com código:', ref);
+        
         // Buscar dados do embaixador pelo código de referência
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
@@ -44,6 +52,8 @@ const LandingPage = () => {
         }
 
         if (profile) {
+          console.log('Perfil do embaixador encontrado:', profile);
+          
           // Verificar se é um profissional (parceiro)
           const { data: partner, error: partnerError } = await supabase
             .from('partners')
@@ -60,6 +70,8 @@ const LandingPage = () => {
             full_name: profile.full_name,
             professional_photo_url: partner?.professional_photo_url
           });
+        } else {
+          console.log('Nenhum embaixador encontrado com o código:', ref);
         }
       } catch (error) {
         console.error('Erro ao carregar dados do embaixador:', error);

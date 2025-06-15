@@ -39,7 +39,8 @@ const LinkGenerator = () => {
       }
 
       if (profile?.ambassador_code) {
-        const baseUrl = 'https://coracaovalente.com.br';
+        // Usar a URL atual da aplicação (window.location.origin)
+        const baseUrl = window.location.origin;
         const link = `${baseUrl}/landing?ref=${profile.ambassador_code}`;
         setAmbassadorLink(link);
         setNeedsGeneration(false);

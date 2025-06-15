@@ -18,6 +18,7 @@ const App = () => {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/landing" element={<LandingPage />} />
+          <Route path="/landing/:ref" element={<LandingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
