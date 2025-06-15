@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import HomeScreen from '@/components/HomeScreen';
 import LibraryScreen from '@/components/LibraryScreen';
@@ -56,11 +57,7 @@ const Index = () => {
       case 'ajudar':
         return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       case 'donation':
-        return <DonationScreen onBack={() => {
-          // Se vier do perfil, volta para perfil; senão volta para ajudar
-          const referrer = currentScreen === 'donation' ? 'ajudar' : 'perfil';
-          setCurrentScreen(referrer);
-        }} />;
+        return <DonationScreen />;
       case 'perfil':
         return <ProfileScreen onNavigate={handleNavigate} />;
       case 'ambassador':
