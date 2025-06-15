@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,10 +46,12 @@ const ProfessionalProfileScreen = ({ onBack, partnerId }: ProfessionalProfileScr
 
       if (error) throw error;
       
-      // Transform the data to ensure specialties is always an array
-      const transformedData = {
+      // Transform the data to ensure specialties is always an array of strings
+      const transformedData: Partner = {
         ...data,
-        specialties: Array.isArray(data.specialties) ? data.specialties : []
+        specialties: Array.isArray(data.specialties) 
+          ? data.specialties.filter((spec): spec is string => typeof spec === 'string')
+          : []
       };
       
       setPartner(transformedData);

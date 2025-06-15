@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,10 +46,12 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
 
       if (error) throw error;
       
-      // Transform the data to ensure specialties is always an array
-      const transformedData = (data || []).map(partner => ({
+      // Transform the data to ensure specialties is always an array of strings
+      const transformedData: Partner[] = (data || []).map(partner => ({
         ...partner,
-        specialties: Array.isArray(partner.specialties) ? partner.specialties : []
+        specialties: Array.isArray(partner.specialties) 
+          ? partner.specialties.filter((spec): spec is string => typeof spec === 'string')
+          : []
       }));
       
       setPartners(transformedData);
