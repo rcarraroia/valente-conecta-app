@@ -471,6 +471,7 @@ export type Database = {
         Row: {
           ambassador_code: string | null
           ambassador_opt_in_at: string | null
+          ambassador_wallet_id: string | null
           city: string | null
           created_at: string
           date_of_birth: string | null
@@ -489,6 +490,7 @@ export type Database = {
         Insert: {
           ambassador_code?: string | null
           ambassador_opt_in_at?: string | null
+          ambassador_wallet_id?: string | null
           city?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -507,6 +509,7 @@ export type Database = {
         Update: {
           ambassador_code?: string | null
           ambassador_opt_in_at?: string | null
+          ambassador_wallet_id?: string | null
           city?: string | null
           created_at?: string
           date_of_birth?: string | null
