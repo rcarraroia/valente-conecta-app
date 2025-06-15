@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { calculatePaymentSplit } from '@/utils/paymentSplit';
+import { calculatePaymentSplitWithDB } from '@/utils/paymentSplit';
 import AmountSelector from './AmountSelector';
 import AmbassadorCodeInput from './AmbassadorCodeInput';
 import PaymentMethodSelector from './PaymentMethodSelector';
@@ -25,6 +25,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     document: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [splitPreview, setSplitPreview] = useState<any>(null);
   const { toast } = useToast();
 
   const formatCurrency = (value: string) => {
@@ -36,12 +37,26 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     return formattedValue;
   };
 
-  const calculateSplitPreview = () => {
-    if (!amount) return null;
-    const amountInCents = parseInt(amount);
-    const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
-    return split;
-  };
+  // Calcular preview do split quando amount ou ambassadorCode mudam
+  React.useEffect(() => {
+    const calculatePreview = async () => {
+      if (!amount) {
+        setSplitPreview(null);
+        return;
+      }
+
+      const amountInCents = parseInt(amount);
+      try {
+        const split = await calculatePaymentSplitWithDB(amountInCents, ambassadorCode || undefined);
+        setSplitPreview(split);
+      } catch (error) {
+        console.error('Erro ao calcular preview do split:', error);
+        setSplitPreview(null);
+      }
+    };
+
+    calculatePreview();
+  }, [amount, ambassadorCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +65,15 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
+      if (amountInCents < 100) { // Mínimo R$ 1,00
+        toast({
+          title: "Valor mínimo",
+          description: "O valor mínimo para doação é R$ 1,00.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const paymentData = {
         amount: amountInCents,
         type: 'donation' as const,
@@ -58,17 +82,23 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         ambassadorCode: ambassadorCode || undefined,
       };
 
-      console.log('Enviando dados de pagamento:', paymentData);
+      console.log('=== INICIANDO DOAÇÃO ===');
+      console.log('Dados enviados:', {
+        amount: paymentData.amount,
+        ambassadorCode: paymentData.ambassadorCode,
+        donor: paymentData.donor.name
+      });
 
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: paymentData
       });
 
       if (error) {
+        console.error('Erro da Edge Function:', error);
         throw error;
       }
 
-      console.log('Resposta do pagamento:', data);
+      console.log('Resposta recebida:', data);
 
       if (data.success) {
         toast({
@@ -78,8 +108,19 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             : "Você será redirecionado para completar o pagamento.",
         });
 
-        // Aqui você pode redirecionar para uma página de confirmação
-        // ou mostrar o QR Code do PIX
+        // Log do split para debug
+        if (data.split) {
+          console.log('Split aplicado:', data.split);
+          
+          if (data.split.ambassador) {
+            toast({
+              title: "Split configurado!",
+              description: `${data.split.ambassador.name} receberá R$ ${data.split.embaixador.toFixed(2)} de comissão.`,
+            });
+          }
+        }
+
+        // Redirecionar para pagamento
         if (data.paymentUrl) {
           window.open(data.paymentUrl, '_blank');
         }
@@ -97,8 +138,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
       setIsProcessing(false);
     }
   };
-
-  const splitPreview = calculateSplitPreview();
 
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
@@ -130,6 +169,21 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             onAmbassadorCodeChange={setAmbassadorCode}
             splitPreview={splitPreview}
           />
+
+          {/* Debug Split Preview */}
+          {splitPreview && amount && (
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-2">Preview do Split:</h4>
+              <div className="text-sm text-blue-800 space-y-1">
+                <div>Total: {formatCurrency(amount)}</div>
+                <div>Instituto: R$ {(splitPreview.instituteShare / 100).toFixed(2)}</div>
+                {splitPreview.ambassadorShare > 0 && (
+                  <div>Embaixador: R$ {(splitPreview.ambassadorShare / 100).toFixed(2)}</div>
+                )}
+                <div>Splits configurados: {splitPreview.splits.length}</div>
+              </div>
+            </div>
+          )}
 
           <PaymentMethodSelector
             paymentMethod={paymentMethod}
