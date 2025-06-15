@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('=== INÍCIO DA FUNÇÃO DIAGNOSTICO-INICIAR ===')
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -28,12 +30,15 @@ serve(async (req) => {
     if (authError || !user) {
       console.error('Erro de autenticação:', authError)
       return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
+        JSON.stringify({ error: 'Usuário não autenticado. Faça login e tente novamente.' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Iniciando nova sessão de pré-diagnóstico para usuário:', user.id)
+    console.log('Usuário autenticado:', user.id)
+
+    // Verificar se as tabelas existem
+    console.log('Verificando tabelas do banco de dados...')
 
     // Buscar perguntas ativas do pré-diagnóstico
     const { data: questions, error: questionsError } = await supabaseClient
@@ -46,26 +51,29 @@ serve(async (req) => {
       console.error('Erro ao buscar perguntas:', questionsError)
       return new Response(
         JSON.stringify({ 
-          error: 'Erro ao carregar perguntas', 
+          error: 'Erro ao carregar perguntas do banco de dados', 
           details: questionsError.message,
-          hint: 'Verifique se a tabela pre_diagnosis_questions existe e tem dados'
+          hint: 'Verifique se as tabelas foram criadas corretamente'
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    console.log(`Encontradas ${questions?.length || 0} perguntas ativas`)
+
     if (!questions || questions.length === 0) {
-      console.log('Nenhuma pergunta encontrada na tabela pre_diagnosis_questions')
+      console.log('Nenhuma pergunta encontrada')
       return new Response(
         JSON.stringify({ 
-          error: 'Nenhuma pergunta disponível',
-          hint: 'A tabela pre_diagnosis_questions está vazia ou não tem perguntas ativas'
+          error: 'Nenhuma pergunta disponível no sistema',
+          hint: 'As perguntas de pré-diagnóstico foram criadas mas podem não estar ativas'
         }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Criar nova sessão de pré-diagnóstico
+    console.log('Criando nova sessão...')
     const { data: session, error: sessionError } = await supabaseClient
       .from('pre_diagnosis_sessions')
       .insert({
@@ -81,42 +89,50 @@ serve(async (req) => {
       console.error('Erro ao criar sessão:', sessionError)
       return new Response(
         JSON.stringify({ 
-          error: 'Erro ao iniciar sessão', 
+          error: 'Erro ao iniciar nova sessão', 
           details: sessionError.message,
-          hint: 'Verifique se a tabela pre_diagnosis_sessions existe'
+          hint: 'Verifique se as tabelas de sessão foram criadas corretamente'
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    console.log('Sessão criada com sucesso:', session.id)
+
     // Retornar primeira pergunta
     const firstQuestion = questions[0]
+    console.log('Primeira pergunta:', firstQuestion.question_text)
+    
+    const response = {
+      session_id: session.id,
+      question: {
+        id: firstQuestion.id,
+        text: firstQuestion.question_text,
+        type: firstQuestion.question_type,
+        options: firstQuestion.options,
+        position: firstQuestion.order_position
+      },
+      progress: {
+        current: 1,
+        total: questions.length
+      }
+    }
+
+    console.log('Resposta enviada:', response)
+    console.log('=== FIM DA FUNÇÃO DIAGNOSTICO-INICIAR ===')
     
     return new Response(
-      JSON.stringify({
-        session_id: session.id,
-        question: {
-          id: firstQuestion.id,
-          text: firstQuestion.question_text,
-          type: firstQuestion.question_type,
-          options: firstQuestion.options,
-          position: firstQuestion.order_position
-        },
-        progress: {
-          current: 1,
-          total: questions.length
-        }
-      }),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Erro geral:', error)
+    console.error('=== ERRO GERAL NA FUNÇÃO ===', error)
     return new Response(
       JSON.stringify({ 
         error: 'Erro interno do servidor',
         details: error.message,
-        hint: 'Verifique os logs do servidor para mais detalhes'
+        hint: 'Verifique os logs da função para mais detalhes'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
