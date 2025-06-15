@@ -14,9 +14,9 @@ import {
   Database,
   Stethoscope,
   ChevronRight,
-  Calendar
+  Calendar,
+  Clock
 } from 'lucide-react';
-import QuickAppointment from './home/QuickAppointment';
 
 interface ProfileScreenProps {
   onNavigate?: (screen: string) => void;
@@ -62,6 +62,12 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleBookAppointment = () => {
+    if (onNavigate) {
+      onNavigate('partners');
+    }
   };
 
   const menuItems = [
@@ -137,9 +143,6 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
           </CardContent>
         </Card>
 
-        {/* Quick Appointment Card */}
-        <QuickAppointment onNavigate={onNavigate} />
-
         {/* Menu Items */}
         <div className="space-y-3">
           {menuItems.map((item) => (
@@ -165,6 +168,27 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
             </Card>
           ))}
         </div>
+
+        {/* Quick Appointment Card */}
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-r from-cv-coral to-cv-coral/80 border-0 text-white"
+          onClick={handleBookAppointment}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Calendar className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-white text-sm">Agendar Consulta</h3>
+                  <p className="text-xs text-white/80">Conecte-se com nossos profissionais</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/80" />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Sign Out Button */}
         <Button

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,7 @@ const ProfessionalAppointments = () => {
           appointment_time,
           status,
           notes,
-          profiles:user_id (
+          profiles:profiles!appointments_user_id_fkey (
             full_name,
             phone
           )
