@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Heart, Users, Gift, HandHeart } from 'lucide-react';
+import { ArrowLeft, Heart, Users, Gift } from 'lucide-react';
 
 interface HelpScreenProps {
   onBack: () => void;
@@ -24,13 +24,6 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
       icon: Users,
       color: "bg-cv-blue-heart",
       action: () => alert('Formulário de voluntariado em desenvolvimento')
-    },
-    {
-      title: "Torne-se Embaixador",
-      description: "Compartilhe nossa causa em suas redes",
-      icon: HandHeart,
-      color: "bg-cv-coral",
-      action: () => alert('Programa de embaixadores em desenvolvimento')
     }
   ];
 
@@ -90,6 +83,26 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
             </Card>
           ))}
         </div>
+
+        {/* Ambassador Info Card */}
+        <Card className="border-cv-purple-soft border-2">
+          <CardContent className="p-6 text-center">
+            <Heart className="w-8 h-8 mx-auto mb-3 text-cv-purple-soft" />
+            <h3 className="font-semibold text-cv-gray-dark mb-2">
+              Programa de Embaixadores
+            </h3>
+            <p className="text-sm text-cv-gray-light mb-4">
+              Compartilhe nossa causa e ganhe recompensas! Acesse o programa completo em seu perfil.
+            </p>
+            <Button
+              variant="outline"
+              className="border-cv-purple-soft text-cv-purple-soft hover:bg-cv-purple-soft hover:text-white"
+              onClick={() => onNavigate ? onNavigate('perfil') : null}
+            >
+              Ir para Perfil
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
