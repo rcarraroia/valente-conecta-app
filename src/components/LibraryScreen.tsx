@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Book, Search, Calendar, User, Eye, FileText, Heart, Shield, FlaskConical, Stethoscope } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import OptimizedImage from './OptimizedImage';
@@ -32,6 +34,7 @@ const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const categories = [
     { value: 'todos', label: 'Todos', icon: FileText },
@@ -178,7 +181,9 @@ const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
                   <button
                     key={category.value}
                     onClick={() => setSelectedCategory(category.value)}
-                    className={`flex flex-col items-center justify-center min-w-[80px] px-3 py-3 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 touch-target ${
+                    className={`flex flex-col items-center justify-center ${
+                      isMobile ? 'min-w-[60px] px-2 py-3' : 'min-w-[80px] px-3 py-3'
+                    } rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 touch-target ${
                       selectedCategory === category.value
                         ? 'bg-cv-coral text-white shadow-lg scale-105 transform'
                         : 'bg-white text-cv-gray-dark hover:bg-cv-off-white hover:shadow-md border border-cv-gray-light/30'
@@ -187,10 +192,12 @@ const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
                     aria-selected={selectedCategory === category.value}
                     aria-label={`Filtrar por categoria: ${category.label}`}
                   >
-                    <Icon className={`w-5 h-5 mb-1.5 ${
+                    <Icon className={`w-5 h-5 ${isMobile ? '' : 'mb-1.5'} ${
                       selectedCategory === category.value ? 'text-white' : 'text-cv-coral'
                     }`} />
-                    <span className="leading-tight">{category.label}</span>
+                    {!isMobile && (
+                      <span className="leading-tight">{category.label}</span>
+                    )}
                     {selectedCategory === category.value && (
                       <div className="absolute -top-1 right-2 w-2 h-2 bg-cv-yellow-soft rounded-full animate-pulse"></div>
                     )}
