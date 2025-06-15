@@ -1,10 +1,10 @@
 
 import { SplitConfiguration, PaymentSplit, AsaasSplit } from '@/types/payment';
 
-// Configuração de exemplo - deve ser movida para variáveis de ambiente ou banco de dados
+// Configuração com dados reais do Asaas
 const SPLIT_CONFIG: SplitConfiguration = {
-  instituteWalletId: 'WALLET_INSTITUTO_ID', // ID da carteira do instituto no Asaas
-  adminWalletId: 'WALLET_ADMIN_ID', // ID da carteira do administrador do app no Asaas
+  instituteWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Wallet ID fornecido
+  adminWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Usando o mesmo wallet por enquanto
   adminCommissionPercent: 10, // 10% para administrador do app
   ambassadorCommissionPercent: 10, // 10% para embaixadores
   ambassadorWallets: {

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { calculatePaymentSplit } from '@/utils/paymentSplit';
 import PlanSelector from './PlanSelector';
 import SupporterAmountSelector from './SupporterAmountSelector';
@@ -50,24 +51,45 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
 
     try {
       const amountInCents = parseInt(amount);
-      const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
-
-      console.log('Dados da assinatura:', {
-        amount: amountInCents / 100,
+      
+      const subscriptionData = {
+        amount: amountInCents,
+        type: 'subscription' as const,
         frequency: selectedPlan,
-        supporterData,
-        ambassadorCode: ambassadorCode || null,
-        split
+        paymentMethod: 'CREDIT_CARD' as const, // Assinaturas geralmente são por cartão
+        donor: supporterData,
+        ambassadorCode: ambassadorCode || undefined,
+      };
+
+      console.log('Enviando dados de assinatura:', subscriptionData);
+
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: subscriptionData
       });
 
+      if (error) {
+        throw error;
+      }
+
+      console.log('Resposta da assinatura:', data);
+
+      if (data.success) {
+        toast({
+          title: "Assinatura criada com sucesso!",
+          description: "Você será redirecionado para completar o pagamento.",
+        });
+
+        if (data.paymentUrl) {
+          window.open(data.paymentUrl, '_blank');
+        }
+      } else {
+        throw new Error(data.error || 'Erro desconhecido');
+      }
+    } catch (error: any) {
+      console.error('Erro na assinatura:', error);
       toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "A integração com assinaturas será implementada em breve.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao processar sua assinatura. Tente novamente.",
+        title: "Erro na assinatura",
+        description: error.message || "Ocorreu um erro ao processar sua assinatura. Tente novamente.",
         variant: "destructive"
       });
     } finally {

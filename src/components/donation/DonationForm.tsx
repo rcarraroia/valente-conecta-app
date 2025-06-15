@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { calculatePaymentSplit } from '@/utils/paymentSplit';
 import AmountSelector from './AmountSelector';
 import AmbassadorCodeInput from './AmbassadorCodeInput';
@@ -48,24 +49,48 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
 
     try {
       const amountInCents = parseInt(amount);
-      const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
-
-      console.log('Dados da doação:', {
-        amount: amountInCents / 100,
+      
+      const paymentData = {
+        amount: amountInCents,
+        type: 'donation' as const,
         paymentMethod,
-        donorData,
-        ambassadorCode: ambassadorCode || null,
-        split
+        donor: donorData,
+        ambassadorCode: ambassadorCode || undefined,
+      };
+
+      console.log('Enviando dados de pagamento:', paymentData);
+
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: paymentData
       });
 
+      if (error) {
+        throw error;
+      }
+
+      console.log('Resposta do pagamento:', data);
+
+      if (data.success) {
+        toast({
+          title: "Pagamento criado com sucesso!",
+          description: paymentMethod === 'PIX' 
+            ? "Use o QR Code ou cole o código PIX para pagar."
+            : "Você será redirecionado para completar o pagamento.",
+        });
+
+        // Aqui você pode redirecionar para uma página de confirmação
+        // ou mostrar o QR Code do PIX
+        if (data.paymentUrl) {
+          window.open(data.paymentUrl, '_blank');
+        }
+      } else {
+        throw new Error(data.error || 'Erro desconhecido');
+      }
+    } catch (error: any) {
+      console.error('Erro no pagamento:', error);
       toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "A integração com o gateway de pagamento será implementada em breve.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao processar sua doação. Tente novamente.",
+        title: "Erro no pagamento",
+        description: error.message || "Ocorreu um erro ao processar sua doação. Tente novamente.",
         variant: "destructive"
       });
     } finally {
