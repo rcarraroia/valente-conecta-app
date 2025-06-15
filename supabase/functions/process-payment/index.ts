@@ -28,6 +28,8 @@ interface AsaasSplit {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('=== INÍCIO DO PROCESSO DE PAGAMENTO ===');
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,51 +37,53 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const paymentData: PaymentRequest = await req.json();
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
 
-    if (!asaasApiKey) {
-      throw new Error('ASAAS_API_KEY não configurada');
-    }
-
-    console.log('=== INÍCIO DO PROCESSAMENTO DE PAGAMENTO ===');
-    console.log('Dados recebidos:', {
+    console.log('Dados do pagamento recebidos:', {
       amount: paymentData.amount,
       type: paymentData.type,
+      paymentMethod: paymentData.paymentMethod,
       ambassadorCode: paymentData.ambassadorCode,
-      donor: paymentData.donor.name
+      donorName: paymentData.donor.name
     });
 
-    // 1. Buscar dados do embaixador se código fornecido
+    if (!asaasApiKey) {
+      console.error('ASAAS_API_KEY não encontrada');
+      throw new Error('Configuração de pagamento não encontrada');
+    }
+
+    // 1. Validações básicas
+    if (!paymentData.amount || paymentData.amount < 100) {
+      throw new Error('Valor mínimo para doação é R$ 1,00');
+    }
+
+    if (!paymentData.donor.name || !paymentData.donor.email) {
+      throw new Error('Nome e email são obrigatórios');
+    }
+
+    // 2. Buscar dados do embaixador se código fornecido
     let ambassadorData = null;
     let ambassadorLinkId = null;
     
     if (paymentData.ambassadorCode) {
-      console.log('Buscando dados do embaixador:', paymentData.ambassadorCode);
+      console.log('Buscando embaixador:', paymentData.ambassadorCode);
       
       const { data: ambassadorProfile, error: ambassadorError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          ambassador_wallet_id,
-          is_volunteer
-        `)
+        .select('id, full_name, ambassador_wallet_id, is_volunteer')
         .eq('ambassador_code', paymentData.ambassadorCode)
         .eq('is_volunteer', true)
-        .single();
+        .maybeSingle();
 
       if (ambassadorError) {
-        console.warn('Erro ao buscar embaixador:', ambassadorError);
+        console.warn('Erro ao buscar embaixador:', ambassadorError.message);
       } else if (ambassadorProfile) {
         ambassadorData = ambassadorProfile;
-        console.log('Embaixador encontrado:', {
-          name: ambassadorData.full_name,
-          hasWallet: !!ambassadorData.ambassador_wallet_id
-        });
+        console.log('Embaixador encontrado:', ambassadorData.full_name);
 
         // Buscar link ativo do embaixador
         const { data: linkData } = await supabase
@@ -91,18 +95,17 @@ const handler = async (req: Request): Promise<Response> => {
 
         if (linkData) {
           ambassadorLinkId = linkData.id;
-          console.log('Link do embaixador encontrado:', ambassadorLinkId);
         }
       }
     }
 
-    // 2. Criar/buscar cliente no Asaas
+    // 3. Criar/buscar cliente no Asaas
     console.log('Criando cliente no Asaas...');
     const customerData = {
       name: paymentData.donor.name,
       email: paymentData.donor.email,
-      phone: paymentData.donor.phone,
-      cpfCnpj: paymentData.donor.document,
+      phone: paymentData.donor.phone || undefined,
+      cpfCnpj: paymentData.donor.document || undefined,
     };
 
     const customerResponse = await fetch('https://www.asaas.com/api/v3/customers', {
@@ -114,22 +117,25 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify(customerData),
     });
 
-    const customer = await customerResponse.json();
-    console.log('Cliente no Asaas:', customer.id);
+    if (!customerResponse.ok) {
+      const errorData = await customerResponse.text();
+      console.error('Erro ao criar cliente:', errorData);
+      throw new Error('Erro ao criar cliente no sistema de pagamento');
+    }
 
-    // 3. Configurar split de pagamentos
+    const customer = await customerResponse.json();
+    console.log('Cliente criado:', customer.id);
+
+    // 4. Configurar split se necessário
     const splits: AsaasSplit[] = [];
     const instituteWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405';
-    
-    // Calcular valores do split
     const totalAmountInReais = paymentData.amount / 100;
-    const ambassadorCommissionPercent = 10;
     
     let ambassadorShare = 0;
     let instituteShare = totalAmountInReais;
 
-    // Configurar split APENAS se há embaixador com wallet diferente
-    if (ambassadorData && ambassadorData.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
+    if (ambassadorData?.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
+      const ambassadorCommissionPercent = 10;
       ambassadorShare = Math.round((totalAmountInReais * ambassadorCommissionPercent) / 100 * 100) / 100;
       instituteShare = totalAmountInReais - ambassadorShare;
 
@@ -138,53 +144,30 @@ const handler = async (req: Request): Promise<Response> => {
         fixedValue: ambassadorShare
       });
 
-      // Só adicionar split para o instituto se for diferente da carteira do embaixador
       splits.push({
         walletId: instituteWalletId,
         fixedValue: instituteShare
       });
 
-      console.log('Split do embaixador configurado:', {
-        embaixadorWallet: ambassadorData.ambassador_wallet_id,
-        embaixadorValue: ambassadorShare,
-        institutoWallet: instituteWalletId,
-        institutoValue: instituteShare
-      });
-    } else {
-      console.log('Sem split configurado - doação integral para o instituto');
+      console.log('Split configurado:', { ambassadorShare, instituteShare });
     }
 
-    console.log('Split final configurado:', {
-      total: totalAmountInReais,
-      instituto: instituteShare,
-      embaixador: ambassadorShare,
-      splitsCount: splits.length
-    });
-
-    // 4. Criar pagamento ou assinatura na Asaas
+    // 5. Criar pagamento na Asaas
+    const externalReference = `${paymentData.type.toUpperCase()}_${Date.now()}`;
+    
     let asaasResponse;
-    const externalReference = paymentData.ambassadorCode 
-      ? `${paymentData.type.toUpperCase()}_${paymentData.ambassadorCode}_${Date.now()}`
-      : `${paymentData.type.toUpperCase()}_${Date.now()}`;
-
     if (paymentData.type === 'donation') {
-      // Pagamento único
       const paymentPayload = {
         customer: customer.id,
         billingType: paymentData.paymentMethod,
         value: totalAmountInReais,
         dueDate: new Date().toISOString().split('T')[0],
-        description: `Doação - Instituto Coração Valente${paymentData.ambassadorCode ? ` (Embaixador: ${paymentData.ambassadorCode})` : ''}`,
-        externalReference: externalReference,
-        split: splits.length > 1 ? splits : undefined, // Só incluir split se houver mais de 1 destinatário
+        description: `Doação - Instituto Coração Valente`,
+        externalReference,
+        split: splits.length > 0 ? splits : undefined,
       };
 
-      console.log('Criando cobrança única na Asaas:', {
-        value: paymentPayload.value,
-        billingType: paymentPayload.billingType,
-        hasSplit: !!paymentPayload.split,
-        splitCount: paymentPayload.split?.length || 0
-      });
+      console.log('Criando cobrança:', paymentPayload);
 
       asaasResponse = await fetch('https://www.asaas.com/api/v3/payments', {
         method: 'POST',
@@ -195,23 +178,18 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify(paymentPayload),
       });
     } else {
-      // Assinatura
       const subscriptionPayload = {
         customer: customer.id,
         billingType: paymentData.paymentMethod,
         value: totalAmountInReais,
         cycle: paymentData.frequency === 'monthly' ? 'MONTHLY' : 'YEARLY',
-        description: `Apoio ${paymentData.frequency === 'monthly' ? 'Mensal' : 'Anual'} - Instituto Coração Valente${paymentData.ambassadorCode ? ` (Embaixador: ${paymentData.ambassadorCode})` : ''}`,
+        description: `Apoio ${paymentData.frequency === 'monthly' ? 'Mensal' : 'Anual'} - Instituto Coração Valente`,
         nextDueDate: new Date().toISOString().split('T')[0],
-        externalReference: externalReference,
-        split: splits.length > 1 ? splits : undefined,
+        externalReference,
+        split: splits.length > 0 ? splits : undefined,
       };
 
-      console.log('Criando assinatura na Asaas:', {
-        value: subscriptionPayload.value,
-        cycle: subscriptionPayload.cycle,
-        hasSplit: !!subscriptionPayload.split
-      });
+      console.log('Criando assinatura:', subscriptionPayload);
 
       asaasResponse = await fetch('https://www.asaas.com/api/v3/subscriptions', {
         method: 'POST',
@@ -223,20 +201,16 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const result = await asaasResponse.json();
-    console.log('Resposta da Asaas:', {
-      success: asaasResponse.ok,
-      id: result.id,
-      status: result.status
-    });
-
     if (!asaasResponse.ok) {
-      console.error('Erro detalhado da Asaas:', result);
-      throw new Error(`Erro do Asaas: ${JSON.stringify(result)}`);
+      const errorData = await asaasResponse.text();
+      console.error('Erro da Asaas:', errorData);
+      throw new Error('Erro ao processar pagamento');
     }
 
-    // 5. Salvar no banco de dados
-    console.log('Salvando doação no banco...');
+    const result = await asaasResponse.json();
+    console.log('Pagamento criado:', result.id);
+
+    // 6. Salvar no banco
     const { error: dbError } = await supabase.from('donations').insert({
       amount: totalAmountInReais,
       donor_name: paymentData.donor.name,
@@ -250,33 +224,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (dbError) {
       console.error('Erro ao salvar no banco:', dbError);
-    } else {
-      console.log('Doação salva no banco com sucesso');
     }
 
-    // 6. Atualizar performance do embaixador se aplicável
-    if (ambassadorData && ambassadorLinkId) {
-      console.log('Atualizando performance do embaixador...');
-      
-      const { error: perfError } = await supabase
-        .from('ambassador_performance')
-        .upsert({
-          ambassador_user_id: ambassadorData.id,
-          total_donations_amount: totalAmountInReais,
-          total_donations_count: 1,
-          last_updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'ambassador_user_id'
-        });
-
-      if (perfError) {
-        console.error('Erro ao atualizar performance:', perfError);
-      } else {
-        console.log('Performance do embaixador atualizada');
-      }
-    }
-
-    console.log('=== PROCESSAMENTO CONCLUÍDO COM SUCESSO ===');
+    console.log('=== PROCESSAMENTO CONCLUÍDO ===');
 
     return new Response(JSON.stringify({
       success: true,
@@ -302,11 +252,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error('=== ERRO NO PROCESSAMENTO ===');
-    console.error('Detalhes do erro:', error);
+    console.error('Erro detalhado:', error.message);
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message,
+      error: error.message || 'Erro interno do servidor',
     }), {
       status: 500,
       headers: {

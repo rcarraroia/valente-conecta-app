@@ -65,10 +65,19 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
-      if (amountInCents < 100) { // Mínimo R$ 1,00
+      if (amountInCents < 100) {
         toast({
           title: "Valor mínimo",
           description: "O valor mínimo para doação é R$ 1,00.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!donorData.name.trim() || !donorData.email.trim()) {
+        toast({
+          title: "Dados obrigatórios",
+          description: "Nome e email são obrigatórios.",
           variant: "destructive"
         });
         return;
@@ -78,27 +87,33 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         amount: amountInCents,
         type: 'donation' as const,
         paymentMethod,
-        donor: donorData,
-        ambassadorCode: ambassadorCode || undefined,
+        donor: {
+          name: donorData.name.trim(),
+          email: donorData.email.trim(),
+          phone: donorData.phone.trim() || undefined,
+          document: donorData.document.trim() || undefined,
+        },
+        ambassadorCode: ambassadorCode.trim() || undefined,
       };
 
       console.log('=== INICIANDO DOAÇÃO ===');
       console.log('Dados enviados:', {
         amount: paymentData.amount,
         ambassadorCode: paymentData.ambassadorCode,
-        donor: paymentData.donor.name
+        donor: paymentData.donor.name,
+        paymentMethod: paymentData.paymentMethod
       });
 
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: paymentData
       });
 
+      console.log('Resposta da Edge Function:', { data, error });
+
       if (error) {
         console.error('Erro da Edge Function:', error);
-        throw error;
+        throw new Error(error.message || 'Erro na comunicação com o servidor');
       }
-
-      console.log('Resposta recebida:', data);
 
       if (data.success) {
         toast({
@@ -109,15 +124,12 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         });
 
         // Log do split para debug
-        if (data.split) {
+        if (data.split?.ambassador) {
           console.log('Split aplicado:', data.split);
-          
-          if (data.split.ambassador) {
-            toast({
-              title: "Split configurado!",
-              description: `${data.split.ambassador.name} receberá R$ ${data.split.embaixador.toFixed(2)} de comissão.`,
-            });
-          }
+          toast({
+            title: "Embaixador vinculado!",
+            description: `${data.split.ambassador.name} receberá comissão desta doação.`,
+          });
         }
 
         // Redirecionar para pagamento
@@ -125,13 +137,20 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           window.open(data.paymentUrl, '_blank');
         }
       } else {
-        throw new Error(data.error || 'Erro desconhecido');
+        throw new Error(data.error || 'Erro desconhecido no processamento');
       }
     } catch (error: any) {
       console.error('Erro no pagamento:', error);
+      
+      let errorMessage = "Ocorreu um erro ao processar sua doação. Tente novamente.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro no pagamento",
-        description: error.message || "Ocorreu um erro ao processar sua doação. Tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
