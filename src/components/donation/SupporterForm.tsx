@@ -224,19 +224,22 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
                   </h4>
                   <div className="text-sm space-y-1">
                     <div className="flex justify-between">
-                      <span>Instituto Coração Valente:</span>
+                      <span>Instituto Coração Valente (80%):</span>
                       <span className="font-medium">
                         {formatCurrency(splitPreview.instituteShare.toString())}
                       </span>
                     </div>
                     {splitPreview.ambassadorShare > 0 && (
                       <div className="flex justify-between">
-                        <span>Comissão Embaixador ({ambassadorCode}):</span>
+                        <span>Comissão Embaixador ({ambassadorCode}) (10%):</span>
                         <span className="font-medium">
                           {formatCurrency(splitPreview.ambassadorShare.toString())}
                         </span>
                       </div>
                     )}
+                    <div className="text-xs text-gray-500 mt-2 pt-2 border-t">
+                      * 10% destinado à manutenção da plataforma
+                    </div>
                   </div>
                 </div>
               )}

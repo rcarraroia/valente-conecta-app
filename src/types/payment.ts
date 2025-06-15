@@ -59,6 +59,8 @@ export interface AsaasSubscription {
 
 export interface SplitConfiguration {
   instituteWalletId: string;
+  adminWalletId: string;
+  adminCommissionPercent: number;
   ambassadorCommissionPercent: number;
   ambassadorWallets: {
     [ambassadorCode: string]: string;
@@ -69,5 +71,6 @@ export interface PaymentSplit {
   ambassadorCode?: string;
   ambassadorShare: number;
   instituteShare: number;
+  adminShare: number; // Adicionado para rastreamento interno
   splits: AsaasSplit[];
 }
