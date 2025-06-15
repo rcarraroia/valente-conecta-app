@@ -1,33 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Phone, MapPin, Calendar, Heart, Shield, LogOut } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Settings, Heart, Users, LogOut, Star } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-interface Profile {
-  full_name?: string;
-  phone?: string;
-  date_of_birth?: string;
-  gender?: string;
-  city?: string;
-  state?: string;
-  emergency_contact_name?: string;
-  emergency_contact_phone?: string;
-  medical_conditions?: string;
-  medications?: string;
+interface ProfileScreenProps {
+  onNavigate?: (screen: string) => void;
 }
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<Profile>({});
 
   useEffect(() => {
     if (user) {
@@ -37,81 +26,49 @@ const ProfileScreen = () => {
 
   const loadProfile = async () => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
-        .maybeSingle();
+        .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error);
-        toast({
-          title: 'Erro ao carregar perfil',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else if (data) {
-        setProfile(data);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error loading profile:', error);
+
+      setProfile(profileData);
+    } catch (error: any) {
+      console.error('Erro ao carregar perfil:', error);
+      toast({
+        title: "Erro ao carregar perfil",
+        description: "Não foi possível carregar suas informações.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    try {
-      setSaving(true);
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          ...profile,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        toast({
-          title: 'Erro ao salvar perfil',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Perfil atualizado!',
-          description: 'Suas informações foram salvas com sucesso.',
-        });
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleSignOut = async () => {
     const { error } = await signOut();
-    if (!error) {
-      window.location.href = '/auth';
+    if (error) {
+      toast({
+        title: "Erro ao sair",
+        description: "Não foi possível fazer logout. Tente novamente.",
+        variant: "destructive"
+      });
     }
   };
 
-  const updateField = (field: keyof Profile, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cv-off-white flex items-center justify-center p-6 pb-20">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-cv-coral border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-cv-gray-light">Carregando perfil...</p>
-        </div>
+      <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cv-coral"></div>
       </div>
     );
   }
@@ -119,182 +76,112 @@ const ProfileScreen = () => {
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 bg-cv-blue-heart rounded-full flex items-center justify-center mx-auto">
-            <User className="w-10 h-10 text-white" />
-          </div>
-          <div>
-            <h1 className="text-h1 font-heading font-bold text-cv-gray-dark">Meu Perfil</h1>
-            <p className="text-body text-cv-gray-light">{user?.email}</p>
-          </div>
-        </div>
-
-        {/* Informações Básicas */}
+        {/* Profile Header */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Informações Pessoais
-            </CardTitle>
-            <CardDescription>
-              Mantenha seus dados atualizados para um melhor atendimento
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={updateProfile}>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name">Nome Completo</Label>
-                  <Input
-                    id="full_name"
-                    value={profile.full_name || ''}
-                    onChange={(e) => updateField('full_name', e.target.value)}
-                    placeholder="Seu nome completo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="phone"
-                      className="pl-10"
-                      value={profile.phone || ''}
-                      onChange={(e) => updateField('phone', e.target.value)}
-                      placeholder="(11) 99999-9999"
-                    />
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-16 h-16">
+                <AvatarFallback className="bg-cv-coral text-white text-lg font-bold">
+                  {getInitials(profile?.full_name || user?.email)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-cv-gray-dark">
+                  {profile?.full_name || 'Usuário'}
+                </h2>
+                <p className="text-cv-gray-light">{user?.email}</p>
+                {profile?.is_volunteer && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm text-yellow-600 font-medium">Embaixador</span>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date_of_birth">Data de Nascimento</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="date_of_birth"
-                      type="date"
-                      className="pl-10"
-                      value={profile.date_of_birth || ''}
-                      onChange={(e) => updateField('date_of_birth', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gender">Gênero</Label>
-                  <select
-                    id="gender"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={profile.gender || ''}
-                    onChange={(e) => updateField('gender', e.target.value)}
-                  >
-                    <option value="">Selecione</option>
-                    <option value="masculino">Masculino</option>
-                    <option value="feminino">Feminino</option>
-                    <option value="outro">Outro</option>
-                    <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                    <Input
-                      id="city"
-                      className="pl-10"
-                      value={profile.city || ''}
-                      onChange={(e) => updateField('city', e.target.value)}
-                      placeholder="Sua cidade"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado</Label>
-                  <Input
-                    id="state"
-                    value={profile.state || ''}
-                    onChange={(e) => updateField('state', e.target.value)}
-                    placeholder="Seu estado"
-                  />
-                </div>
+                )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-cv-gray-dark mb-4 flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Contato de Emergência
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="emergency_contact_name">Nome do Contato</Label>
-                    <Input
-                      id="emergency_contact_name"
-                      value={profile.emergency_contact_name || ''}
-                      onChange={(e) => updateField('emergency_contact_name', e.target.value)}
-                      placeholder="Nome completo"
-                    />
+        {/* Menu Options */}
+        <div className="space-y-3">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-cv-blue-heart p-2 rounded-full">
+                    <User className="w-5 h-5 text-white" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="emergency_contact_phone">Telefone do Contato</Label>
-                    <Input
-                      id="emergency_contact_phone"
-                      value={profile.emergency_contact_phone || ''}
-                      onChange={(e) => updateField('emergency_contact_phone', e.target.value)}
-                      placeholder="(11) 99999-9999"
-                    />
+                  <div>
+                    <h3 className="font-semibold text-cv-gray-dark">Meus Dados</h3>
+                    <p className="text-sm text-cv-gray-light">Editar informações pessoais</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-cv-gray-dark mb-4 flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Informações Médicas
-                </h3>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="medical_conditions">Condições Médicas</Label>
-                    <textarea
-                      id="medical_conditions"
-                      className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={profile.medical_conditions || ''}
-                      onChange={(e) => updateField('medical_conditions', e.target.value)}
-                      placeholder="Descreva suas condições médicas (opcional)"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="medications">Medicamentos</Label>
-                    <textarea
-                      id="medications"
-                      className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={profile.medications || ''}
-                      onChange={(e) => updateField('medications', e.target.value)}
-                      placeholder="Liste seus medicamentos atuais (opcional)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button 
-                  type="submit" 
-                  className="flex-1 bg-cv-green-mint hover:bg-cv-green-mint/90"
-                  disabled={saving}
-                >
-                  {saving ? 'Salvando...' : 'Salvar Perfil'}
-                </Button>
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair
+                <Button variant="ghost" size="sm">
+                  <Settings className="w-4 h-4" />
                 </Button>
               </div>
             </CardContent>
-          </form>
-        </Card>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-cv-green-mint p-2 rounded-full">
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-cv-gray-dark">Minhas Doações</h3>
+                    <p className="text-sm text-cv-gray-light">Histórico de contribuições</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {profile?.is_volunteer && (
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => onNavigate?.('ambassador')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-cv-coral p-2 rounded-full">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-cv-gray-dark">Painel do Embaixador</h3>
+                      <p className="text-sm text-cv-gray-light">Gerencie seus links e comissões</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={handleSignOut}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-red-500 p-2 rounded-full">
+                  <LogOut className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-cv-gray-dark">Sair</h3>
+                  <p className="text-sm text-cv-gray-light">Fazer logout da conta</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

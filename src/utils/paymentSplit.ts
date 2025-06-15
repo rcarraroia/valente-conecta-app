@@ -1,4 +1,3 @@
-
 import { SplitConfiguration, PaymentSplit, AsaasSplit } from '@/types/payment';
 
 // Configuração com dados reais do Asaas
@@ -78,5 +77,78 @@ export const getDisplayPercentages = () => {
     institute: 80,
     ambassador: SPLIT_CONFIG.ambassadorCommissionPercent,
     // adminCommission não é retornado para manter oculto na UI
+  };
+};
+
+// Nova função para buscar wallet ID do embaixador no banco
+export const getAmbassadorWalletId = async (ambassadorCode: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('ambassador_wallet_id')
+      .eq('ambassador_code', ambassadorCode)
+      .eq('is_volunteer', true)
+      .single();
+
+    if (error || !data?.ambassador_wallet_id) {
+      return null;
+    }
+
+    return data.ambassador_wallet_id;
+  } catch (error) {
+    console.error('Erro ao buscar wallet do embaixador:', error);
+    return null;
+  }
+};
+
+// Função atualizada para calcular split com consulta ao banco
+export const calculatePaymentSplitWithDB = async (
+  amount: number,
+  ambassadorCode?: string
+): Promise<PaymentSplit> => {
+  const splits: AsaasSplit[] = [];
+  
+  // Calcular comissão do administrador (sempre aplicada)
+  const adminShare = Math.round((amount * SPLIT_CONFIG.adminCommissionPercent) / 100);
+  
+  let ambassadorShare = 0;
+  let instituteShare = amount - adminShare;
+  let ambassadorWalletId = null;
+
+  if (ambassadorCode) {
+    // Buscar wallet ID do embaixador no banco
+    ambassadorWalletId = await getAmbassadorWalletId(ambassadorCode);
+    
+    if (ambassadorWalletId) {
+      // Calcular comissão do embaixador
+      ambassadorShare = Math.round((amount * SPLIT_CONFIG.ambassadorCommissionPercent) / 100);
+      instituteShare = amount - adminShare - ambassadorShare;
+
+      // Adicionar split para o embaixador
+      splits.push({
+        walletId: ambassadorWalletId,
+        fixedValue: ambassadorShare
+      });
+    }
+  }
+
+  // Adicionar split para o administrador
+  splits.push({
+    walletId: SPLIT_CONFIG.adminWalletId,
+    fixedValue: adminShare
+  });
+
+  // Adicionar split para o instituto
+  splits.push({
+    walletId: SPLIT_CONFIG.instituteWalletId,
+    fixedValue: instituteShare
+  });
+
+  return {
+    ambassadorCode,
+    ambassadorShare,
+    instituteShare,
+    adminShare,
+    splits
   };
 };

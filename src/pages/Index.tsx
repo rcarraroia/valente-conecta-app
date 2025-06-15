@@ -8,6 +8,7 @@ import ProfileScreen from '@/components/ProfileScreen';
 import ServicesScreen from '@/components/ServicesScreen';
 import BottomNavigation from '@/components/BottomNavigation';
 import DonationScreen from '@/components/DonationScreen';
+import AmbassadorDashboard from '@/components/AmbassadorDashboard';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<string>('home');
@@ -28,7 +29,9 @@ const Index = () => {
       case 'donation':
         return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
       case 'perfil':
-        return <ProfileScreen />;
+        return <ProfileScreen onNavigate={handleNavigate} />;
+      case 'ambassador':
+        return <AmbassadorDashboard onBack={() => setCurrentScreen('perfil')} />;
       case 'services':
         return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
