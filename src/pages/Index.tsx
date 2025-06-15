@@ -47,10 +47,10 @@ const Index = () => {
         {renderScreen()}
       </div>
       
-      {/* Show bottom navigation only on main screens */}
-      {['home', 'biblioteca', 'ia', 'ajudar', 'perfil'].includes(currentScreen) && (
+      {/* Show bottom navigation on main screens and services */}
+      {['home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services'].includes(currentScreen) && (
         <BottomNavigation 
-          currentTab={currentScreen} 
+          currentTab={currentScreen === 'services' ? 'home' : currentScreen} 
           onTabChange={handleNavigate}
         />
       )}
