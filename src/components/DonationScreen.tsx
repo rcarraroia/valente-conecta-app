@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ interface DonationScreenProps {
   onBack: () => void;
 }
 
-const DonationScreen = ({ onBack }: DonationScreenProps) => {
+const DonationScreen: React.FC<DonationScreenProps> = ({ onBack }) => {
   const [selectedOption, setSelectedOption] = useState<'donation' | 'supporter' | null>(null);
 
   const handleBack = () => {
