@@ -25,6 +25,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import OptimizedImage from './OptimizedImage';
 
 const HomeScreen = () => {
   const quickActions = [
@@ -33,28 +34,32 @@ const HomeScreen = () => {
       description: "Orientação inteligente",
       icon: Brain,
       color: "bg-cv-green-mint",
-      textColor: "text-white"
+      textColor: "text-white",
+      ariaLabel: "Iniciar pré-diagnóstico com inteligência artificial"
     },
     {
       title: "Nossos Serviços",
       description: "Conheça nossa missão",
       icon: Heart,
       color: "bg-cv-blue-heart",
-      textColor: "text-white"
+      textColor: "text-white",
+      ariaLabel: "Conhecer serviços do Instituto Coração Valente"
     },
     {
       title: "Biblioteca",
       description: "Artigos e guias",
       icon: Book,
       color: "bg-cv-yellow-soft",
-      textColor: "text-cv-purple-dark"
+      textColor: "text-cv-purple-dark",
+      ariaLabel: "Acessar biblioteca de artigos e guias"
     },
     {
       title: "Quero Ajudar",
       description: "Seja um mantenedor",
       icon: HandHeart,
       color: "bg-cv-coral",
-      textColor: "text-white"
+      textColor: "text-white",
+      ariaLabel: "Descobrir como ajudar o Instituto"
     }
   ];
 
@@ -64,7 +69,7 @@ const HomeScreen = () => {
       title: "Nova Metodologia de Acolhimento Familiar",
       description: "Desenvolvemos uma abordagem inovadora para apoiar famílias no processo de diagnóstico.",
       date: "05 Jun 2025",
-      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop",
+      image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
       category: "Metodologia"
     },
     {
@@ -72,7 +77,7 @@ const HomeScreen = () => {
       title: "Workshop: Sinais Precoces do TEA",
       description: "Evento gratuito para pais e cuidadores sobre identificação precoce do Transtorno do Espectro Autista.",
       date: "10 Jun 2025",
-      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop",
+      image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
       category: "Evento"
     },
     {
@@ -80,7 +85,7 @@ const HomeScreen = () => {
       title: "Parceria com Universidade Federal",
       description: "Nova colaboração para pesquisas em neurodesenvolvimento e inclusão educacional.",
       date: "01 Jun 2025",
-      image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=300&h=200&fit=crop",
+      image: "https://images.unsplash.com/photo-1500673922987-e212871fec22",
       category: "Parceria"
     }
   ];
@@ -88,14 +93,16 @@ const HomeScreen = () => {
   return (
     <div className="min-h-screen bg-cv-off-white">
       {/* Header */}
-      <header className="bg-cv-purple-soft text-white p-4 shadow-lg">
+      <header className="bg-cv-purple-soft text-white p-4 shadow-lg" role="banner">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png" 
-                alt="Instituto Coração Valente" 
+              <OptimizedImage 
+                src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png"
+                alt="Logotipo do Instituto Coração Valente"
                 className="w-10 h-10 object-contain"
+                width={40}
+                height={40}
               />
             </div>
             <div>
@@ -103,16 +110,25 @@ const HomeScreen = () => {
               <p className="text-sm opacity-90">Conecta</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" aria-label="Pesquisar">
-            <Search className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20" 
+            aria-label="Abrir busca"
+          >
+            <Search className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark p-6 text-white">
+      <section 
+        className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark p-6 text-white"
+        role="banner"
+        aria-labelledby="hero-title"
+      >
         <div className="relative z-10 space-y-4 animate-fade-in">
-          <h2 className="text-h1 font-heading font-bold leading-tight">
+          <h2 id="hero-title" className="text-h1 font-heading font-bold leading-tight">
             Descubra o Poder do Acolhimento
           </h2>
           <p className="text-body opacity-95 max-w-md">
@@ -121,14 +137,14 @@ const HomeScreen = () => {
           <Button 
             className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
             size="lg"
-            aria-label="Iniciar jornada de orientação"
+            aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
           >
             Inicie Sua Jornada
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-lg"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl" aria-hidden="true"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-lg" aria-hidden="true"></div>
       </section>
 
       {/* Quick Actions */}
@@ -136,18 +152,24 @@ const HomeScreen = () => {
         <h3 id="quick-actions-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4">
           Acesso Rápido
         </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4" role="grid">
           {quickActions.map((action, index) => (
             <Card 
               key={action.title}
-              className={`${action.color} border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer animate-slide-up`}
+              className={`${action.color} border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer animate-slide-up touch-target`}
               style={{ animationDelay: `${index * 100}ms` }}
-              role="button"
+              role="gridcell"
               tabIndex={0}
-              aria-label={`${action.title}: ${action.description}`}
+              aria-label={action.ariaLabel}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  // Handle action click
+                }
+              }}
             >
               <CardContent className="p-4 text-center space-y-2">
-                <action.icon className={`w-8 h-8 mx-auto ${action.textColor}`} />
+                <action.icon className={`w-8 h-8 mx-auto ${action.textColor}`} aria-hidden="true" />
                 <h4 className={`font-semibold text-sm ${action.textColor}`}>
                   {action.title}
                 </h4>
@@ -165,29 +187,34 @@ const HomeScreen = () => {
         <h3 id="impact-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4 text-center">
           Nosso Impacto
         </h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="space-y-2">
-            <div className="text-h1 font-bold text-cv-green-mint">2.5K+</div>
+        <div className="grid grid-cols-3 gap-4 text-center" role="grid">
+          <div className="space-y-2" role="gridcell">
+            <div className="text-h1 font-bold text-cv-green-mint" aria-label="Duas mil e quinhentas famílias atendidas">2.5K+</div>
             <p className="text-caption text-cv-purple-dark">Famílias Atendidas</p>
           </div>
-          <div className="space-y-2">
-            <div className="text-h1 font-bold text-cv-coral">98%</div>
+          <div className="space-y-2" role="gridcell">
+            <div className="text-h1 font-bold text-cv-coral" aria-label="Noventa e oito por cento de satisfação">98%</div>
             <p className="text-caption text-cv-purple-dark">Satisfação</p>
           </div>
-          <div className="space-y-2">
-            <div className="text-h1 font-bold text-cv-blue-heart">15</div>
+          <div className="space-y-2" role="gridcell">
+            <div className="text-h1 font-bold text-cv-blue-heart" aria-label="Quinze especialistas">15</div>
             <p className="text-caption text-cv-purple-dark">Especialistas</p>
           </div>
         </div>
       </section>
 
-      {/* Recent News - Updated to use Carousel */}
+      {/* Recent News */}
       <section className="p-6" aria-labelledby="news-title">
         <div className="flex items-center justify-between mb-4">
           <h3 id="news-title" className="text-h2 font-heading font-bold text-cv-purple-dark">
             Últimas Notícias
           </h3>
-          <Button variant="ghost" size="sm" className="text-cv-blue-heart hover:text-cv-green-mint">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-cv-blue-heart hover:text-cv-green-mint"
+            aria-label="Ver todas as notícias"
+          >
             Ver todas
           </Button>
         </div>
@@ -200,13 +227,22 @@ const HomeScreen = () => {
                   style={{ animationDelay: `${index * 150}ms` }}
                   role="article"
                   aria-labelledby={`news-title-${news.id}`}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Handle news click
+                    }
+                  }}
                 >
                   <CardContent className="p-0">
                     <div className="flex space-x-4">
-                      <img 
-                        src={news.image} 
-                        alt={`Imagem relacionada a ${news.title}`}
+                      <OptimizedImage 
+                        src={news.image}
+                        alt={`Imagem relacionada à notícia: ${news.title}`}
                         className="w-20 h-20 object-cover rounded-l-lg flex-shrink-0"
+                        width={80}
+                        height={80}
                       />
                       <div className="flex-1 p-4 space-y-2">
                         <div className="flex items-center space-x-2">
@@ -216,7 +252,9 @@ const HomeScreen = () => {
                           >
                             {news.category}
                           </Badge>
-                          <span className="text-caption text-cv-gray-light">{news.date}</span>
+                          <time className="text-caption text-cv-gray-light" dateTime="2025-06-05">
+                            {news.date}
+                          </time>
                         </div>
                         <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-purple-dark line-clamp-2">
                           {news.title}
@@ -231,13 +269,19 @@ const HomeScreen = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="left-2 bg-white/80 hover:bg-white text-cv-purple-dark" />
-          <CarouselNext className="right-2 bg-white/80 hover:bg-white text-cv-purple-dark" />
+          <CarouselPrevious 
+            className="left-2 bg-white/80 hover:bg-white text-cv-purple-dark" 
+            aria-label="Notícia anterior"
+          />
+          <CarouselNext 
+            className="right-2 bg-white/80 hover:bg-white text-cv-purple-dark" 
+            aria-label="Próxima notícia"
+          />
         </Carousel>
       </section>
 
       {/* Bottom spacing for navigation */}
-      <div className="h-20"></div>
+      <div className="h-20" aria-hidden="true"></div>
     </div>
   );
 };
