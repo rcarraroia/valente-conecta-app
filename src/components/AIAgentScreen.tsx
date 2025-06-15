@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import AIIntroScreen from './AIIntroScreen';
 import AIChatInterface from './AIChatInterface';
 import AIResultScreen from './AIResultScreen';
+import SystemErrorScreen from './SystemErrorScreen';
 import { usePreDiagnosis } from '@/hooks/usePreDiagnosis';
 
 interface AIAgentScreenProps {
@@ -10,18 +11,31 @@ interface AIAgentScreenProps {
 }
 
 const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
-  const [currentStep, setCurrentStep] = useState('intro'); // intro, chat, results
+  const [currentStep, setCurrentStep] = useState('intro'); // intro, chat, results, error
+  const [systemError, setSystemError] = useState<any>(null);
   const { session, loading, startSession, submitAnswer, resetSession } = usePreDiagnosis();
 
   const handleStart = async () => {
-    const newSession = await startSession();
-    if (newSession) {
-      setCurrentStep('chat');
+    try {
+      const newSession = await startSession();
+      if (newSession) {
+        setCurrentStep('chat');
+        setSystemError(null);
+      }
+    } catch (error: any) {
+      console.error('Erro ao iniciar sessão:', error);
+      setSystemError({
+        message: 'Não foi possível iniciar o pré-diagnóstico',
+        details: error.message || 'Erro desconhecido',
+        hint: 'O sistema ainda está sendo configurado. Tente novamente mais tarde.'
+      });
+      setCurrentStep('error');
     }
   };
 
   const handleCancel = () => {
     resetSession();
+    setSystemError(null);
     onBack();
   };
 
@@ -37,8 +51,24 @@ const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
 
   const handleRestart = () => {
     resetSession();
+    setSystemError(null);
     setCurrentStep('intro');
   };
+
+  const handleRetryFromError = () => {
+    setSystemError(null);
+    setCurrentStep('intro');
+  };
+
+  if (currentStep === 'error' && systemError) {
+    return (
+      <SystemErrorScreen
+        error={systemError}
+        onBack={handleCancel}
+        onRetry={handleRetryFromError}
+      />
+    );
+  }
 
   if (currentStep === 'intro') {
     return (

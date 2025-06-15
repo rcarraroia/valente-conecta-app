@@ -27,7 +27,11 @@ import {
 } from "@/components/ui/carousel";
 import OptimizedImage from './OptimizedImage';
 
-const HomeScreen = () => {
+interface HomeScreenProps {
+  onNavigate?: (screen: string) => void;
+}
+
+const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
   const quickActions = [
     {
       title: "Pré-Diagnóstico IA",
@@ -35,7 +39,8 @@ const HomeScreen = () => {
       icon: Brain,
       color: "bg-cv-green-mint",
       textColor: "text-white",
-      ariaLabel: "Iniciar pré-diagnóstico com inteligência artificial"
+      ariaLabel: "Iniciar pré-diagnóstico com inteligência artificial",
+      action: () => onNavigate?.('ia')
     },
     {
       title: "Nossos Serviços",
@@ -43,7 +48,8 @@ const HomeScreen = () => {
       icon: Heart,
       color: "bg-cv-blue-heart",
       textColor: "text-white",
-      ariaLabel: "Conhecer serviços do Instituto Coração Valente"
+      ariaLabel: "Conhecer serviços do Instituto Coração Valente",
+      action: () => onNavigate?.('services')
     },
     {
       title: "Biblioteca",
@@ -51,7 +57,8 @@ const HomeScreen = () => {
       icon: Book,
       color: "bg-cv-yellow-soft",
       textColor: "text-cv-purple-dark",
-      ariaLabel: "Acessar biblioteca de artigos e guias"
+      ariaLabel: "Acessar biblioteca de artigos e guias",
+      action: () => onNavigate?.('biblioteca')
     },
     {
       title: "Quero Ajudar",
@@ -59,7 +66,8 @@ const HomeScreen = () => {
       icon: HandHeart,
       color: "bg-cv-coral",
       textColor: "text-white",
-      ariaLabel: "Descobrir como ajudar o Instituto"
+      ariaLabel: "Descobrir como ajudar o Instituto",
+      action: () => onNavigate?.('ajudar')
     }
   ];
 
@@ -89,6 +97,14 @@ const HomeScreen = () => {
       category: "Parceria"
     }
   ];
+
+  const handleCardClick = (action: () => void) => {
+    action();
+  };
+
+  const handleJorneyStart = () => {
+    onNavigate?.('ia');
+  };
 
   return (
     <div className="min-h-screen bg-cv-off-white">
@@ -135,6 +151,7 @@ const HomeScreen = () => {
             Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
           </p>
           <Button 
+            onClick={handleJorneyStart}
             className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
             size="lg"
             aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
@@ -161,10 +178,11 @@ const HomeScreen = () => {
               role="gridcell"
               tabIndex={0}
               aria-label={action.ariaLabel}
+              onClick={() => handleCardClick(action.action)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  // Handle action click
+                  handleCardClick(action.action);
                 }
               }}
             >
@@ -216,6 +234,7 @@ const HomeScreen = () => {
             size="sm" 
             className="text-cv-blue-heart hover:text-cv-green-mint text-sm"
             aria-label="Ver todas as notícias"
+            onClick={() => onNavigate?.('biblioteca')}
           >
             Ver todas
           </Button>
@@ -230,10 +249,11 @@ const HomeScreen = () => {
                   role="article"
                   aria-labelledby={`news-title-${news.id}`}
                   tabIndex={0}
+                  onClick={() => onNavigate?.('biblioteca')}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      // Handle news click
+                      onNavigate?.('biblioteca');
                     }
                   }}
                 >

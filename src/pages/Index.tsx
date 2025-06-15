@@ -14,7 +14,7 @@ const Index = () => {
   const renderScreen = () => {
     switch (currentScreen) {
       case 'home':
-        return <HomeScreen />;
+        return <HomeScreen onNavigate={setCurrentScreen} />;
       case 'biblioteca':
         return <LibraryScreen />;
       case 'ia':
@@ -26,7 +26,7 @@ const Index = () => {
       case 'services':
         return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
-        return <HomeScreen />;
+        return <HomeScreen onNavigate={setCurrentScreen} />;
     }
   };
 

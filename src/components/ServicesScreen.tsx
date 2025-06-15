@@ -1,178 +1,110 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  ArrowLeft, 
-  Phone, 
-  Mail, 
-  ExternalLink,
-  Users,
-  Heart,
-  BookOpen,
-  UserCheck
-} from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Service {
-  id: string;
-  name: string;
-  description: string;
-  detailed_description: string | null;
-  image_url: string | null;
-  contact_info: string | null;
-  is_active: boolean;
-  order_position: number;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Heart, Users, Brain, BookOpen } from 'lucide-react';
 
 interface ServicesScreenProps {
   onBack: () => void;
 }
 
 const ServicesScreen = ({ onBack }: ServicesScreenProps) => {
-  const { data: services = [], isLoading } = useQuery({
-    queryKey: ['services'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('services')
-        .select('*')
-        .eq('is_active', true)
-        .order('order_position');
-      
-      if (error) throw error;
-      return data as Service[];
+  const services = [
+    {
+      title: "Acolhimento Familiar",
+      description: "Suporte integral para famílias no processo de diagnóstico e desenvolvimento",
+      icon: Heart,
+      color: "bg-cv-green-mint"
+    },
+    {
+      title: "Orientação Especializada", 
+      description: "Equipe multidisciplinar para orientação e acompanhamento",
+      icon: Users,
+      color: "bg-cv-blue-heart"
+    },
+    {
+      title: "Pré-Diagnóstico Inteligente",
+      description: "Ferramenta de IA para identificação precoce de sinais de desenvolvimento",
+      icon: Brain,
+      color: "bg-cv-coral"
+    },
+    {
+      title: "Biblioteca de Recursos",
+      description: "Artigos, guias e materiais educativos para famílias e cuidadores",
+      icon: BookOpen,
+      color: "bg-cv-yellow-soft"
     }
-  });
-
-  const getServiceIcon = (name: string) => {
-    if (name.toLowerCase().includes('família') || name.toLowerCase().includes('orientação')) {
-      return Users;
-    }
-    if (name.toLowerCase().includes('avaliação') || name.toLowerCase().includes('diagnóstico')) {
-      return UserCheck;
-    }
-    if (name.toLowerCase().includes('grupo') || name.toLowerCase().includes('apoio')) {
-      return Heart;
-    }
-    if (name.toLowerCase().includes('capacitação') || name.toLowerCase().includes('treinamento')) {
-      return BookOpen;
-    }
-    return Users;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-cv-off-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cv-purple-dark"></div>
-      </div>
-    );
-  }
+  ];
 
   return (
-    <div className="min-h-screen bg-cv-off-white">
-      {/* Header */}
-      <header className="bg-cv-purple-soft text-white p-4 shadow-lg">
-        <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/20">
-            <ArrowLeft className="h-5 w-5" />
+    <div className="min-h-screen bg-cv-off-white p-6 pb-20">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack}
+            className="text-cv-gray-light hover:text-cv-gray-dark"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
           </Button>
-          <div>
-            <h1 className="text-h2 font-heading font-bold">Nossos Serviços</h1>
-            <p className="text-sm opacity-90">Conheça como podemos ajudar</p>
-          </div>
+          <h1 className="text-2xl font-heading font-bold text-cv-gray-dark">
+            Nossos Serviços
+          </h1>
         </div>
-      </header>
 
-      {/* Content */}
-      <div className="p-6 space-y-6">
-        {/* Mission statement */}
-        <Card className="bg-gradient-to-r from-cv-blue-heart to-cv-purple-soft text-white border-none shadow-lg">
+        {/* Hero */}
+        <Card className="bg-gradient-to-br from-cv-purple-soft to-cv-blue-heart text-white border-none">
           <CardContent className="p-6 text-center">
-            <h2 className="text-h3 font-heading font-bold mb-3">Nossa Missão</h2>
-            <p className="text-body opacity-95">
-              Oferecemos acolhimento, apoio e orientação especializada para famílias que vivenciam 
-              o neurodesenvolvimento, criando uma rede de cuidado e compreensão.
+            <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
+            <h2 className="text-xl font-bold mb-2">Instituto Coração Valente</h2>
+            <p className="opacity-90">
+              Oferecemos apoio integral para famílias no processo de diagnóstico e desenvolvimento, 
+              com foco em acolhimento humanizado e orientação especializada.
             </p>
           </CardContent>
         </Card>
 
-        {/* Services list */}
+        {/* Services */}
         <div className="space-y-4">
-          {services.map((service) => {
-            const IconComponent = getServiceIcon(service.name);
-            return (
-              <Card key={service.id} className="border-none shadow-md hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-cv-green-mint/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="w-6 h-6 text-cv-green-mint" />
-                    </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-cv-purple-dark">{service.name}</CardTitle>
-                      <CardDescription className="text-cv-gray-light mt-1">
-                        {service.description}
-                      </CardDescription>
-                    </div>
+          {services.map((service, index) => (
+            <Card 
+              key={service.title}
+              className="border-none shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className={`${service.color} p-3 rounded-full flex-shrink-0`}>
+                    <service.icon className="w-6 h-6 text-white" />
                   </div>
-                </CardHeader>
-                
-                {service.detailed_description && (
-                  <CardContent className="pt-0">
-                    <p className="text-body text-cv-gray-dark mb-4">
-                      {service.detailed_description}
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-cv-gray-dark mb-2">
+                      {service.title}
+                    </h3>
+                    <p className="text-sm text-cv-gray-light leading-relaxed">
+                      {service.description}
                     </p>
-                    
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Button 
-                        className="bg-cv-blue-heart hover:bg-cv-blue-heart/90 text-white flex-1"
-                        size="sm"
-                      >
-                        <Phone className="w-4 h-4 mr-2" />
-                        Entrar em Contato
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="border-cv-purple-dark text-cv-purple-dark hover:bg-cv-purple-dark hover:text-white flex-1"
-                        size="sm"
-                      >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Saiba Mais
-                      </Button>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            );
-          })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Contact section */}
-        <Card className="bg-cv-yellow-soft border-none shadow-md">
-          <CardContent className="p-6 text-center space-y-4">
-            <h3 className="text-h3 font-heading font-bold text-cv-purple-dark">
-              Precisa de Mais Informações?
-            </h3>
-            <p className="text-body text-cv-gray-dark">
-              Nossa equipe está pronta para ajudar você e sua família.
+        {/* Mission */}
+        <Card className="border-cv-yellow-soft bg-cv-yellow-soft/20">
+          <CardContent className="pt-6">
+            <h3 className="font-semibold text-cv-gray-dark mb-2">Nossa Missão</h3>
+            <p className="text-sm text-cv-gray-dark leading-relaxed">
+              Proporcionar acolhimento humanizado e orientação especializada para famílias 
+              que buscam compreender e apoiar o desenvolvimento de seus filhos, criando 
+              uma rede de suporte baseada em conhecimento científico e empatia.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button className="bg-cv-coral hover:bg-cv-coral/90 text-white">
-                <Phone className="w-4 h-4 mr-2" />
-                (11) 99999-9999
-              </Button>
-              <Button variant="outline" className="border-cv-purple-dark text-cv-purple-dark hover:bg-cv-purple-dark hover:text-white">
-                <Mail className="w-4 h-4 mr-2" />
-                Enviar E-mail
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Bottom spacing */}
-      <div className="h-20"></div>
     </div>
   );
 };

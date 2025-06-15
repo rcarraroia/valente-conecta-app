@@ -24,8 +24,9 @@ serve(async (req) => {
     )
 
     // Verificar autenticação
-    const { data: { user } } = await supabaseClient.auth.getUser()
-    if (!user) {
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    if (authError || !user) {
+      console.error('Erro de autenticação:', authError)
       return new Response(
         JSON.stringify({ error: 'Não autorizado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -44,14 +45,22 @@ serve(async (req) => {
     if (questionsError) {
       console.error('Erro ao buscar perguntas:', questionsError)
       return new Response(
-        JSON.stringify({ error: 'Erro ao carregar perguntas' }),
+        JSON.stringify({ 
+          error: 'Erro ao carregar perguntas', 
+          details: questionsError.message,
+          hint: 'Verifique se a tabela pre_diagnosis_questions existe e tem dados'
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     if (!questions || questions.length === 0) {
+      console.log('Nenhuma pergunta encontrada na tabela pre_diagnosis_questions')
       return new Response(
-        JSON.stringify({ error: 'Nenhuma pergunta disponível' }),
+        JSON.stringify({ 
+          error: 'Nenhuma pergunta disponível',
+          hint: 'A tabela pre_diagnosis_questions está vazia ou não tem perguntas ativas'
+        }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -71,7 +80,11 @@ serve(async (req) => {
     if (sessionError) {
       console.error('Erro ao criar sessão:', sessionError)
       return new Response(
-        JSON.stringify({ error: 'Erro ao iniciar sessão' }),
+        JSON.stringify({ 
+          error: 'Erro ao iniciar sessão', 
+          details: sessionError.message,
+          hint: 'Verifique se a tabela pre_diagnosis_sessions existe'
+        }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -100,7 +113,11 @@ serve(async (req) => {
   } catch (error) {
     console.error('Erro geral:', error)
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ 
+        error: 'Erro interno do servidor',
+        details: error.message,
+        hint: 'Verifique os logs do servidor para mais detalhes'
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
