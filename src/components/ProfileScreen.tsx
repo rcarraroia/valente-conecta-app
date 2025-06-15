@@ -65,6 +65,13 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const handleNavigation = (screen: string) => {
+    console.log('Navegando para:', screen);
+    if (onNavigate) {
+      onNavigate(screen);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
@@ -105,7 +112,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
         <div className="space-y-3">
           <Card 
             className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => onNavigate?.('my-data')}
+            onClick={() => handleNavigation('my-data')}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -125,7 +132,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
 
           <Card 
             className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => onNavigate?.('my-donations')}
+            onClick={() => handleNavigation('my-donations')}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -146,7 +153,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
           {profile?.is_volunteer && (
             <Card 
               className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => onNavigate?.('ambassador')}
+              onClick={() => handleNavigation('ambassador')}
             >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
