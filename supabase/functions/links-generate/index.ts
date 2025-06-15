@@ -61,6 +61,11 @@ serve(async (req) => {
     // Gerar URL único
     const linkId = crypto.randomUUID()
     const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://coracaovalente.com.br'
+    
+    // URL padrão sempre será a landing page do instituto
+    const defaultLandingUrl = `${baseUrl}/landing?ref=${profile.ambassador_code}`
+    const finalDestinationUrl = destination_url || defaultLandingUrl
+    
     const generatedUrl = `${baseUrl}/redirect/${linkId}`
     
     // Criar entrada na tabela de links
@@ -71,6 +76,7 @@ serve(async (req) => {
         campaign_id: campaign_id || null,
         generated_url: generatedUrl,
         short_url: `${baseUrl}/r/${linkId.slice(0, 8)}`,
+        destination_url: finalDestinationUrl,
         status: 'active'
       })
       .select()
@@ -103,7 +109,7 @@ serve(async (req) => {
         link_id: linkData.id,
         generated_url: linkData.generated_url,
         short_url: linkData.short_url,
-        destination_url: destination_url || `${baseUrl}/doar`,
+        destination_url: finalDestinationUrl,
         created_at: linkData.created_at
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

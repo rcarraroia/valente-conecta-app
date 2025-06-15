@@ -80,9 +80,10 @@ serve(async (req) => {
       console.warn('Erro ao atualizar performance:', performanceError)
     }
 
-    // Determinar URL de destino (por padrão, página de doação)
-    const destinationUrl = Deno.env.get('DONATION_PAGE_URL') || 
-                          `${Deno.env.get('PUBLIC_SITE_URL') || 'https://coracaovalente.com.br'}/doar?ref=${linkData.ambassador_user_id}`
+    // Usar a URL de destino armazenada no link ou fallback para landing page
+    const baseUrl = Deno.env.get('PUBLIC_SITE_URL') || 'https://coracaovalente.com.br'
+    const destinationUrl = linkData.destination_url || 
+                          `${baseUrl}/landing?ref=${linkData.ambassador_user_id}`
 
     // Redirecionar para o destino
     return new Response(null, {
