@@ -63,13 +63,14 @@ const Index = () => {
 
   // Define which screens should show the bottom navigation
   const screensWithNavigation = [
-    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 'donation'
+    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 'donation', 'my-data', 'my-donations'
   ];
 
   // Determine the active tab for the navigation
   const getActiveTab = () => {
     if (currentScreen === 'services' || currentScreen === 'partners') return 'home';
     if (currentScreen === 'donation') return 'ajudar';
+    if (currentScreen === 'my-data' || currentScreen === 'my-donations') return 'perfil';
     return currentScreen;
   };
 
