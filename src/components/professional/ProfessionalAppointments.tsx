@@ -254,7 +254,7 @@ const ProfessionalAppointments = ({ partnerId, onUpdate }: ProfessionalAppointme
                       </>
                     )}
 
-                    {appointment.profiles?.phone && (
+                    {appointment.profiles && appointment.profiles.phone && (
                       <Button
                         size="sm"
                         variant="outline"
