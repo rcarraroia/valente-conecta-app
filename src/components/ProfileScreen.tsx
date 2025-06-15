@@ -13,8 +13,10 @@ import {
   Settings,
   Database,
   Stethoscope,
-  ChevronRight
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
+import QuickAppointment from './home/QuickAppointment';
 
 interface ProfileScreenProps {
   onNavigate?: (screen: string) => void;
@@ -102,20 +104,20 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-cv-off-white p-6 pb-20">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-cv-off-white p-4 pb-20">
+      <div className="max-w-2xl mx-auto space-y-4">
         {/* Profile Header */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="text-center">
-              <Avatar className="w-20 h-20 mx-auto mb-4">
+              <Avatar className="w-16 h-16 mx-auto mb-3">
                 <AvatarImage src="" />
                 <AvatarFallback className="bg-cv-coral text-white text-lg font-bold">
                   {getInitials(profile?.full_name)}
                 </AvatarFallback>
               </Avatar>
               
-              <h1 className="text-xl font-heading font-bold text-cv-gray-dark mb-1">
+              <h1 className="text-lg font-heading font-bold text-cv-gray-dark mb-1">
                 {profile?.full_name || 'Usuário'}
               </h1>
               
@@ -135,6 +137,9 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
           </CardContent>
         </Card>
 
+        {/* Quick Appointment Card */}
+        <QuickAppointment onNavigate={onNavigate} />
+
         {/* Menu Items */}
         <div className="space-y-3">
           {menuItems.map((item) => (
@@ -145,16 +150,16 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
             >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <div className="p-2 bg-cv-off-white rounded-lg">
                       <item.icon className="w-5 h-5 text-cv-coral" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-cv-gray-dark">{item.title}</h3>
-                      <p className="text-sm text-cv-gray-light">{item.description}</p>
+                      <h3 className="font-medium text-cv-gray-dark text-sm">{item.title}</h3>
+                      <p className="text-xs text-cv-gray-light">{item.description}</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-cv-gray-light" />
+                  <ChevronRight className="w-4 h-4 text-cv-gray-light" />
                 </div>
               </CardContent>
             </Card>

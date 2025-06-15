@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Heart, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Heart, Calendar, DollarSign, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface MyDonationsScreenProps {
   onBack: () => void;
+  onNavigate?: (screen: string) => void;
 }
 
 interface Donation {
@@ -21,7 +22,7 @@ interface Donation {
   transaction_id: string;
 }
 
-const MyDonationsScreen = ({ onBack }: MyDonationsScreenProps) => {
+const MyDonationsScreen = ({ onBack, onNavigate }: MyDonationsScreenProps) => {
   const { user } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +121,12 @@ const MyDonationsScreen = ({ onBack }: MyDonationsScreenProps) => {
     }
   };
 
+  const handleMakeNewDonation = () => {
+    if (onNavigate) {
+      onNavigate('donation');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
@@ -137,22 +144,31 @@ const MyDonationsScreen = ({ onBack }: MyDonationsScreenProps) => {
             variant="ghost" 
             size="sm" 
             onClick={onBack}
-            className="text-cv-gray-light hover:text-cv-gray-dark"
+            className="text-cv-gray-light hover:text-cv-gray-dark p-2"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-heading font-bold text-cv-gray-dark">
+          <h1 className="text-xl font-heading font-bold text-cv-gray-dark">
             Minhas Doações
           </h1>
         </div>
+
+        {/* Action Button */}
+        <Button
+          onClick={handleMakeNewDonation}
+          className="w-full bg-cv-coral hover:bg-cv-coral/90 text-white font-medium py-3"
+          size="lg"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Fazer uma Doação
+        </Button>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <DollarSign className="w-8 h-8 mx-auto mb-2 text-cv-coral" />
-              <p className="text-2xl font-bold text-cv-gray-dark">
+              <p className="text-xl font-bold text-cv-gray-dark">
                 {formatCurrency(stats.total_amount)}
               </p>
               <p className="text-sm text-cv-gray-light">Total Doado</p>
@@ -162,7 +178,7 @@ const MyDonationsScreen = ({ onBack }: MyDonationsScreenProps) => {
           <Card>
             <CardContent className="p-4 text-center">
               <Heart className="w-8 h-8 mx-auto mb-2 text-cv-green-mint" />
-              <p className="text-2xl font-bold text-cv-gray-dark">
+              <p className="text-xl font-bold text-cv-gray-dark">
                 {stats.total_donations}
               </p>
               <p className="text-sm text-cv-gray-light">Doações</p>
@@ -183,16 +199,23 @@ const MyDonationsScreen = ({ onBack }: MyDonationsScreenProps) => {
         {/* Donations List */}
         <Card>
           <CardHeader>
-            <CardTitle>Histórico de Doações</CardTitle>
+            <CardTitle className="text-lg">Histórico de Doações</CardTitle>
           </CardHeader>
           <CardContent>
             {donations.length === 0 ? (
               <div className="text-center py-8">
                 <Heart className="w-12 h-12 mx-auto mb-4 text-cv-gray-light" />
-                <p className="text-cv-gray-light">Você ainda não fez nenhuma doação.</p>
-                <p className="text-sm text-cv-gray-light mt-2">
+                <p className="text-cv-gray-light mb-2">Você ainda não fez nenhuma doação.</p>
+                <p className="text-sm text-cv-gray-light">
                   Que tal fazer sua primeira contribuição?
                 </p>
+                <Button 
+                  onClick={handleMakeNewDonation}
+                  className="mt-4 bg-cv-coral hover:bg-cv-coral/90"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Fazer Primeira Doação
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">

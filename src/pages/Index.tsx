@@ -40,7 +40,11 @@ const Index = () => {
       case 'ajudar':
         return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       case 'donation':
-        return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
+        return <DonationScreen onBack={() => {
+          // Se vier do perfil, volta para perfil; senão volta para ajudar
+          const referrer = currentScreen === 'donation' ? 'ajudar' : 'perfil';
+          setCurrentScreen(referrer);
+        }} />;
       case 'perfil':
         return <ProfileScreen onNavigate={handleNavigate} />;
       case 'ambassador':
@@ -48,7 +52,7 @@ const Index = () => {
       case 'my-data':
         return <MyDataScreen onBack={() => setCurrentScreen('perfil')} />;
       case 'my-donations':
-        return <MyDonationsScreen onBack={() => setCurrentScreen('perfil')} />;
+        return <MyDonationsScreen onBack={() => setCurrentScreen('perfil')} onNavigate={handleNavigate} />;
       case 'services':
         return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
@@ -64,7 +68,7 @@ const Index = () => {
     setCurrentScreen(screen);
   };
 
-  // Define which screens should show the bottom navigation - expandindo para mais telas
+  // Define which screens should show the bottom navigation
   const screensWithNavigation = [
     'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 
     'donation', 'my-data', 'my-donations', 'ambassador'
