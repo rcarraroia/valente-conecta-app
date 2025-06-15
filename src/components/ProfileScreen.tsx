@@ -27,9 +27,16 @@ interface Profile {
   user_type: string | null;
 }
 
+interface Partner {
+  id: string;
+  full_name: string;
+  specialty: string;
+}
+
 const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,14 +47,41 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
 
   const loadProfile = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('=== CARREGANDO PERFIL ===');
+      console.log('User ID:', user?.id);
+
+      // Carregar perfil do usuário
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('full_name, user_type')
         .eq('id', user?.id)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (profileError) {
+        console.error('Erro ao carregar perfil:', profileError);
+      } else {
+        console.log('Perfil carregado:', profileData);
+        setProfile(profileData);
+
+        // Se for um parceiro, carregar dados da tabela partners
+        if (profileData?.user_type === 'parceiro') {
+          console.log('Usuário é parceiro, carregando dados profissionais...');
+          
+          const { data: partnerData, error: partnerError } = await supabase
+            .from('partners')
+            .select('id, full_name, specialty')
+            .eq('user_id', user?.id)
+            .single();
+
+          if (partnerError) {
+            console.error('Erro ao carregar dados do parceiro:', partnerError);
+            console.log('Parceiro não encontrado, mas perfil indica que é parceiro');
+          } else {
+            console.log('Dados do parceiro carregados:', partnerData);
+            setPartner(partnerData);
+          }
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     } finally {
@@ -136,12 +170,42 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cv-blue-heart text-white">
                     <Stethoscope className="w-3 h-3 mr-1" />
                     Profissional Parceiro
+                    {partner && ` - ${partner.specialty}`}
                   </span>
+                  {!partner && (
+                    <p className="text-xs text-red-600 mt-1">
+                      ⚠️ Perfil profissional incompleto
+                    </p>
+                  )}
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Debug Info for Professionals */}
+        {profile?.user_type === 'parceiro' && !partner && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <h3 className="text-sm font-medium text-red-800 mb-2">
+                  Perfil Profissional Não Encontrado
+                </h3>
+                <p className="text-xs text-red-600 mb-3">
+                  Seu perfil indica que você é um profissional, mas não encontramos seus dados na tabela de parceiros.
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => console.log('Profile:', profile, 'Partner:', partner, 'User:', user)}
+                  className="text-xs"
+                >
+                  Debug Info (Console)
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Menu Items */}
         <div className="space-y-3">

@@ -37,9 +37,13 @@ const SignupForm = () => {
     setLoading(true);
 
     try {
-      console.log('Iniciando cadastro...', { email, userType });
+      console.log('=== INICIANDO CADASTRO ===');
+      console.log('Email:', email);
+      console.log('Tipo de usuário:', userType);
+      console.log('Dados profissionais:', professionalData);
 
-      const { data, error } = await supabase.auth.signUp({
+      // 1. Criar conta no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -52,9 +56,9 @@ const SignupForm = () => {
         }
       });
 
-      if (error) {
-        console.error('Erro no signup:', error);
-        if (error.message.includes('User already registered')) {
+      if (authError) {
+        console.error('Erro no signup:', authError);
+        if (authError.message.includes('User already registered')) {
           toast({
             title: 'Email já cadastrado',
             description: 'Este email já possui uma conta. Tente fazer login.',
@@ -63,133 +67,146 @@ const SignupForm = () => {
         } else {
           toast({
             title: 'Erro no cadastro',
-            description: error.message,
+            description: authError.message,
             variant: 'destructive',
           });
         }
         return;
-      } 
+      }
 
-      if (data.user) {
-        console.log('Usuário criado:', data.user.id);
+      if (!authData.user) {
+        console.error('Usuário não foi criado');
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível criar a conta.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-        // If it's a partner, create the record in the partners table
-        if (userType === 'parceiro') {
-          console.log('Criando perfil de parceiro...');
-          
-          // First, let's sign in the user to ensure we have a valid session
-          console.log('Fazendo login para obter sessão válida...');
-          const { data: sessionData, error: loginError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+      console.log('Usuário criado com sucesso:', authData.user.id);
 
-          if (loginError) {
-            console.error('Erro no login para criar perfil:', loginError);
-            toast({
-              title: 'Conta criada, mas...',
-              description: 'Não foi possível fazer login automático. Faça login manualmente.',
-              variant: 'destructive',
-            });
-            return;
-          }
+      // 2. Se for profissional, criar perfil na tabela partners
+      if (userType === 'parceiro') {
+        console.log('=== CRIANDO PERFIL PROFISSIONAL ===');
+        
+        // Fazer login para ter uma sessão válida
+        const { data: sessionData, error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-          console.log('Login realizado, session:', sessionData.session?.user?.id);
-          
-          // Wait a moment to ensure the session is properly set
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // Check if we have a valid session
-          const { data: currentSession } = await supabase.auth.getSession();
-          console.log('Sessão atual:', currentSession.session?.user?.id);
-          
-          if (!currentSession.session?.user) {
-            console.error('Nenhuma sessão válida encontrada');
-            toast({
-              title: 'Conta criada, mas...',
-              description: 'Problemas de autenticação. Faça login manualmente.',
-              variant: 'destructive',
-            });
-            return;
-          }
-          
-          const specialtiesArray = professionalData.specialties
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
-          
-          const partnerData = {
-            user_id: currentSession.session.user.id,
-            full_name: fullName,
-            specialty: professionalData.specialty,
-            specialties: specialtiesArray,
-            bio: professionalData.bio || null,
-            contact_email: professionalData.contactEmail || email,
-            contact_phone: professionalData.contactPhone || phone,
-            crm_crp_register: professionalData.crmCrpRegister || null,
-            is_active: true
-          };
-
-          console.log('Dados do parceiro para inserção:', partnerData);
-          console.log('User ID da sessão:', currentSession.session.user.id);
-          console.log('User ID original:', data.user.id);
-          
-          const { data: partnerResult, error: partnerError } = await supabase
-            .from('partners')
-            .insert(partnerData)
-            .select()
-            .single();
-
-          if (partnerError) {
-            console.error('Erro ao criar perfil de parceiro:', partnerError);
-            console.error('Detalhes do erro:', {
-              code: partnerError.code,
-              message: partnerError.message,
-              details: partnerError.details,
-              hint: partnerError.hint
-            });
-            toast({
-              title: 'Conta criada, mas...',
-              description: 'Houve um problema ao criar seu perfil profissional. Entre em contato conosco.',
-              variant: 'destructive',
-            });
-            return;
-          }
-
-          console.log('Perfil de parceiro criado com sucesso:', partnerResult);
-          
+        if (loginError) {
+          console.error('Erro no login automático:', loginError);
           toast({
-            title: 'Perfil profissional criado!',
+            title: 'Conta criada, mas...',
+            description: 'Faça login manualmente para acessar seu painel profissional.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        console.log('Login realizado, usuário:', sessionData.user?.id);
+
+        // Aguardar para garantir que a sessão esteja estabelecida
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Verificar sessão atual
+        const { data: currentSession } = await supabase.auth.getSession();
+        console.log('Sessão atual verificada:', currentSession.session?.user?.id);
+
+        if (!currentSession.session?.user) {
+          console.error('Nenhuma sessão válida encontrada após login');
+          toast({
+            title: 'Problema de autenticação',
+            description: 'Faça login manualmente para completar seu perfil profissional.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Preparar dados do parceiro
+        const specialtiesArray = professionalData.specialties
+          .split(',')
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+
+        const partnerData = {
+          user_id: currentSession.session.user.id,
+          full_name: fullName,
+          specialty: professionalData.specialty || 'Não especificado',
+          specialties: specialtiesArray,
+          bio: professionalData.bio || null,
+          contact_email: professionalData.contactEmail || email,
+          contact_phone: professionalData.contactPhone || phone,
+          crm_crp_register: professionalData.crmCrpRegister || null,
+          is_active: true
+        };
+
+        console.log('Dados do parceiro para inserção:', partnerData);
+
+        // Inserir dados do parceiro
+        const { data: partnerResult, error: partnerError } = await supabase
+          .from('partners')
+          .insert(partnerData)
+          .select()
+          .single();
+
+        if (partnerError) {
+          console.error('Erro ao criar perfil de parceiro:', partnerError);
+          toast({
+            title: 'Perfil profissional não criado',
+            description: 'Sua conta foi criada, mas houve um problema ao criar o perfil profissional. Entre em contato conosco.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        console.log('Perfil de parceiro criado com sucesso:', partnerResult);
+
+        // Atualizar o user_type no perfil
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ user_type: 'parceiro' })
+          .eq('id', currentSession.session.user.id);
+
+        if (profileError) {
+          console.error('Erro ao atualizar tipo de usuário no perfil:', profileError);
+        }
+
+        toast({
+          title: 'Perfil profissional criado!',
+          description: 'Redirecionando para seu painel...',
+        });
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+
+      } else {
+        // Para usuários comuns, apenas fazer login
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (loginError) {
+          console.error('Erro no login automático:', loginError);
+          toast({
+            title: 'Conta criada!',
+            description: 'Faça login com suas credenciais.',
+          });
+        } else {
+          toast({
+            title: 'Conta criada com sucesso!',
             description: 'Redirecionando...',
           });
           setTimeout(() => {
             window.location.href = '/';
           }, 1000);
-        } else {
-          // For regular users, just try to log in
-          const { data: sessionData, error: loginError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-
-          if (loginError) {
-            console.error('Erro no login automático:', loginError);
-            toast({
-              title: 'Conta criada!',
-              description: 'Faça login com suas credenciais.',
-            });
-          } else {
-            console.log('Login automático realizado com sucesso');
-            toast({
-              title: 'Conta criada e login realizado!',
-              description: 'Redirecionando...',
-            });
-            setTimeout(() => {
-              window.location.href = '/';
-            }, 1000);
-          }
         }
       }
+
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
