@@ -149,7 +149,7 @@ const SignupForm = () => {
           specialties: specialtiesArray,
           bio: professionalData.bio || null,
           contact_email: professionalData.contactEmail || email,
-          contact_phone: professionalData.contactPhone || phone,
+          contact_phone: phone, // Usar o telefone principal
           crm_crp_register: professionalData.crmCrpRegister || null,
           is_active: true
         };
@@ -182,19 +182,12 @@ const SignupForm = () => {
           description: 'Redirecionando para seu painel...',
         });
 
-        // setTimeout(() => {
-        //   window.location.href = '/';
-        // }, 1500);
-
       } else {
         // Para usuários comuns
         toast({
           title: 'Conta criada com sucesso!',
           description: 'Redirecionando...',
         });
-        // setTimeout(() => {
-        //   window.location.href = '/';
-        // }, 1000);
       }
 
     } catch (error) {
@@ -236,7 +229,7 @@ const SignupForm = () => {
             />
           ) : (
             <>
-              {/* Campos comuns sem senha para profissionais */}
+              {/* Campos comuns para profissionais */}
               <div className="space-y-2">
                 <Label htmlFor="full-name">Nome Completo</Label>
                 <div className="relative">

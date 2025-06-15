@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Save, User, Mail, Phone, FileText, Briefcase } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Save, User, Mail, Phone, FileText, Briefcase, MapPin } from 'lucide-react';
 
 interface Partner {
   id: string;
@@ -27,6 +28,7 @@ interface ProfessionalProfileProps {
 
 const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     full_name: partner.full_name || '',
     specialty: partner.specialty || '',
@@ -36,10 +38,46 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
     crm_crp_register: partner.crm_crp_register || '',
     specialties: Array.isArray(partner.specialties) ? partner.specialties.join(', ') : ''
   });
+  const [profileData, setProfileData] = useState({
+    phone: '',
+    city: ''
+  });
   const [saving, setSaving] = useState(false);
+
+  // Carregar dados do profile do usuário
+  useEffect(() => {
+    loadUserProfile();
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('phone, city')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfileData({
+          phone: data.phone || '',
+          city: data.city || ''
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados do profile:', error);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleProfileDataChange = (field: string, value: string) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -50,7 +88,8 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
         .map(s => s.trim())
         .filter(s => s.length > 0);
 
-      const { error } = await supabase
+      // Atualizar dados do partner
+      const { error: partnerError } = await supabase
         .from('partners')
         .update({
           full_name: formData.full_name,
@@ -63,7 +102,19 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
         })
         .eq('id', partner.id);
 
-      if (error) throw error;
+      if (partnerError) throw partnerError;
+
+      // Atualizar dados do profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.full_name,
+          phone: profileData.phone || null,
+          city: profileData.city || null
+        })
+        .eq('id', user?.id);
+
+      if (profileError) throw profileError;
 
       toast({
         title: 'Perfil atualizado',
@@ -117,6 +168,35 @@ const ProfessionalProfile = ({ partner, onUpdate }: ProfessionalProfileProps) =>
                 onChange={(e) => handleInputChange('specialty', e.target.value)}
                 className="pl-10"
                 placeholder="Ex: Cardiologista, Psicólogo"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Telefone</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+              <Input
+                id="phone"
+                type="tel"
+                value={profileData.phone}
+                onChange={(e) => handleProfileDataChange('phone', e.target.value)}
+                className="pl-10"
+                placeholder="(11) 99999-9999"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city">Cidade</Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+              <Input
+                id="city"
+                value={profileData.city}
+                onChange={(e) => handleProfileDataChange('city', e.target.value)}
+                className="pl-10"
+                placeholder="Sua cidade"
               />
             </div>
           </div>
