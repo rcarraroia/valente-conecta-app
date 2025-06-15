@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Mail, Lock, User as UserIcon, Phone, MapPin } from 'lucide-react';
+import { Heart, Mail, Lock, User as UserIcon, Phone, MapPin, Briefcase, FileText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -18,12 +20,23 @@ const Auth = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Estados para cadastro
+  // Estados para cadastro comum
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
+
+  // Estados para tipo de usuário
+  const [userType, setUserType] = useState<'comum' | 'parceiro'>('comum');
+
+  // Estados específicos para parceiros (profissionais)
+  const [specialty, setSpecialty] = useState('');
+  const [bio, setBio] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [crmCrpRegister, setCrmCrpRegister] = useState('');
+  const [specialties, setSpecialties] = useState('');
 
   useEffect(() => {
     // Verificar se já existe uma sessão ativa
@@ -102,6 +115,7 @@ const Auth = () => {
             full_name: fullName,
             phone: phone,
             city: city,
+            user_type: userType,
           }
         }
       });
@@ -120,7 +134,39 @@ const Auth = () => {
             variant: 'destructive',
           });
         }
-      } else if (data.user) {
+        return;
+      } 
+
+      if (data.user) {
+        // Se for um parceiro, criar o registro na tabela partners
+        if (userType === 'parceiro') {
+          const specialtiesArray = specialties.split(',').map(s => s.trim()).filter(s => s.length > 0);
+          
+          const { error: partnerError } = await supabase
+            .from('partners')
+            .insert({
+              user_id: data.user.id,
+              full_name: fullName,
+              specialty: specialty,
+              specialties: specialtiesArray,
+              bio: bio,
+              contact_email: contactEmail || signupEmail,
+              contact_phone: contactPhone || phone,
+              crm_crp_register: crmCrpRegister,
+              is_active: true
+            });
+
+          if (partnerError) {
+            console.error('Erro ao criar perfil de parceiro:', partnerError);
+            toast({
+              title: 'Conta criada, mas...',
+              description: 'Houve um problema ao criar seu perfil profissional. Entre em contato conosco.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+
         // Fazer login automaticamente após o cadastro
         const { error: loginError } = await supabase.auth.signInWithPassword({
           email: signupEmail,
@@ -134,7 +180,7 @@ const Auth = () => {
           });
         } else {
           toast({
-            title: 'Conta criada e login realizado!',
+            title: userType === 'parceiro' ? 'Perfil profissional criado!' : 'Conta criada e login realizado!',
             description: 'Redirecionando...',
           });
           window.location.href = '/';
@@ -232,6 +278,21 @@ const Auth = () => {
               </CardHeader>
               <form onSubmit={handleSignup}>
                 <CardContent className="space-y-4">
+                  {/* Seleção do tipo de usuário */}
+                  <div className="space-y-2">
+                    <Label htmlFor="user-type">Tipo de Cadastro</Label>
+                    <Select value={userType} onValueChange={(value: 'comum' | 'parceiro') => setUserType(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo de cadastro" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="comum">Usuário Comum</SelectItem>
+                        <SelectItem value="parceiro">Profissional de Saúde</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Campos comuns */}
                   <div className="space-y-2">
                     <Label htmlFor="full-name">Nome Completo</Label>
                     <div className="relative">
@@ -247,6 +308,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <div className="relative">
@@ -262,6 +324,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
                     <div className="relative">
@@ -276,6 +339,7 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="city">Cidade</Label>
                     <div className="relative">
@@ -290,6 +354,94 @@ const Auth = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Campos específicos para profissionais */}
+                  {userType === 'parceiro' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="specialty">Especialidade Principal</Label>
+                        <div className="relative">
+                          <Briefcase className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+                          <Input
+                            id="specialty"
+                            type="text"
+                            placeholder="Ex: Cardiologista, Psicólogo"
+                            className="pl-10"
+                            value={specialty}
+                            onChange={(e) => setSpecialty(e.target.value)}
+                            required={userType === 'parceiro'}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="specialties">Outras Especialidades</Label>
+                        <Input
+                          id="specialties"
+                          type="text"
+                          placeholder="Separe por vírgulas: Ex: Hipertensão, Diabetes"
+                          value={specialties}
+                          onChange={(e) => setSpecialties(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="crm-crp">CRM/CRP/Registro Profissional</Label>
+                        <Input
+                          id="crm-crp"
+                          type="text"
+                          placeholder="Ex: CRM-SP 123456"
+                          value={crmCrpRegister}
+                          onChange={(e) => setCrmCrpRegister(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-email">Email de Contato Profissional</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+                          <Input
+                            id="contact-email"
+                            type="email"
+                            placeholder="contato@profissional.com (opcional)"
+                            className="pl-10"
+                            value={contactEmail}
+                            onChange={(e) => setContactEmail(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="contact-phone">Telefone de Contato Profissional</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+                          <Input
+                            id="contact-phone"
+                            type="tel"
+                            placeholder="(11) 99999-9999 (opcional)"
+                            className="pl-10"
+                            value={contactPhone}
+                            onChange={(e) => setContactPhone(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Apresentação Profissional</Label>
+                        <div className="relative">
+                          <FileText className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
+                          <Textarea
+                            id="bio"
+                            placeholder="Conte um pouco sobre sua experiência e abordagem..."
+                            className="pl-10 min-h-[80px]"
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Senha</Label>
                     <div className="relative">
@@ -313,7 +465,7 @@ const Auth = () => {
                     className="w-full bg-cv-green-mint hover:bg-cv-green-mint/90"
                     disabled={loading}
                   >
-                    {loading ? 'Criando conta...' : 'Criar Conta'}
+                    {loading ? 'Criando conta...' : userType === 'parceiro' ? 'Criar Perfil Profissional' : 'Criar Conta'}
                   </Button>
                 </CardFooter>
               </form>
