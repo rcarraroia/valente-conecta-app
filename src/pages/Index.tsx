@@ -57,7 +57,7 @@ const Index = () => {
       case 'ajudar':
         return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       case 'donation':
-        return <DonationScreen />;
+        return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
       case 'perfil':
         return <ProfileScreen onNavigate={handleNavigate} />;
       case 'ambassador':
