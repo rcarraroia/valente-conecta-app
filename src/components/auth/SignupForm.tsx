@@ -1,19 +1,14 @@
 
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Lock } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
 import UserTypeSelector from './UserTypeSelector';
-import ProfessionalFields from './ProfessionalFields';
+import ProfessionalFormFields from './ProfessionalFormFields';
 import CommonFormFields from './CommonFormFields';
+import { useSignup } from '@/hooks/useSignup';
 
 const SignupForm = () => {
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const { handleSignup, loading } = useSignup();
 
   // Common fields
   const [email, setEmail] = useState('');
@@ -35,171 +30,16 @@ const SignupForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      console.log('=== INICIANDO CADASTRO ===');
-      console.log('Email:', email);
-      console.log('Tipo de usuário:', userType);
-      console.log('Dados profissionais:', professionalData);
-
-      // 1. Criar conta no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            phone: phone,
-            city: city,
-            user_type: userType,
-          }
-        }
-      });
-
-      if (authError) {
-        console.error('Erro no signup:', authError);
-        if (authError.message.includes('User already registered')) {
-          toast({
-            title: 'Email já cadastrado',
-            description: 'Este email já possui uma conta. Tente fazer login.',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Erro no cadastro',
-            description: authError.message,
-            variant: 'destructive',
-          });
-        }
-        return;
-      }
-
-      if (!authData.user) {
-        console.error('Usuário não foi criado');
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível criar a conta.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log('Usuário criado com sucesso:', authData.user.id);
-
-      // 2. Fazer login imediatamente para ter uma sessão válida
-      const { data: sessionData, error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (loginError) {
-        console.error('Erro no login automático:', loginError);
-        toast({
-          title: 'Conta criada, mas...',
-          description: 'Faça login manualmente para acessar sua conta.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log('Login realizado com sucesso:', sessionData.user?.id);
-
-      // 3. Aguardar para garantir que a sessão esteja estabelecida
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 4. Atualizar o user_type no perfil primeiro
-      console.log('=== ATUALIZANDO PERFIL ===');
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          user_type: userType,
-          full_name: fullName,
-          phone: phone,
-          city: city
-        })
-        .eq('id', sessionData.user.id);
-
-      if (profileError) {
-        console.error('Erro ao atualizar perfil:', profileError);
-        toast({
-          title: 'Erro ao atualizar perfil',
-          description: 'Houve um problema ao atualizar suas informações.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      console.log('Perfil atualizado com sucesso');
-
-      // 5. Se for profissional, criar perfil na tabela partners
-      if (userType === 'parceiro') {
-        console.log('=== CRIANDO PERFIL PROFISSIONAL ===');
-        
-        // Preparar dados do parceiro
-        const specialtiesArray = professionalData.specialties
-          .split(',')
-          .map(s => s.trim())
-          .filter(s => s.length > 0);
-
-        const partnerData = {
-          user_id: sessionData.user.id,
-          full_name: fullName,
-          specialty: professionalData.specialty || 'Não especificado',
-          specialties: specialtiesArray,
-          bio: professionalData.bio || null,
-          contact_email: professionalData.contactEmail || email,
-          contact_phone: phone, // Usar o telefone principal
-          crm_crp_register: professionalData.crmCrpRegister || null,
-          is_active: true
-        };
-
-        console.log('Dados do parceiro para inserção:', partnerData);
-
-        // Inserir dados do parceiro
-        const { data: partnerResult, error: partnerError } = await supabase
-          .from('partners')
-          .insert(partnerData)
-          .select()
-          .single();
-
-        if (partnerError) {
-          console.error('Erro ao criar perfil de parceiro:', partnerError);
-          console.error('Detalhes do erro:', partnerError.details);
-          console.error('Hint:', partnerError.hint);
-          toast({
-            title: 'Perfil profissional não criado',
-            description: 'Sua conta foi criada, mas houve um problema ao criar o perfil profissional. Entre em contato conosco.',
-            variant: 'destructive',
-          });
-          return;
-        }
-
-        console.log('Perfil de parceiro criado com sucesso:', partnerResult);
-
-        toast({
-          title: 'Perfil profissional criado!',
-          description: 'Redirecionando para seu painel...',
-        });
-
-      } else {
-        // Para usuários comuns
-        toast({
-          title: 'Conta criada com sucesso!',
-          description: 'Redirecionando...',
-        });
-      }
-
-    } catch (error) {
-      console.error('Erro inesperado:', error);
-      toast({
-        title: 'Erro inesperado',
-        description: 'Ocorreu um erro. Tente novamente.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+    
+    await handleSignup({
+      email,
+      password,
+      fullName,
+      phone,
+      city,
+      userType,
+      professionalData: userType === 'parceiro' ? professionalData : undefined
+    });
   };
 
   return (
@@ -228,85 +68,20 @@ const SignupForm = () => {
               setPassword={setPassword}
             />
           ) : (
-            <>
-              {/* Campos comuns para profissionais */}
-              <div className="space-y-2">
-                <Label htmlFor="full-name">Nome Completo</Label>
-                <div className="relative">
-                  <Input
-                    id="full-name"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <div className="relative">
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <div className="relative">
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="city">Cidade</Label>
-                <div className="relative">
-                  <Input
-                    id="city"
-                    type="text"
-                    placeholder="Sua cidade"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <ProfessionalFields
-                data={professionalData}
-                onChange={setProfessionalData}
-              />
-
-              {/* Campo de senha para profissionais no final */}
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="Crie uma senha segura"
-                    className="pl-10"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </div>
-              </div>
-            </>
+            <ProfessionalFormFields
+              fullName={fullName}
+              setFullName={setFullName}
+              email={email}
+              setEmail={setEmail}
+              phone={phone}
+              setPhone={setPhone}
+              city={city}
+              setCity={setCity}
+              professionalData={professionalData}
+              setProfessionalData={setProfessionalData}
+              password={password}
+              setPassword={setPassword}
+            />
           )}
         </CardContent>
         <CardFooter>
