@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,33 +33,46 @@ const SupporterAmountSelector = ({ amount, selectedPlan, onAmountChange }: Suppo
     onAmountChange(value);
   };
 
+  const handlePlanClick = (planValue: number) => {
+    console.log('Plan clicked:', planValue);
+    onAmountChange(planValue.toString());
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Valor do Apoio</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           {monthlyPlans.map((plan) => (
-            <div
+            <Button
               key={plan.value}
-              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+              type="button"
+              variant={amount === plan.value.toString() ? "default" : "outline"}
+              onClick={() => handlePlanClick(plan.value)}
+              className={`p-4 h-auto text-left justify-start ${
                 amount === plan.value.toString()
-                  ? 'border-cv-blue-heart bg-cv-blue-heart/5'
-                  : 'border-gray-200 hover:border-cv-blue-heart/50'
+                  ? 'bg-cv-blue-heart hover:bg-cv-blue-heart/90 text-white border-cv-blue-heart'
+                  : 'border-gray-200 hover:border-cv-blue-heart/50 hover:bg-cv-blue-heart/5'
               }`}
-              onClick={() => onAmountChange(plan.value.toString())}
             >
-              <div className="text-center">
+              <div className="w-full">
                 <div className="font-semibold text-lg">{plan.label}</div>
-                <div className="text-sm text-cv-blue-heart">{plan.description}</div>
+                <div className={`text-sm ${
+                  amount === plan.value.toString() ? 'text-white/80' : 'text-cv-blue-heart'
+                }`}>
+                  {plan.description}
+                </div>
                 {selectedPlan === 'yearly' && (
-                  <div className="text-xs text-green-600 mt-1">
+                  <div className={`text-xs mt-1 ${
+                    amount === plan.value.toString() ? 'text-white/70' : 'text-green-600'
+                  }`}>
                     Anual: {formatCurrency((plan.value * 10).toString())} (2 meses grátis)
                   </div>
                 )}
               </div>
-            </div>
+            </Button>
           ))}
         </div>
         
