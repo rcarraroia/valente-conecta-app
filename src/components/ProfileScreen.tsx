@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Settings, Heart, Users, LogOut, Star } from 'lucide-react';
+import { User, Settings, Heart, Users, LogOut, Star, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProfileScreenProps {
@@ -103,7 +103,10 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
 
         {/* Menu Options */}
         <div className="space-y-3">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('my-data')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -115,14 +118,15 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
                     <p className="text-sm text-cv-gray-light">Editar informações pessoais</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
+                <ChevronRight className="w-5 h-5 text-cv-gray-light" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => onNavigate?.('my-donations')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -134,9 +138,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
                     <p className="text-sm text-cv-gray-light">Histórico de contribuições</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
+                <ChevronRight className="w-5 h-5 text-cv-gray-light" />
               </div>
             </CardContent>
           </Card>
@@ -157,9 +159,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
                       <p className="text-sm text-cv-gray-light">Gerencie seus links e comissões</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm">
-                    <Settings className="w-4 h-4" />
-                  </Button>
+                  <ChevronRight className="w-5 h-5 text-cv-gray-light" />
                 </div>
               </CardContent>
             </Card>
