@@ -46,7 +46,14 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPartners(data || []);
+      
+      // Transform the data to ensure specialties is always an array
+      const transformedData = (data || []).map(partner => ({
+        ...partner,
+        specialties: Array.isArray(partner.specialties) ? partner.specialties : []
+      }));
+      
+      setPartners(transformedData);
     } catch (error) {
       console.error('Erro ao carregar parceiros:', error);
     } finally {

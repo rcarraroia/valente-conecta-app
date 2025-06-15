@@ -46,7 +46,14 @@ const ProfessionalProfileScreen = ({ onBack, partnerId }: ProfessionalProfileScr
         .single();
 
       if (error) throw error;
-      setPartner(data);
+      
+      // Transform the data to ensure specialties is always an array
+      const transformedData = {
+        ...data,
+        specialties: Array.isArray(data.specialties) ? data.specialties : []
+      };
+      
+      setPartner(transformedData);
     } catch (error) {
       console.error('Erro ao carregar profissional:', error);
     } finally {
