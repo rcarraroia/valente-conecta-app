@@ -47,7 +47,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
       role="navigation"
       aria-label="Navegação principal"
     >
-      <div className="flex items-center justify-around py-1">
+      <div className="flex items-center justify-around py-2 px-1">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentTab === item.id;
@@ -56,20 +56,20 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center justify-center min-h-[60px] px-1 py-2 rounded-lg transition-all duration-300 relative flex-1 max-w-[20%] ${
+              className={`flex flex-col items-center justify-center min-h-[56px] px-2 py-1 rounded-lg transition-all duration-200 relative flex-1 max-w-[20%] touch-target ${
                 isActive 
-                  ? 'bg-cv-green-mint text-white shadow-lg scale-105' 
-                  : 'text-cv-purple-dark hover:text-cv-blue-heart hover:bg-cv-off-white'
+                  ? 'bg-cv-green-mint text-white shadow-md scale-105' 
+                  : 'text-cv-purple-dark hover:text-cv-blue-heart hover:bg-cv-off-white active:scale-95'
               }`}
               aria-label={item.ariaLabel}
               aria-current={isActive ? 'page' : undefined}
             >
               <Icon 
-                className={`w-5 h-5 mb-1 transition-transform duration-300 ${
+                className={`w-5 h-5 mb-1 transition-transform duration-200 ${
                   isActive ? 'scale-110' : ''
                 }`} 
               />
-              <span className={`text-[10px] font-medium leading-tight text-center ${
+              <span className={`text-xs font-medium leading-tight text-center ${
                 isActive ? 'font-semibold' : ''
               }`}>
                 {item.label}

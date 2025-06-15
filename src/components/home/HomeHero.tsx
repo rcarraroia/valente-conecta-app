@@ -21,20 +21,20 @@ const HomeHero = ({ onNavigate }: HomeHeroProps) => {
       aria-labelledby="hero-title"
     >
       <div className="relative z-10 space-y-4 animate-fade-in">
-        <h2 id="hero-title" className="text-2xl font-heading font-bold leading-tight">
+        <h2 id="hero-title" className="text-xl sm:text-2xl font-heading font-bold leading-tight">
           Descubra o Poder do Acolhimento
         </h2>
-        <p className="text-base opacity-95">
+        <p className="text-sm sm:text-base opacity-95 leading-relaxed">
           Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
         </p>
         <Button 
           onClick={handleJourneyStart}
-          className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+          className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full touch-target"
           size="lg"
           aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
         >
-          Inicie Sua Jornada
-          <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+          <span>Inicie Sua Jornada</span>
+          <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />
         </Button>
       </div>
       <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl" aria-hidden="true"></div>

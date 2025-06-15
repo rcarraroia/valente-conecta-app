@@ -64,16 +64,17 @@ const Index = () => {
     setCurrentScreen(screen);
   };
 
-  // Define which screens should show the bottom navigation
+  // Define which screens should show the bottom navigation - expandindo para mais telas
   const screensWithNavigation = [
-    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 'donation', 'my-data', 'my-donations'
+    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 
+    'donation', 'my-data', 'my-donations', 'ambassador'
   ];
 
   // Determine the active tab for the navigation
   const getActiveTab = () => {
     if (currentScreen === 'services' || currentScreen === 'partners') return 'home';
     if (currentScreen === 'donation') return 'ajudar';
-    if (currentScreen === 'my-data' || currentScreen === 'my-donations') return 'perfil';
+    if (currentScreen === 'my-data' || currentScreen === 'my-donations' || currentScreen === 'ambassador') return 'perfil';
     return currentScreen;
   };
 

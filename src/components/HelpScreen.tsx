@@ -28,53 +28,55 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-cv-off-white p-6 pb-20">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+    <div className="min-h-screen bg-cv-off-white">
+      {/* Header Mobile-First */}
+      <div className="bg-cv-purple-soft text-white px-4 py-3 shadow-lg">
+        <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon"
             onClick={onBack}
-            className="text-cv-gray-light hover:text-cv-gray-dark"
+            className="text-white hover:bg-white/20 w-10 h-10 p-0"
+            aria-label="Voltar"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-heading font-bold text-cv-gray-dark">
+          <h1 className="text-lg font-heading font-bold">
             Como Ajudar
           </h1>
         </div>
+      </div>
 
-        {/* Hero */}
+      <div className="p-4 space-y-4">
+        {/* Hero Card */}
         <Card className="bg-gradient-to-br from-cv-purple-soft to-cv-blue-heart text-white border-none">
-          <CardContent className="p-6 text-center">
-            <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
-            <h2 className="text-xl font-bold mb-2">Faça a Diferença</h2>
-            <p className="opacity-90">
+          <CardContent className="p-4 text-center">
+            <Heart className="w-10 h-10 mx-auto mb-3 text-white" />
+            <h2 className="text-lg font-bold mb-2">Faça a Diferença</h2>
+            <p className="text-sm opacity-90 leading-relaxed">
               Existem várias formas de apoiar o Instituto Coração Valente em nossa missão de acolher famílias.
             </p>
           </CardContent>
         </Card>
 
         {/* Options */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {helpOptions.map((option, index) => (
             <Card 
               key={option.title}
-              className="border-none shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+              className="border-none shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
               onClick={option.action}
             >
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className={`${option.color} p-3 rounded-full`}>
-                    <option.icon className="w-6 h-6 text-white" />
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`${option.color} p-2.5 rounded-full flex-shrink-0`}>
+                    <option.icon className="w-5 h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-cv-gray-dark mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-cv-gray-dark text-base mb-1">
                       {option.title}
                     </h3>
-                    <p className="text-sm text-cv-gray-light">
+                    <p className="text-sm text-cv-gray-light leading-relaxed">
                       {option.description}
                     </p>
                   </div>
@@ -86,17 +88,17 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
 
         {/* Ambassador Info Card */}
         <Card className="border-cv-purple-soft border-2">
-          <CardContent className="p-6 text-center">
+          <CardContent className="p-4 text-center">
             <Heart className="w-8 h-8 mx-auto mb-3 text-cv-purple-soft" />
-            <h3 className="font-semibold text-cv-gray-dark mb-2">
+            <h3 className="font-semibold text-cv-gray-dark text-base mb-2">
               Programa de Embaixadores
             </h3>
-            <p className="text-sm text-cv-gray-light mb-4">
+            <p className="text-sm text-cv-gray-light mb-4 leading-relaxed">
               Compartilhe nossa causa e ganhe recompensas! Acesse o programa completo em seu perfil.
             </p>
             <Button
               variant="outline"
-              className="border-cv-purple-soft text-cv-purple-soft hover:bg-cv-purple-soft hover:text-white"
+              className="border-cv-purple-soft text-cv-purple-soft hover:bg-cv-purple-soft hover:text-white w-full"
               onClick={() => onNavigate ? onNavigate('perfil') : null}
             >
               Ir para Perfil
