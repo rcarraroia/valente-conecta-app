@@ -61,16 +61,28 @@ const Index = () => {
     setCurrentScreen(screen);
   };
 
+  // Define which screens should show the bottom navigation
+  const screensWithNavigation = [
+    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 'donation'
+  ];
+
+  // Determine the active tab for the navigation
+  const getActiveTab = () => {
+    if (currentScreen === 'services' || currentScreen === 'partners') return 'home';
+    if (currentScreen === 'donation') return 'ajudar';
+    return currentScreen;
+  };
+
   return (
     <div className="min-h-screen bg-cv-off-white relative w-full">
       <div className="pb-16">
         {renderScreen()}
       </div>
       
-      {/* Show bottom navigation on main screens and services */}
-      {['home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners'].includes(currentScreen) && (
+      {/* Show bottom navigation on main screens and related sub-screens */}
+      {screensWithNavigation.includes(currentScreen) && (
         <BottomNavigation 
-          currentTab={currentScreen === 'services' ? 'home' : currentScreen === 'partners' ? 'home' : currentScreen} 
+          currentTab={getActiveTab()} 
           onTabChange={handleNavigate}
         />
       )}
