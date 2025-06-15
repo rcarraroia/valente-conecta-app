@@ -92,28 +92,28 @@ const HomeScreen = () => {
 
   return (
     <div className="min-h-screen bg-cv-off-white">
-      {/* Header */}
-      <header className="bg-cv-purple-soft text-white p-4 shadow-lg" role="banner">
+      {/* Header - Mobile Optimized */}
+      <header className="bg-cv-purple-soft text-white px-4 py-3 shadow-lg" role="banner">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 flex items-center justify-center">
+            <div className="w-8 h-8 flex items-center justify-center">
               <OptimizedImage 
                 src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png"
                 alt="Logotipo do Instituto Coração Valente"
-                className="w-10 h-10 object-contain"
-                width={40}
-                height={40}
+                className="w-8 h-8 object-contain"
+                width={32}
+                height={32}
               />
             </div>
             <div>
-              <h1 className="text-h3 font-heading font-bold">Coração Valente</h1>
-              <p className="text-sm opacity-90">Conecta</p>
+              <h1 className="text-lg font-heading font-bold">Coração Valente</h1>
+              <p className="text-xs opacity-90">Conecta</p>
             </div>
           </div>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:bg-white/20" 
+            className="text-white hover:bg-white/20 w-10 h-10" 
             aria-label="Abrir busca"
           >
             <Search className="h-5 w-5" aria-hidden="true" />
@@ -121,21 +121,21 @@ const HomeScreen = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - Mobile Optimized */}
       <section 
-        className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark p-6 text-white"
+        className="relative bg-gradient-to-br from-cv-purple-soft via-cv-blue-heart to-cv-purple-dark px-4 py-6 text-white"
         role="banner"
         aria-labelledby="hero-title"
       >
         <div className="relative z-10 space-y-4 animate-fade-in">
-          <h2 id="hero-title" className="text-h1 font-heading font-bold leading-tight">
+          <h2 id="hero-title" className="text-2xl font-heading font-bold leading-tight">
             Descubra o Poder do Acolhimento
           </h2>
-          <p className="text-body opacity-95 max-w-md">
+          <p className="text-base opacity-95">
             Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
           </p>
           <Button 
-            className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
+            className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
             size="lg"
             aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
           >
@@ -143,16 +143,16 @@ const HomeScreen = () => {
             <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl" aria-hidden="true"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-lg" aria-hidden="true"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl" aria-hidden="true"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full blur-lg" aria-hidden="true"></div>
       </section>
 
-      {/* Quick Actions */}
-      <section className="p-6" aria-labelledby="quick-actions-title">
-        <h3 id="quick-actions-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4">
+      {/* Quick Actions - Mobile Grid */}
+      <section className="px-4 py-6" aria-labelledby="quick-actions-title">
+        <h3 id="quick-actions-title" className="text-xl font-heading font-bold text-cv-purple-dark mb-4">
           Acesso Rápido
         </h3>
-        <div className="grid grid-cols-2 gap-4" role="grid">
+        <div className="grid grid-cols-2 gap-3" role="grid">
           {quickActions.map((action, index) => (
             <Card 
               key={action.title}
@@ -168,12 +168,12 @@ const HomeScreen = () => {
                 }
               }}
             >
-              <CardContent className="p-4 text-center space-y-2">
-                <action.icon className={`w-8 h-8 mx-auto ${action.textColor}`} aria-hidden="true" />
+              <CardContent className="p-3 text-center space-y-2">
+                <action.icon className={`w-6 h-6 mx-auto ${action.textColor}`} aria-hidden="true" />
                 <h4 className={`font-semibold text-sm ${action.textColor}`}>
                   {action.title}
                 </h4>
-                <p className={`text-xs opacity-90 ${action.textColor}`}>
+                <p className={`text-xs opacity-90 ${action.textColor} leading-tight`}>
                   {action.description}
                 </p>
               </CardContent>
@@ -182,46 +182,48 @@ const HomeScreen = () => {
         </div>
       </section>
 
-      {/* Impact Section */}
-      <section className="p-6 bg-white mx-4 rounded-2xl shadow-lg mb-6" aria-labelledby="impact-title">
-        <h3 id="impact-title" className="text-h2 font-heading font-bold text-cv-purple-dark mb-4 text-center">
-          Nosso Impacto
-        </h3>
-        <div className="grid grid-cols-3 gap-4 text-center" role="grid">
-          <div className="space-y-2" role="gridcell">
-            <div className="text-h1 font-bold text-cv-green-mint" aria-label="Duas mil e quinhentas famílias atendidas">2.5K+</div>
-            <p className="text-caption text-cv-purple-dark">Famílias Atendidas</p>
-          </div>
-          <div className="space-y-2" role="gridcell">
-            <div className="text-h1 font-bold text-cv-coral" aria-label="Noventa e oito por cento de satisfação">98%</div>
-            <p className="text-caption text-cv-purple-dark">Satisfação</p>
-          </div>
-          <div className="space-y-2" role="gridcell">
-            <div className="text-h1 font-bold text-cv-blue-heart" aria-label="Quinze especialistas">15</div>
-            <p className="text-caption text-cv-purple-dark">Especialistas</p>
+      {/* Impact Section - Mobile Layout */}
+      <section className="px-4 pb-6" aria-labelledby="impact-title">
+        <div className="bg-white rounded-2xl shadow-lg p-4">
+          <h3 id="impact-title" className="text-xl font-heading font-bold text-cv-purple-dark mb-4 text-center">
+            Nosso Impacto
+          </h3>
+          <div className="grid grid-cols-3 gap-4 text-center" role="grid">
+            <div className="space-y-1" role="gridcell">
+              <div className="text-2xl font-bold text-cv-green-mint" aria-label="Duas mil e quinhentas famílias atendidas">2.5K+</div>
+              <p className="text-xs text-cv-purple-dark">Famílias Atendidas</p>
+            </div>
+            <div className="space-y-1" role="gridcell">
+              <div className="text-2xl font-bold text-cv-coral" aria-label="Noventa e oito por cento de satisfação">98%</div>
+              <p className="text-xs text-cv-purple-dark">Satisfação</p>
+            </div>
+            <div className="space-y-1" role="gridcell">
+              <div className="text-2xl font-bold text-cv-blue-heart" aria-label="Quinze especialistas">15</div>
+              <p className="text-xs text-cv-purple-dark">Especialistas</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Recent News */}
-      <section className="p-6" aria-labelledby="news-title">
+      {/* Recent News - Mobile Carousel */}
+      <section className="px-4 pb-6" aria-labelledby="news-title">
         <div className="flex items-center justify-between mb-4">
-          <h3 id="news-title" className="text-h2 font-heading font-bold text-cv-purple-dark">
+          <h3 id="news-title" className="text-xl font-heading font-bold text-cv-purple-dark">
             Últimas Notícias
           </h3>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-cv-blue-heart hover:text-cv-green-mint"
+            className="text-cv-blue-heart hover:text-cv-green-mint text-sm"
             aria-label="Ver todas as notícias"
           >
             Ver todas
           </Button>
         </div>
         <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-          <CarouselContent className="-ml-2 md:-ml-4">
+          <CarouselContent className="-ml-2">
             {recentNews.map((news, index) => (
-              <CarouselItem key={news.id} className="pl-2 md:pl-4 basis-[85%]">
+              <CarouselItem key={news.id} className="pl-2 basis-[90%]">
                 <Card 
                   className="bg-white border-none shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer animate-slide-up"
                   style={{ animationDelay: `${index * 150}ms` }}
@@ -236,15 +238,15 @@ const HomeScreen = () => {
                   }}
                 >
                   <CardContent className="p-0">
-                    <div className="flex space-x-4">
+                    <div className="flex space-x-3">
                       <OptimizedImage 
                         src={news.image}
                         alt={`Imagem relacionada à notícia: ${news.title}`}
-                        className="w-20 h-20 object-cover rounded-l-lg flex-shrink-0"
-                        width={80}
-                        height={80}
+                        className="w-16 h-16 object-cover rounded-l-lg flex-shrink-0"
+                        width={64}
+                        height={64}
                       />
-                      <div className="flex-1 p-4 space-y-2">
+                      <div className="flex-1 p-3 space-y-2">
                         <div className="flex items-center space-x-2">
                           <Badge 
                             variant="secondary" 
@@ -252,14 +254,14 @@ const HomeScreen = () => {
                           >
                             {news.category}
                           </Badge>
-                          <time className="text-caption text-cv-gray-light" dateTime="2025-06-05">
+                          <time className="text-xs text-cv-gray-light" dateTime="2025-06-05">
                             {news.date}
                           </time>
                         </div>
-                        <h4 id={`news-title-${news.id}`} className="font-semibold text-cv-purple-dark line-clamp-2">
+                        <h4 id={`news-title-${news.id}`} className="font-semibold text-sm text-cv-purple-dark line-clamp-2">
                           {news.title}
                         </h4>
-                        <p className="text-caption text-cv-gray-light line-clamp-2">
+                        <p className="text-xs text-cv-gray-light line-clamp-2">
                           {news.description}
                         </p>
                       </div>
@@ -270,11 +272,11 @@ const HomeScreen = () => {
             ))}
           </CarouselContent>
           <CarouselPrevious 
-            className="left-2 bg-white/80 hover:bg-white text-cv-purple-dark" 
+            className="left-2 bg-white/80 hover:bg-white text-cv-purple-dark w-8 h-8" 
             aria-label="Notícia anterior"
           />
           <CarouselNext 
-            className="right-2 bg-white/80 hover:bg-white text-cv-purple-dark" 
+            className="right-2 bg-white/80 hover:bg-white text-cv-purple-dark w-8 h-8" 
             aria-label="Próxima notícia"
           />
         </Carousel>

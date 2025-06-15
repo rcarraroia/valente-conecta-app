@@ -42,7 +42,7 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cv-off-white flex items-center justify-center">
+      <div className="min-h-screen bg-cv-off-white flex items-center justify-center px-4">
         <div 
           className="animate-spin rounded-full h-12 w-12 border-b-2 border-cv-purple-dark"
           role="status"
@@ -59,7 +59,9 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ErrorBoundary>
-            <OnboardingScreen onComplete={handleOnboardingComplete} />
+            <div className="min-h-screen w-full">
+              <OnboardingScreen onComplete={handleOnboardingComplete} />
+            </div>
           </ErrorBoundary>
           <Toaster />
         </TooltipProvider>
@@ -71,20 +73,22 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ErrorBoundary>
-          <Toaster />
-          <BrowserRouter>
-            <Routes>
-              <Route 
-                path="/" 
-                element={user ? <Index /> : <Navigate to="/auth" replace />} 
-              />
-              <Route 
-                path="/auth" 
-                element={!user ? <Auth /> : <Navigate to="/" replace />} 
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <div className="min-h-screen w-full bg-cv-off-white">
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route 
+                  path="/" 
+                  element={user ? <Index /> : <Navigate to="/auth" replace />} 
+                />
+                <Route 
+                  path="/auth" 
+                  element={!user ? <Auth /> : <Navigate to="/" replace />} 
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
         </ErrorBoundary>
       </TooltipProvider>
     </QueryClientProvider>

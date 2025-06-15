@@ -24,11 +24,11 @@ const ErrorMessage = ({
   const getIcon = () => {
     switch (type) {
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-orange-500" aria-hidden="true" />;
+        return <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0" aria-hidden="true" />;
       case 'info':
-        return <Info className="w-5 h-5 text-blue-500" aria-hidden="true" />;
+        return <Info className="w-5 h-5 text-blue-500 flex-shrink-0" aria-hidden="true" />;
       default:
-        return <AlertTriangle className="w-5 h-5 text-red-500" aria-hidden="true" />;
+        return <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" aria-hidden="true" />;
     }
   };
 
@@ -45,20 +45,20 @@ const ErrorMessage = ({
 
   return (
     <Card 
-      className={`${getColorClasses()} ${className}`}
+      className={`${getColorClasses()} mx-4 ${className}`}
       role="alert"
       aria-live="assertive"
     >
       <CardContent className="p-4">
         <div className="flex items-start space-x-3">
           {getIcon()}
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-2 min-w-0">
             {title && (
               <h3 className="font-semibold text-sm">
                 {title}
               </h3>
             )}
-            <p className="text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed break-words">
               {message}
             </p>
             {onRetry && (
@@ -66,7 +66,7 @@ const ErrorMessage = ({
                 onClick={onRetry}
                 variant="outline"
                 size="sm"
-                className="mt-3"
+                className="mt-3 w-full sm:w-auto"
                 aria-label={retryLabel}
               >
                 <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />

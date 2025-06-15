@@ -10,8 +10,8 @@ interface LoadingSpinnerProps {
 const LoadingSpinner = ({ size = 'md', message, className = '' }: LoadingSpinnerProps) => {
   const sizeClasses = {
     sm: 'w-4 h-4',
-    md: 'w-8 h-8',
-    lg: 'w-12 h-12'
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
   };
 
   return (
@@ -26,7 +26,7 @@ const LoadingSpinner = ({ size = 'md', message, className = '' }: LoadingSpinner
         aria-hidden="true"
       />
       {message && (
-        <p className="text-cv-gray-light text-sm font-medium">
+        <p className="text-cv-gray-light text-sm font-medium text-center px-4">
           {message}
         </p>
       )}

@@ -35,8 +35,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cv-off-white relative">
-      {renderScreen()}
+    <div className="min-h-screen bg-cv-off-white relative w-full">
+      <div className="pb-16">
+        {renderScreen()}
+      </div>
       
       {/* Show bottom navigation only on main screens */}
       {['home', 'biblioteca', 'ia', 'ajudar', 'perfil'].includes(currentScreen) && (
