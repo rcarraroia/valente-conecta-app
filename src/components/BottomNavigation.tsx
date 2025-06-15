@@ -56,7 +56,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className={`flex flex-col items-center justify-center min-h-[60px] px-2 py-2 rounded-lg transition-all duration-300 relative flex-1 max-w-[20%] ${
+              className={`flex flex-col items-center justify-center min-h-[60px] px-1 py-2 rounded-lg transition-all duration-300 relative flex-1 max-w-[20%] ${
                 isActive 
                   ? 'bg-cv-green-mint text-white shadow-lg scale-105' 
                   : 'text-cv-purple-dark hover:text-cv-blue-heart hover:bg-cv-off-white'
@@ -69,7 +69,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
                   isActive ? 'scale-110' : ''
                 }`} 
               />
-              <span className={`text-xs font-medium leading-tight text-center ${
+              <span className={`text-[10px] font-medium leading-tight text-center ${
                 isActive ? 'font-semibold' : ''
               }`}>
                 {item.label}

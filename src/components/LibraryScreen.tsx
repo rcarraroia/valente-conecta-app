@@ -21,7 +21,11 @@ interface Article {
   view_count: number;
 }
 
-const LibraryScreen = () => {
+interface LibraryScreenProps {
+  onNavigate?: (screen: string, articleId?: string) => void;
+}
+
+const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +73,11 @@ const LibraryScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleArticleClick = (articleId: string) => {
+    incrementViewCount(articleId);
+    onNavigate?.('article-detail', articleId);
   };
 
   const incrementViewCount = async (articleId: string) => {
@@ -197,10 +206,11 @@ const LibraryScreen = () => {
                   role="article"
                   tabIndex={0}
                   aria-labelledby={`featured-article-${article.id}`}
+                  onClick={() => handleArticleClick(article.id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      incrementViewCount(article.id);
+                      handleArticleClick(article.id);
                     }
                   }}
                 >
@@ -243,12 +253,9 @@ const LibraryScreen = () => {
                       <p className="text-sm text-cv-gray-dark line-clamp-3">
                         {article.content.substring(0, 200)}...
                       </p>
-                      <button
-                        onClick={() => incrementViewCount(article.id)}
-                        className="mt-2 text-cv-coral hover:text-cv-coral/80 text-sm font-medium"
-                      >
+                      <span className="mt-2 text-cv-coral hover:text-cv-coral/80 text-sm font-medium">
                         Ler mais →
-                      </button>
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -271,10 +278,11 @@ const LibraryScreen = () => {
                   role="article"
                   tabIndex={0}
                   aria-labelledby={`article-${article.id}`}
+                  onClick={() => handleArticleClick(article.id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      incrementViewCount(article.id);
+                      handleArticleClick(article.id);
                     }
                   }}
                 >
@@ -314,12 +322,9 @@ const LibraryScreen = () => {
                         </div>
                       </div>
                       
-                      <button
-                        onClick={() => incrementViewCount(article.id)}
-                        className="text-cv-coral hover:text-cv-coral/80 text-sm font-medium"
-                      >
+                      <span className="text-cv-coral hover:text-cv-coral/80 text-sm font-medium">
                         Ler artigo →
-                      </button>
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
