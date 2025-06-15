@@ -1,97 +1,27 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import OnboardingScreen from "./components/OnboardingScreen";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { useAuth } from "./hooks/useAuth";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
-    },
-  },
-});
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import Index from '@/pages/Index';
+import Auth from '@/pages/Auth';
+import LandingPage from '@/pages/LandingPage';
+import NotFound from '@/pages/NotFound';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import './App.css';
 
 const App = () => {
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const { user, loading } = useAuth();
-
-  useEffect(() => {
-    // Check if user has seen onboarding
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-    
-    if (!hasSeenOnboarding && !user && !loading) {
-      setShowOnboarding(true);
-    }
-  }, [user, loading]);
-
-  const handleOnboardingComplete = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
-    setShowOnboarding(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-cv-off-white flex items-center justify-center px-4">
-        <div 
-          className="animate-spin rounded-full h-12 w-12 border-b-2 border-cv-purple-dark"
-          role="status"
-          aria-label="Carregando aplicativo"
-        >
-          <span className="sr-only">Carregando...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (showOnboarding) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ErrorBoundary>
-            <div className="min-h-screen w-full">
-              <OnboardingScreen onComplete={handleOnboardingComplete} />
-            </div>
-          </ErrorBoundary>
-          <Toaster />
-        </TooltipProvider>
-      </QueryClientProvider>
-    );
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <div className="min-h-screen w-full bg-cv-off-white">
-            <Toaster />
-            <BrowserRouter>
-              <Routes>
-                <Route 
-                  path="/" 
-                  element={user ? <Index /> : <Navigate to="/auth" replace />} 
-                />
-                <Route 
-                  path="/auth" 
-                  element={!user ? <Auth /> : <Navigate to="/" replace />} 
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </div>
-        </ErrorBoundary>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <Toaster />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 };
 
