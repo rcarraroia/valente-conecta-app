@@ -6,6 +6,7 @@ import { ArrowLeft, Users, Link, DollarSign, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import AmbassadorWalletForm from './AmbassadorWalletForm';
+import LinkGenerator from './LinkGenerator';
 
 interface AmbassadorDashboardProps {
   onBack: () => void;
@@ -26,22 +27,30 @@ const AmbassadorDashboard = ({ onBack }: AmbassadorDashboardProps) => {
   const loadAmbassadorData = async () => {
     try {
       // Carregar perfil do embaixador
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
         .single();
 
-      setProfile(profileData);
+      if (profileError) {
+        console.error('Erro ao carregar perfil:', profileError);
+      } else {
+        setProfile(profileData);
+      }
 
       // Carregar performance do embaixador
-      const { data: performanceData } = await supabase
+      const { data: performanceData, error: performanceError } = await supabase
         .from('ambassador_performance')
         .select('*')
         .eq('ambassador_user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      setPerformance(performanceData);
+      if (performanceError) {
+        console.error('Erro ao carregar performance:', performanceError);
+      } else {
+        setPerformance(performanceData);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do embaixador:', error);
     } finally {
@@ -122,6 +131,9 @@ const AmbassadorDashboard = ({ onBack }: AmbassadorDashboardProps) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Link Generator */}
+        <LinkGenerator />
 
         {/* Wallet Configuration */}
         <AmbassadorWalletForm 

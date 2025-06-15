@@ -37,11 +37,19 @@ serve(async (req) => {
     console.log('Gerando link rastreável para embaixador:', user.id)
 
     // Verificar se o usuário é um embaixador válido
-    const { data: profile } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('is_volunteer, ambassador_code')
       .eq('id', user.id)
       .single()
+
+    if (profileError) {
+      console.error('Erro ao buscar perfil:', profileError)
+      return new Response(
+        JSON.stringify({ error: 'Erro ao verificar perfil do usuário' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     if (!profile?.is_volunteer || !profile?.ambassador_code) {
       return new Response(
@@ -71,7 +79,7 @@ serve(async (req) => {
     if (linkError) {
       console.error('Erro ao criar link:', linkError)
       return new Response(
-        JSON.stringify({ error: 'Erro ao gerar link' }),
+        JSON.stringify({ error: 'Erro ao gerar link', details: linkError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -82,6 +90,8 @@ serve(async (req) => {
       .upsert({
         ambassador_user_id: user.id,
         last_updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'ambassador_user_id'
       })
 
     if (performanceError) {
@@ -93,7 +103,7 @@ serve(async (req) => {
         link_id: linkData.id,
         generated_url: linkData.generated_url,
         short_url: linkData.short_url,
-        destination_url,
+        destination_url: destination_url || `${baseUrl}/doar`,
         created_at: linkData.created_at
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -102,7 +112,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Erro geral:', error)
     return new Response(
-      JSON.stringify({ error: 'Erro interno do servidor' }),
+      JSON.stringify({ error: 'Erro interno do servidor', details: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

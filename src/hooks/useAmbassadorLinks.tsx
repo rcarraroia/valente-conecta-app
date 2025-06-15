@@ -15,9 +15,11 @@ export const useAmbassadorLinks = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const generateLink = async (destinationUrl: string, campaignId?: string): Promise<AmbassadorLink | null> => {
+  const generateLink = async (destinationUrl: string = '', campaignId?: string): Promise<AmbassadorLink | null> => {
     setLoading(true);
     try {
+      console.log('Gerando link com:', { destinationUrl, campaignId });
+      
       const { data, error } = await supabase.functions.invoke('links-generate', {
         body: {
           destination_url: destinationUrl,
@@ -26,8 +28,15 @@ export const useAmbassadorLinks = () => {
       });
       
       if (error) {
+        console.error('Erro na função edge:', error);
         throw error;
       }
+
+      if (!data) {
+        throw new Error('Nenhum dado retornado da função');
+      }
+
+      console.log('Link gerado com sucesso:', data);
 
       toast({
         title: 'Link gerado!',
@@ -35,11 +44,11 @@ export const useAmbassadorLinks = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar link:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível gerar o link. Tente novamente.',
+        description: error.message || 'Não foi possível gerar o link. Tente novamente.',
         variant: 'destructive',
       });
       return null;
@@ -59,7 +68,7 @@ export const useAmbassadorLinks = () => {
         throw error;
       }
 
-      return data;
+      return data || [];
     } catch (error) {
       console.error('Erro ao buscar links:', error);
       toast({
@@ -76,7 +85,7 @@ export const useAmbassadorLinks = () => {
       const { data, error } = await supabase
         .from('ambassador_performance')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
