@@ -1,22 +1,34 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Settings, Heart, Users, LogOut, Star, ChevronRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { 
+  User, 
+  Heart, 
+  Gift, 
+  LogOut, 
+  Settings,
+  Database,
+  Stethoscope,
+  ChevronRight
+} from 'lucide-react';
 
 interface ProfileScreenProps {
   onNavigate?: (screen: string) => void;
 }
 
+interface Profile {
+  full_name: string | null;
+  user_type: string | null;
+}
+
 const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   const { user, signOut } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -26,51 +38,60 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
 
   const loadProfile = async () => {
     try {
-      const { data: profileData, error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('full_name, user_type')
         .eq('id', user?.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      setProfile(profileData);
-    } catch (error: any) {
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
       console.error('Erro ao carregar perfil:', error);
-      toast({
-        title: "Erro ao carregar perfil",
-        description: "Não foi possível carregar suas informações.",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: "Não foi possível fazer logout. Tente novamente.",
-        variant: "destructive"
-      });
-    }
+    await signOut();
   };
 
-  const getInitials = (name?: string) => {
+  const getInitials = (name: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const handleNavigation = (screen: string) => {
-    console.log('Navegando para:', screen);
-    if (onNavigate) {
-      onNavigate(screen);
+  const menuItems = [
+    {
+      id: 'my-data',
+      icon: User,
+      title: 'Meus Dados',
+      description: 'Editar informações pessoais'
+    },
+    {
+      id: 'my-donations',
+      icon: Gift,
+      title: 'Minhas Doações',
+      description: 'Histórico de contribuições'
+    },
+    {
+      id: 'ambassador',
+      icon: Heart,
+      title: 'Seja um Embaixador',
+      description: 'Divulgue nossa causa e ganhe recompensas'
     }
-  };
+  ];
+
+  // Adicionar item do painel profissional se for um parceiro
+  if (profile?.user_type === 'parceiro') {
+    menuItems.unshift({
+      id: 'professional-dashboard',
+      icon: Stethoscope,
+      title: 'Painel Profissional',
+      description: 'Gerencie seus horários e agendamentos'
+    });
+  }
 
   if (loading) {
     return (
@@ -86,109 +107,69 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
         {/* Profile Header */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-16 h-16">
+            <div className="text-center">
+              <Avatar className="w-20 h-20 mx-auto mb-4">
+                <AvatarImage src="" />
                 <AvatarFallback className="bg-cv-coral text-white text-lg font-bold">
-                  {getInitials(profile?.full_name || user?.email)}
+                  {getInitials(profile?.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-cv-gray-dark">
-                  {profile?.full_name || 'Usuário'}
-                </h2>
-                <p className="text-cv-gray-light">{user?.email}</p>
-                {profile?.is_volunteer && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm text-yellow-600 font-medium">Embaixador</span>
-                  </div>
-                )}
-              </div>
+              
+              <h1 className="text-xl font-heading font-bold text-cv-gray-dark mb-1">
+                {profile?.full_name || 'Usuário'}
+              </h1>
+              
+              <p className="text-cv-gray-light text-sm">
+                {user?.email}
+              </p>
+
+              {profile?.user_type === 'parceiro' && (
+                <div className="mt-2">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cv-blue-heart text-white">
+                    <Stethoscope className="w-3 h-3 mr-1" />
+                    Profissional Parceiro
+                  </span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Menu Options */}
+        {/* Menu Items */}
         <div className="space-y-3">
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => handleNavigation('my-data')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-cv-blue-heart p-2 rounded-full">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-cv-gray-dark">Meus Dados</h3>
-                    <p className="text-sm text-cv-gray-light">Editar informações pessoais</p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-cv-gray-light" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => handleNavigation('my-donations')}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-cv-green-mint p-2 rounded-full">
-                    <Heart className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-cv-gray-dark">Minhas Doações</h3>
-                    <p className="text-sm text-cv-gray-light">Histórico de contribuições</p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-cv-gray-light" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {profile?.is_volunteer && (
+          {menuItems.map((item) => (
             <Card 
+              key={item.id}
               className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => handleNavigation('ambassador')}
+              onClick={() => onNavigate?.(item.id)}
             >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-cv-coral p-2 rounded-full">
-                      <Users className="w-5 h-5 text-white" />
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-cv-off-white rounded-lg">
+                      <item.icon className="w-5 h-5 text-cv-coral" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-cv-gray-dark">Painel do Embaixador</h3>
-                      <p className="text-sm text-cv-gray-light">Gerencie seus links e comissões</p>
+                      <h3 className="font-medium text-cv-gray-dark">{item.title}</h3>
+                      <p className="text-sm text-cv-gray-light">{item.description}</p>
                     </div>
                   </div>
                   <ChevronRight className="w-5 h-5 text-cv-gray-light" />
                 </div>
               </CardContent>
             </Card>
-          )}
-
-          <Card 
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={handleSignOut}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-red-500 p-2 rounded-full">
-                  <LogOut className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-cv-gray-dark">Sair</h3>
-                  <p className="text-sm text-cv-gray-light">Fazer logout da conta</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          ))}
         </div>
+
+        {/* Sign Out Button */}
+        <Button
+          onClick={handleSignOut}
+          variant="outline"
+          className="w-full text-red-600 border-red-200 hover:bg-red-50"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair da Conta
+        </Button>
       </div>
     </div>
   );

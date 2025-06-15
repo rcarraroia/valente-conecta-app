@@ -1,32 +1,27 @@
 
 import React from 'react';
-import HomeHeader from './home/HomeHeader';
-import HomeHero from './home/HomeHero';
-import PartnersCarousel from './home/PartnersCarousel';
-import QuickActions from './home/QuickActions';
-import ImpactSection from './home/ImpactSection';
-import NewsCarousel from './home/NewsCarousel';
+import HomeHeader from '@/components/home/HomeHeader';
+import HomeHero from '@/components/home/HomeHero';
+import QuickActions from '@/components/home/QuickActions';
+import QuickAppointment from '@/components/home/QuickAppointment';
+import PartnersCarousel from '@/components/home/PartnersCarousel';
+import NewsCarousel from '@/components/home/NewsCarousel';
+import ImpactSection from '@/components/home/ImpactSection';
 
 interface HomeScreenProps {
-  onNavigate?: (screen: string, partnerId?: string) => void;
+  onNavigate?: (screen: string, articleId?: string) => void;
 }
 
 const HomeScreen = ({ onNavigate }: HomeScreenProps) => {
-  const handleJourneyStart = () => {
-    onNavigate?.('ia');
-  };
-
   return (
     <div className="min-h-screen bg-cv-off-white">
-      <HomeHeader />
-      <HomeHero onJourneyStart={handleJourneyStart} />
-      <PartnersCarousel onNavigate={onNavigate} />
+      <HomeHeader onNavigate={onNavigate} />
+      <HomeHero onNavigate={onNavigate} />
       <QuickActions onNavigate={onNavigate} />
-      <ImpactSection />
+      <QuickAppointment onNavigate={onNavigate} />
+      <PartnersCarousel onNavigate={onNavigate} />
       <NewsCarousel onNavigate={onNavigate} />
-      
-      {/* Bottom spacing for navigation */}
-      <div className="h-20" aria-hidden="true"></div>
+      <ImpactSection />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import ProfileScreen from '@/components/ProfileScreen';
 import ServicesScreen from '@/components/ServicesScreen';
 import PartnersScreen from '@/components/PartnersScreen';
 import ProfessionalProfileScreen from '@/components/ProfessionalProfileScreen';
+import ProfessionalDashboard from '@/components/professional/ProfessionalDashboard';
 import BottomNavigation from '@/components/BottomNavigation';
 import DonationScreen from '@/components/DonationScreen';
 import AmbassadorDashboard from '@/components/ambassador/AmbassadorDashboard';
@@ -32,6 +33,8 @@ const Index = () => {
         return <PartnersScreen onNavigate={handleNavigate} />;
       case 'partner-profile':
         return <ProfessionalProfileScreen onBack={() => setCurrentScreen('partners')} partnerId={selectedPartnerId} />;
+      case 'professional-dashboard':
+        return <ProfessionalDashboard onBack={() => setCurrentScreen('perfil')} />;
       case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
       case 'ajudar':
