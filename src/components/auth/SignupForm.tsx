@@ -179,9 +179,9 @@ const SignupForm = () => {
           description: 'Redirecionando para seu painel...',
         });
 
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1500);
+        // setTimeout(() => {
+        //   window.location.href = '/';
+        // }, 1500);
 
       } else {
         // Para usuários comuns
@@ -189,9 +189,9 @@ const SignupForm = () => {
           title: 'Conta criada com sucesso!',
           description: 'Redirecionando...',
         });
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 1000);
+        // setTimeout(() => {
+        //   window.location.href = '/';
+        // }, 1000);
       }
 
     } catch (error) {

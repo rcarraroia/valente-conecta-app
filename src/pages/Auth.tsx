@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AuthHeader from '@/components/auth/AuthHeader';
 import LoginForm from '@/components/auth/LoginForm';
@@ -11,11 +10,31 @@ const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const handleRedirectLogic = async (session: Session | null) => {
+      if (session?.user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile?.user_type === 'parceiro') {
+            localStorage.setItem('redirect_to', 'professional-dashboard');
+          }
+        } catch (error) {
+          console.error("Error fetching profile for redirect:", error);
+        } finally {
+          window.location.href = '/';
+        }
+      }
+    };
+
     // Check if there's already an active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        window.location.href = '/';
+        handleRedirectLogic(session);
       }
     });
 
@@ -23,8 +42,11 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
-        if (session?.user) {
-          window.location.href = '/';
+        if (event === 'SIGNED_IN') {
+          handleRedirectLogic(session);
+        } else if (event === 'SIGNED_OUT') {
+          // This part is from useAuth, to keep consistency
+          // but auth page shouldn't handle signout redirects
         }
       }
     );

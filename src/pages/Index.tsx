@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomeScreen from '@/components/HomeScreen';
 import LibraryScreen from '@/components/LibraryScreen';
 import ArticleDetailScreen from '@/components/ArticleDetailScreen';
@@ -20,6 +19,23 @@ const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<string>('home');
   const [selectedArticleId, setSelectedArticleId] = useState<string | undefined>();
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | undefined>();
+
+  useEffect(() => {
+    const redirectTo = localStorage.getItem('redirect_to');
+    if (redirectTo) {
+      // A simple validation to ensure we only redirect to valid screens
+      const validScreens = [
+        'home', 'biblioteca', 'article-detail', 'partners', 
+        'partner-profile', 'professional-dashboard', 'ia', 'ajudar', 
+        'donation', 'perfil', 'ambassador', 'my-data', 
+        'my-donations', 'services'
+      ];
+      if (validScreens.includes(redirectTo)) {
+        setCurrentScreen(redirectTo);
+      }
+      localStorage.removeItem('redirect_to');
+    }
+  }, []);
 
   const renderScreen = () => {
     switch (currentScreen) {
