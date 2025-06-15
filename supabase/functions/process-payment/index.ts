@@ -120,52 +120,44 @@ const handler = async (req: Request): Promise<Response> => {
     // 3. Configurar split de pagamentos
     const splits: AsaasSplit[] = [];
     const instituteWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405';
-    const adminWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Mesmo wallet por enquanto
     
     // Calcular valores do split
     const totalAmountInReais = paymentData.amount / 100;
-    const adminCommissionPercent = 10;
     const ambassadorCommissionPercent = 10;
     
-    const adminShare = Math.round((totalAmountInReais * adminCommissionPercent) / 100 * 100) / 100;
     let ambassadorShare = 0;
-    let instituteShare = totalAmountInReais - adminShare;
+    let instituteShare = totalAmountInReais;
 
-    // Configurar split para embaixador se aplicável
-    if (ambassadorData && ambassadorData.ambassador_wallet_id) {
+    // Configurar split APENAS se há embaixador com wallet diferente
+    if (ambassadorData && ambassadorData.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
       ambassadorShare = Math.round((totalAmountInReais * ambassadorCommissionPercent) / 100 * 100) / 100;
-      instituteShare = totalAmountInReais - adminShare - ambassadorShare;
+      instituteShare = totalAmountInReais - ambassadorShare;
 
       splits.push({
         walletId: ambassadorData.ambassador_wallet_id,
         fixedValue: ambassadorShare
       });
 
-      console.log('Split do embaixador configurado:', {
-        walletId: ambassadorData.ambassador_wallet_id,
-        value: ambassadorShare
+      // Só adicionar split para o instituto se for diferente da carteira do embaixador
+      splits.push({
+        walletId: instituteWalletId,
+        fixedValue: instituteShare
       });
-    } else if (paymentData.ambassadorCode) {
-      console.warn('Embaixador informado mas não possui wallet configurado');
+
+      console.log('Split do embaixador configurado:', {
+        embaixadorWallet: ambassadorData.ambassador_wallet_id,
+        embaixadorValue: ambassadorShare,
+        institutoWallet: instituteWalletId,
+        institutoValue: instituteShare
+      });
+    } else {
+      console.log('Sem split configurado - doação integral para o instituto');
     }
-
-    // Adicionar split para admin (sempre presente, mas oculto)
-    splits.push({
-      walletId: adminWalletId,
-      fixedValue: adminShare
-    });
-
-    // Adicionar split para instituto (valor restante)
-    splits.push({
-      walletId: instituteWalletId,
-      fixedValue: instituteShare
-    });
 
     console.log('Split final configurado:', {
       total: totalAmountInReais,
       instituto: instituteShare,
       embaixador: ambassadorShare,
-      admin: adminShare,
       splitsCount: splits.length
     });
 
