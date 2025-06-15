@@ -1,4 +1,6 @@
+
 import { SplitConfiguration, PaymentSplit, AsaasSplit } from '@/types/payment';
+import { supabase } from '@/integrations/supabase/client';
 
 // Configuração com dados reais do Asaas
 const SPLIT_CONFIG: SplitConfiguration = {

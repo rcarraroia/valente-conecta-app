@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import HomeScreen from '@/components/HomeScreen';
 import LibraryScreen from '@/components/LibraryScreen';
@@ -8,7 +9,7 @@ import ProfileScreen from '@/components/ProfileScreen';
 import ServicesScreen from '@/components/ServicesScreen';
 import BottomNavigation from '@/components/BottomNavigation';
 import DonationScreen from '@/components/DonationScreen';
-import AmbassadorDashboard from '@/components/AmbassadorDashboard';
+import AmbassadorDashboard from '@/components/ambassador/AmbassadorDashboard';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<string>('home');
