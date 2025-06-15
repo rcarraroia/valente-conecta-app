@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Book, Search, Calendar, User, Eye } from 'lucide-react';
+import { Book, Search, Calendar, User, Eye, FileText, Heart, Shield, FlaskConical, Stethoscope } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
@@ -34,12 +34,12 @@ const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
   const { toast } = useToast();
 
   const categories = [
-    { value: 'todos', label: 'Todos os Artigos' },
-    { value: 'geral', label: 'Geral' },
-    { value: 'cardiologia', label: 'Cardiologia' },
-    { value: 'prevencao', label: 'Prevenção' },
-    { value: 'tratamento', label: 'Tratamento' },
-    { value: 'pesquisa', label: 'Pesquisa' },
+    { value: 'todos', label: 'Todos', icon: FileText },
+    { value: 'geral', label: 'Geral', icon: Book },
+    { value: 'cardiologia', label: 'Cardiologia', icon: Heart },
+    { value: 'prevencao', label: 'Prevenção', icon: Shield },
+    { value: 'tratamento', label: 'Tratamento', icon: Stethoscope },
+    { value: 'pesquisa', label: 'Pesquisa', icon: FlaskConical },
   ];
 
   useEffect(() => {
@@ -171,23 +171,32 @@ const LibraryScreen = ({ onNavigate }: LibraryScreenProps) => {
               />
             </div>
             
-            <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Categorias de artigos">
-              {categories.map(category => (
-                <button
-                  key={category.value}
-                  onClick={() => setSelectedCategory(category.value)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors touch-target ${
-                    selectedCategory === category.value
-                      ? 'bg-cv-coral text-white'
-                      : 'bg-white text-cv-gray-dark hover:bg-cv-off-white'
-                  }`}
-                  role="tab"
-                  aria-selected={selectedCategory === category.value}
-                  aria-label={`Filtrar por categoria: ${category.label}`}
-                >
-                  {category.label}
-                </button>
-              ))}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Categorias de artigos">
+              {categories.map(category => {
+                const Icon = category.icon;
+                return (
+                  <button
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
+                    className={`flex flex-col items-center justify-center min-w-[80px] px-3 py-3 rounded-xl text-xs font-medium whitespace-nowrap transition-all duration-200 touch-target ${
+                      selectedCategory === category.value
+                        ? 'bg-cv-coral text-white shadow-lg scale-105 transform'
+                        : 'bg-white text-cv-gray-dark hover:bg-cv-off-white hover:shadow-md border border-cv-gray-light/30'
+                    }`}
+                    role="tab"
+                    aria-selected={selectedCategory === category.value}
+                    aria-label={`Filtrar por categoria: ${category.label}`}
+                  >
+                    <Icon className={`w-5 h-5 mb-1.5 ${
+                      selectedCategory === category.value ? 'text-white' : 'text-cv-coral'
+                    }`} />
+                    <span className="leading-tight">{category.label}</span>
+                    {selectedCategory === category.value && (
+                      <div className="absolute -top-1 right-2 w-2 h-2 bg-cv-yellow-soft rounded-full animate-pulse"></div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
