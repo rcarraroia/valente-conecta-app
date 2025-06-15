@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import HomeScreen from '@/components/HomeScreen';
 import LibraryScreen from '@/components/LibraryScreen';
@@ -8,6 +7,7 @@ import HelpScreen from '@/components/HelpScreen';
 import ProfileScreen from '@/components/ProfileScreen';
 import ServicesScreen from '@/components/ServicesScreen';
 import BottomNavigation from '@/components/BottomNavigation';
+import DonationScreen from '@/components/DonationScreen';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<string>('home');
@@ -24,7 +24,9 @@ const Index = () => {
       case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
       case 'ajudar':
-        return <HelpScreen onBack={() => setCurrentScreen('home')} />;
+        return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
+      case 'donation':
+        return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
       case 'perfil':
         return <ProfileScreen />;
       case 'services':

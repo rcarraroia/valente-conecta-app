@@ -6,16 +6,17 @@ import { ArrowLeft, Heart, Users, Gift, HandHeart } from 'lucide-react';
 
 interface HelpScreenProps {
   onBack: () => void;
+  onNavigate?: (screen: string) => void;
 }
 
-const HelpScreen = ({ onBack }: HelpScreenProps) => {
+const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
   const helpOptions = [
     {
       title: "Faça uma Doação",
       description: "Contribua financeiramente para nossos projetos",
       icon: Gift,
       color: "bg-cv-green-mint",
-      action: () => alert('Funcionalidade de doação em desenvolvimento')
+      action: () => onNavigate ? onNavigate('donation') : alert('Funcionalidade de doação em desenvolvimento')
     },
     {
       title: "Seja Voluntário", 
