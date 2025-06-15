@@ -170,21 +170,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             splitPreview={splitPreview}
           />
 
-          {/* Debug Split Preview */}
-          {splitPreview && amount && (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-2">Preview do Split:</h4>
-              <div className="text-sm text-blue-800 space-y-1">
-                <div>Total: {formatCurrency(amount)}</div>
-                <div>Instituto: R$ {(splitPreview.instituteShare / 100).toFixed(2)}</div>
-                {splitPreview.ambassadorShare > 0 && (
-                  <div>Embaixador: R$ {(splitPreview.ambassadorShare / 100).toFixed(2)}</div>
-                )}
-                <div>Splits configurados: {splitPreview.splits.length}</div>
-              </div>
-            </div>
-          )}
-
           <PaymentMethodSelector
             paymentMethod={paymentMethod}
             onPaymentMethodChange={setPaymentMethod}
