@@ -57,9 +57,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Configuração de pagamento não encontrada');
     }
 
-    // 1. Validações básicas
-    if (!paymentData.amount || paymentData.amount < 100) {
-      throw new Error('Valor mínimo para doação é R$ 1,00');
+    // 1. Validações básicas - valor mínimo R$ 5,00 (500 centavos)
+    if (!paymentData.amount || paymentData.amount < 500) {
+      throw new Error('Valor mínimo para doação é R$ 5,00');
     }
 
     if (!paymentData.donor.name || !paymentData.donor.email) {

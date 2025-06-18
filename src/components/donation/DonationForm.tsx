@@ -65,10 +65,11 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
-      if (amountInCents < 100) {
+      // Valor mínimo aumentado para R$ 5,00 (500 centavos) conforme exigido pela Asaas
+      if (amountInCents < 500) {
         toast({
           title: "Valor mínimo",
-          description: "O valor mínimo para doação é R$ 1,00.",
+          description: "O valor mínimo para doação é R$ 5,00.",
           variant: "destructive"
         });
         return;
@@ -203,7 +204,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           <Button
             type="submit"
             size="lg"
-            disabled={!amount || !donorData.name || !donorData.email || isProcessing}
+            disabled={!amount || parseInt(amount) < 500 || !donorData.name || !donorData.email || isProcessing}
             className="w-full h-12 bg-cv-coral hover:bg-cv-coral/90"
           >
             {isProcessing ? 'Processando...' : `Doar ${amount ? formatCurrency(amount) : 'R$ 0,00'}`}

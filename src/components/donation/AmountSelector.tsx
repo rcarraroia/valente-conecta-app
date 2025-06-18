@@ -11,7 +11,8 @@ interface AmountSelectorProps {
 }
 
 const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
-  const predefinedAmounts = [25, 50, 100, 200, 500];
+  // Valores mínimo R$ 5,00 conforme exigido pela Asaas
+  const predefinedAmounts = [5, 10, 25, 50, 100];
 
   const handleAmountSelect = (value: number) => {
     onAmountChange((value * 100).toString());
@@ -35,6 +36,7 @@ const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Valor da Doação</CardTitle>
+        <p className="text-sm text-cv-gray-light">Valor mínimo: R$ 5,00</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
@@ -52,11 +54,11 @@ const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="custom-amount">Ou digite outro valor</Label>
+          <Label htmlFor="custom-amount">Ou digite outro valor (mín. R$ 5,00)</Label>
           <Input
             id="custom-amount"
             type="text"
-            placeholder="R$ 0,00"
+            placeholder="R$ 5,00"
             value={amount ? formatCurrency(amount) : ''}
             onChange={handleAmountInputChange}
             className="text-lg text-center"
