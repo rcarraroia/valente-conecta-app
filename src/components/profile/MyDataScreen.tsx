@@ -14,7 +14,7 @@ interface MyDataScreenProps {
   onBack: () => void;
 }
 
-const MyDataScreen = ({ onBack }: MyDataScreenProps) => {
+const MyDataScreen: React.FC<MyDataScreenProps> = ({ onBack }) => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
