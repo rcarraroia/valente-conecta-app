@@ -4,9 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { calculatePaymentSplitWithDB } from '@/utils/paymentSplit';
 import AmountSelector from './AmountSelector';
-import AmbassadorCodeInput from './AmbassadorCodeInput';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import DonorInformationForm from './DonorInformationForm';
 
@@ -17,7 +15,6 @@ interface DonationFormProps {
 const DonationForm = ({ onBack }: DonationFormProps) => {
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD' | 'BOLETO'>('PIX');
-  const [ambassadorCode, setAmbassadorCode] = useState('');
   const [donorData, setDonorData] = useState({
     name: '',
     email: '',
@@ -25,7 +22,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     document: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [splitPreview, setSplitPreview] = useState<any>(null);
   const { toast } = useToast();
 
   const formatCurrency = (value: string) => {
@@ -37,26 +33,17 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     return formattedValue;
   };
 
-  // Calcular preview do split quando amount ou ambassadorCode mudam
-  React.useEffect(() => {
-    const calculatePreview = async () => {
-      if (!amount) {
-        setSplitPreview(null);
-        return;
-      }
-
-      const amountInCents = parseInt(amount);
-      try {
-        const split = await calculatePaymentSplitWithDB(amountInCents, ambassadorCode || undefined);
-        setSplitPreview(split);
-      } catch (error) {
-        console.error('Erro ao calcular preview do split:', error);
-        setSplitPreview(null);
-      }
-    };
-
-    calculatePreview();
-  }, [amount, ambassadorCode]);
+  // Função para obter o código do embaixador da URL ou localStorage
+  const getAmbassadorCode = () => {
+    // Primeiro tenta pegar da URL atual
+    const urlParams = new URLSearchParams(window.location.search);
+    const refFromUrl = urlParams.get('ref');
+    
+    // Se não tiver na URL, tenta pegar do localStorage (salvo durante navegação via link de embaixador)
+    const refFromStorage = localStorage.getItem('ambassador_ref');
+    
+    return refFromUrl || refFromStorage || undefined;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +71,9 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         return;
       }
 
+      // Obter código do embaixador automaticamente
+      const ambassadorCode = getAmbassadorCode();
+
       const paymentData = {
         amount: amountInCents,
         type: 'donation' as const,
@@ -94,7 +84,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           phone: donorData.phone.trim() || undefined,
           document: donorData.document.trim() || undefined,
         },
-        ambassadorCode: ambassadorCode.trim() || undefined,
+        ambassadorCode: ambassadorCode,
       };
 
       console.log('=== INICIANDO DOAÇÃO ===');
@@ -184,12 +174,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             onAmountChange={setAmount}
           />
 
-          <AmbassadorCodeInput
-            ambassadorCode={ambassadorCode}
-            onAmbassadorCodeChange={setAmbassadorCode}
-            splitPreview={splitPreview}
-          />
-
           <PaymentMethodSelector
             paymentMethod={paymentMethod}
             onPaymentMethodChange={setPaymentMethod}
@@ -199,6 +183,18 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             donorData={donorData}
             onDonorDataChange={setDonorData}
           />
+
+          {/* Informação sobre embaixador se aplicável */}
+          {getAmbassadorCode() && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💜 Você está apoiando através do embaixador: <strong>{getAmbassadorCode()}</strong>
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                O embaixador receberá uma comissão desta doação automaticamente.
+              </p>
+            </div>
+          )}
 
           {/* Submit Button */}
           <Button

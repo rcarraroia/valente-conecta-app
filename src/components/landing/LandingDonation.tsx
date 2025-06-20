@@ -76,10 +76,10 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
         type: 'donation' as const,
         paymentMethod,
         donor: donorData,
-        ambassadorCode: ambassadorCode,
+        ambassadorCode: ambassadorCode, // Código vem como prop da landing page
       };
 
-      console.log('Processando doação:', paymentData);
+      console.log('Processando doação na landing:', paymentData);
 
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: paymentData
@@ -98,6 +98,15 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
             ? "Use o QR Code ou cole o código PIX para pagar."
             : "Você será redirecionado para completar o pagamento.",
         });
+
+        // Log do split para debug
+        if (data.split?.ambassador) {
+          console.log('Split aplicado:', data.split);
+          toast({
+            title: "Embaixador vinculado!",
+            description: `${data.split.ambassador.name} receberá comissão desta doação.`,
+          });
+        }
 
         // Redirecionar para página de sucesso ou abrir link de pagamento
         if (data.paymentUrl) {
@@ -233,6 +242,18 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
             </div>
           </div>
 
+          {/* Informação sobre embaixador se aplicável */}
+          {ambassadorCode && (
+            <div className="mb-6 bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💜 Você está apoiando através do embaixador: <strong>{ambassadorCode}</strong>
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                O embaixador receberá uma comissão desta doação automaticamente.
+              </p>
+            </div>
+          )}
+
           {/* Botão de doação */}
           <Button
             onClick={handleDonation}
@@ -246,9 +267,6 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
           {/* Informações de segurança */}
           <div className="mt-6 text-center text-sm text-cv-gray-light">
             <p>🔒 Pagamento 100% seguro • Seus dados estão protegidos</p>
-            {ambassadorCode && (
-              <p className="mt-2">💜 Doação através do embaixador: <strong>{ambassadorCode}</strong></p>
-            )}
           </div>
         </div>
       </div>

@@ -5,10 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { calculatePaymentSplit } from '@/utils/paymentSplit';
 import PlanSelector from './PlanSelector';
 import SupporterAmountSelector from './SupporterAmountSelector';
-import AmbassadorCodeInput from './AmbassadorCodeInput';
 import SupporterInformationForm from './SupporterInformationForm';
 import SupporterBenefits from './SupporterBenefits';
 
@@ -19,7 +17,6 @@ interface SupporterFormProps {
 const SupporterForm = ({ onBack }: SupporterFormProps) => {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [amount, setAmount] = useState('');
-  const [ambassadorCode, setAmbassadorCode] = useState('');
   const [supporterData, setSupporterData] = useState({
     name: '',
     email: '',
@@ -38,11 +35,16 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
     return formattedValue;
   };
 
-  const calculateSplitPreview = () => {
-    if (!amount) return null;
-    const amountInCents = parseInt(amount);
-    const split = calculatePaymentSplit(amountInCents, ambassadorCode || undefined);
-    return split;
+  // Função para obter o código do embaixador da URL ou localStorage
+  const getAmbassadorCode = () => {
+    // Primeiro tenta pegar da URL atual
+    const urlParams = new URLSearchParams(window.location.search);
+    const refFromUrl = urlParams.get('ref');
+    
+    // Se não tiver na URL, tenta pegar do localStorage (salvo durante navegação via link de embaixador)
+    const refFromStorage = localStorage.getItem('ambassador_ref');
+    
+    return refFromUrl || refFromStorage || undefined;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,13 +54,16 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
+      // Obter código do embaixador automaticamente
+      const ambassadorCode = getAmbassadorCode();
+      
       const subscriptionData = {
         amount: amountInCents,
         type: 'subscription' as const,
         frequency: selectedPlan,
         paymentMethod: 'CREDIT_CARD' as const, // Assinaturas geralmente são por cartão
         donor: supporterData,
-        ambassadorCode: ambassadorCode || undefined,
+        ambassadorCode: ambassadorCode,
       };
 
       console.log('Enviando dados de assinatura:', subscriptionData);
@@ -79,6 +84,15 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
           description: "Você será redirecionado para completar o pagamento.",
         });
 
+        // Log do split para debug
+        if (data.split?.ambassador) {
+          console.log('Split aplicado:', data.split);
+          toast({
+            title: "Embaixador vinculado!",
+            description: `${data.split.ambassador.name} receberá comissão desta assinatura.`,
+          });
+        }
+
         if (data.paymentUrl) {
           window.open(data.paymentUrl, '_blank');
         }
@@ -96,8 +110,6 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
       setIsProcessing(false);
     }
   };
-
-  const splitPreview = calculateSplitPreview();
 
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
@@ -141,16 +153,22 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
             onAmountChange={setAmount}
           />
 
-          <AmbassadorCodeInput 
-            ambassadorCode={ambassadorCode}
-            onAmbassadorCodeChange={setAmbassadorCode}
-            splitPreview={splitPreview}
-          />
-
           <SupporterInformationForm 
             supporterData={supporterData}
             onSupporterDataChange={setSupporterData}
           />
+
+          {/* Informação sobre embaixador se aplicável */}
+          {getAmbassadorCode() && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💜 Você está apoiando através do embaixador: <strong>{getAmbassadorCode()}</strong>
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                O embaixador receberá uma comissão desta assinatura automaticamente.
+              </p>
+            </div>
+          )}
 
           <SupporterBenefits />
 
