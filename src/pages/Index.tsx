@@ -54,9 +54,9 @@ const Index = () => {
       case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
       case 'ajudar':
-        return <HelpScreen onNavigate={handleNavigate} />;
+        return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       case 'donation':
-        return <DonationScreen onNavigate={handleNavigate} />;
+        return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
       case 'perfil':
         return <ProfileScreen onNavigate={handleNavigate} />;
       case 'ambassador':
@@ -66,7 +66,7 @@ const Index = () => {
       case 'my-donations':
         return <MyDonationsScreen onBack={() => setCurrentScreen('perfil')} onNavigate={handleNavigate} />;
       case 'services':
-        return <ServicesScreen onNavigate={handleNavigate} />;
+        return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
