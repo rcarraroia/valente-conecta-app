@@ -253,6 +253,42 @@ export type Database = {
           },
         ]
       }
+      interacoes_agente: {
+        Row: {
+          condicao_sugerida: string | null
+          dados_adicionais: Json | null
+          feedback: string | null
+          id: string
+          pergunta_usuario: string | null
+          recomendacao: string | null
+          resposta_agente: string | null
+          sessao_id: string
+          timestamp: string | null
+        }
+        Insert: {
+          condicao_sugerida?: string | null
+          dados_adicionais?: Json | null
+          feedback?: string | null
+          id?: string
+          pergunta_usuario?: string | null
+          recomendacao?: string | null
+          resposta_agente?: string | null
+          sessao_id: string
+          timestamp?: string | null
+        }
+        Update: {
+          condicao_sugerida?: string | null
+          dados_adicionais?: Json | null
+          feedback?: string | null
+          id?: string
+          pergunta_usuario?: string | null
+          recomendacao?: string | null
+          resposta_agente?: string | null
+          sessao_id?: string
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
       library_categories: {
         Row: {
           created_at: string

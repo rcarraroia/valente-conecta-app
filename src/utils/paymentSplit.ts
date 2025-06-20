@@ -2,10 +2,10 @@
 import { SplitConfiguration, PaymentSplit, AsaasSplit } from '@/types/payment';
 import { supabase } from '@/integrations/supabase/client';
 
-// Configuração com dados reais do Asaas
+// Configuração com dados reais do Asaas - Wallet ID atualizada
 const SPLIT_CONFIG: SplitConfiguration = {
-  instituteWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Wallet ID fornecido
-  adminWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Usando o mesmo wallet por enquanto
+  instituteWalletId: 'eff311bc-7737-4870-93cd-16080c00d379', // Nova Wallet ID do instituto
+  adminWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Wallet ID do administrador (permanece a mesma)
   adminCommissionPercent: 10, // 10% para administrador do app
   ambassadorCommissionPercent: 10, // 10% para embaixadores
   ambassadorWallets: {

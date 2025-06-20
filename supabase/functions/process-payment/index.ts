@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
@@ -129,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 4. Configurar split se necessário
     const splits: AsaasSplit[] = [];
-    const instituteWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405';
+    const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
     const totalAmountInReais = paymentData.amount / 100;
     
     let ambassadorShare = 0;
