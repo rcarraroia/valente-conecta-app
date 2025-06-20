@@ -24,7 +24,6 @@ const Index = () => {
   useEffect(() => {
     const redirectTo = localStorage.getItem('redirect_to');
     if (redirectTo) {
-      // A simple validation to ensure we only redirect to valid screens
       const validScreens = [
         'home', 'biblioteca', 'article-detail', 'partners', 
         'partner-profile', 'professional-dashboard', 'ia', 'ajudar', 
@@ -55,9 +54,9 @@ const Index = () => {
       case 'ia':
         return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
       case 'ajudar':
-        return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
+        return <HelpScreen onNavigate={handleNavigate} />;
       case 'donation':
-        return <DonationScreen onBack={() => setCurrentScreen('ajudar')} />;
+        return <DonationScreen onNavigate={handleNavigate} />;
       case 'perfil':
         return <ProfileScreen onNavigate={handleNavigate} />;
       case 'ambassador':
@@ -67,7 +66,7 @@ const Index = () => {
       case 'my-donations':
         return <MyDonationsScreen onBack={() => setCurrentScreen('perfil')} onNavigate={handleNavigate} />;
       case 'services':
-        return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
+        return <ServicesScreen onNavigate={handleNavigate} />;
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
@@ -76,18 +75,16 @@ const Index = () => {
   const handleNavigate = (screen: string, articleId?: string) => {
     if (articleId) {
       setSelectedArticleId(articleId);
-      setSelectedPartnerId(articleId); // Para compatibilidade com parceiros
+      setSelectedPartnerId(articleId);
     }
     setCurrentScreen(screen);
   };
 
-  // Define which screens should show the bottom navigation
   const screensWithNavigation = [
     'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 
     'donation', 'my-data', 'my-donations', 'ambassador'
   ];
 
-  // Determine the active tab for the navigation
   const getActiveTab = () => {
     if (currentScreen === 'services' || currentScreen === 'partners') return 'home';
     if (currentScreen === 'donation') return 'ajudar';
@@ -101,7 +98,6 @@ const Index = () => {
         {renderScreen()}
       </div>
       
-      {/* Show bottom navigation on main screens and related sub-screens */}
       {screensWithNavigation.includes(currentScreen) && (
         <BottomNavigation 
           currentTab={getActiveTab()} 
