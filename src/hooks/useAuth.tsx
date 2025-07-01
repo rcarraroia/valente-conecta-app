@@ -17,9 +17,12 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Se o usuário fez logout, redirecionar para a página inicial
-        if (event === 'SIGNED_OUT') {
-          window.location.href = '/auth';
+        // Se o usuário fez logout, redirecionar para a página de auth apenas se estiver na tela de perfil
+        if (event === 'SIGNED_OUT' && window.location.pathname === '/') {
+          const currentScreen = localStorage.getItem('current_screen');
+          if (currentScreen === 'perfil') {
+            window.location.href = '/auth';
+          }
         }
       }
     );
@@ -39,7 +42,6 @@ export const useAuth = () => {
     if (error) {
       console.error('Error signing out:', error);
     }
-    // O redirecionamento será feito pelo onAuthStateChange
     return { error };
   };
 

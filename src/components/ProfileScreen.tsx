@@ -34,8 +34,7 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
     if (user) {
       loadProfile();
     } else if (!authLoading) {
-      // Se não há usuário e não está carregando, redirecionar para auth
-      window.location.href = '/auth';
+      setLoading(false);
     }
   }, [user, authLoading]);
 
