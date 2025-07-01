@@ -15,6 +15,7 @@ import DonationScreen from '@/components/DonationScreen';
 import AmbassadorDashboard from '@/components/ambassador/AmbassadorDashboard';
 import MyDataScreen from '@/components/profile/MyDataScreen';
 import MyDonationsScreen from '@/components/profile/MyDonationsScreen';
+import VolunteersScreen from '@/components/VolunteersScreen';
 
 const Index = () => {
   const [currentScreen, setCurrentScreen] = useState<string>('home');
@@ -28,7 +29,7 @@ const Index = () => {
         'home', 'biblioteca', 'article-detail', 'partners', 
         'partner-profile', 'professional-dashboard', 'ia', 'ajudar', 
         'donation', 'perfil', 'ambassador', 'my-data', 
-        'my-donations', 'services'
+        'my-donations', 'services', 'volunteers'
       ];
       if (validScreens.includes(redirectTo)) {
         setCurrentScreen(redirectTo);
@@ -67,6 +68,8 @@ const Index = () => {
         return <MyDonationsScreen onBack={() => setCurrentScreen('perfil')} onNavigate={handleNavigate} />;
       case 'services':
         return <ServicesScreen onBack={() => setCurrentScreen('home')} />;
+      case 'volunteers':
+        return <VolunteersScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       default:
         return <HomeScreen onNavigate={handleNavigate} />;
     }
@@ -82,11 +85,11 @@ const Index = () => {
 
   const screensWithNavigation = [
     'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 
-    'donation', 'my-data', 'my-donations', 'ambassador'
+    'donation', 'my-data', 'my-donations', 'ambassador', 'volunteers'
   ];
 
   const getActiveTab = () => {
-    if (currentScreen === 'services' || currentScreen === 'partners') return 'home';
+    if (currentScreen === 'services' || currentScreen === 'partners' || currentScreen === 'volunteers') return 'home';
     if (currentScreen === 'donation') return 'ajudar';
     if (currentScreen === 'my-data' || currentScreen === 'my-donations' || currentScreen === 'ambassador') return 'perfil';
     return currentScreen;

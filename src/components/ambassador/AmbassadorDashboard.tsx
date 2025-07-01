@@ -18,7 +18,11 @@ interface PerformanceData {
   current_level: string;
 }
 
-const AmbassadorDashboard = () => {
+interface AmbassadorDashboardProps {
+  onBack: () => void;
+}
+
+const AmbassadorDashboard = ({ onBack }: AmbassadorDashboardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [performance, setPerformance] = useState<PerformanceData | null>(null);
