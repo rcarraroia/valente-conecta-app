@@ -25,7 +25,7 @@ interface Partner {
 }
 
 const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,8 +33,11 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
   useEffect(() => {
     if (user) {
       loadProfile();
+    } else if (!authLoading) {
+      // Se não há usuário e não está carregando, redirecionar para auth
+      window.location.href = '/auth';
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadProfile = async () => {
     try {
@@ -89,6 +92,33 @@ const ProfileScreen = ({ onNavigate }: ProfileScreenProps) => {
       onNavigate('partners');
     }
   };
+
+  // Se ainda está carregando autenticação
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cv-coral"></div>
+      </div>
+    );
+  }
+
+  // Se não há usuário, mostrar tela de login
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-cv-gray-dark mb-4">Acesso Necessário</h2>
+          <p className="text-cv-gray-light mb-6">Você precisa fazer login para acessar seu perfil.</p>
+          <Button 
+            onClick={() => window.location.href = '/auth'}
+            className="bg-cv-coral hover:bg-cv-coral/90"
+          >
+            Fazer Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
