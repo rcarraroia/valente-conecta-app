@@ -76,6 +76,7 @@ const Index = () => {
   };
 
   const handleNavigate = (screen: string, articleId?: string) => {
+    console.log('Navigating to:', screen, 'with articleId:', articleId);
     if (articleId) {
       setSelectedArticleId(articleId);
       setSelectedPartnerId(articleId);

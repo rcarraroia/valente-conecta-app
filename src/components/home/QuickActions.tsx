@@ -1,93 +1,68 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Brain, BookOpen, Heart, Users, HeadphonesIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Heart, Users, Book, Brain, UserPlus } from 'lucide-react';
 
 interface QuickActionsProps {
-  onNavigate?: (screen: string) => void;
+  onNavigate: (screen: string) => void;
 }
 
 const QuickActions = ({ onNavigate }: QuickActionsProps) => {
   const actions = [
     {
-      id: 'ia',
-      title: 'Pré-Diagnóstico',
-      description: 'Avaliação inicial com IA',
       icon: Brain,
-      bgColor: 'bg-cv-blue-heart',
-      textColor: 'text-white'
+      title: 'Pré-Diagnóstico',
+      description: 'Faça uma avaliação inicial da sua saúde mental',
+      onClick: () => onNavigate('ia'),
+      color: 'bg-cv-blue-heart hover:bg-cv-blue-heart/90'
     },
     {
-      id: 'biblioteca',
+      icon: Book,
       title: 'Biblioteca',
-      description: 'Recursos educacionais',
-      icon: BookOpen,
-      bgColor: 'bg-cv-green-mint',
-      textColor: 'text-white'
+      description: 'Acesse recursos e conteúdos sobre saúde mental',
+      onClick: () => onNavigate('biblioteca'),
+      color: 'bg-cv-purple-soft hover:bg-cv-purple-soft/90'
     },
     {
-      id: 'partners',
-      title: 'Profissionais',
-      description: 'Nossos parceiros',
-      icon: Users,
-      bgColor: 'bg-cv-purple-soft',
-      textColor: 'text-white'
-    },
-    {
-      id: 'ajudar',
-      title: 'Ajudar',
-      description: 'Faça sua doação',
       icon: Heart,
-      bgColor: 'bg-cv-coral',
-      textColor: 'text-white'
+      title: 'Ajudar',
+      description: 'Descubra como apoiar nossa causa',
+      onClick: () => onNavigate('ajudar'),
+      color: 'bg-cv-coral hover:bg-cv-coral/90'
     },
     {
-      id: 'services',
-      title: 'Serviços',
-      description: 'Nossos serviços',
-      icon: HeadphonesIcon,
-      bgColor: 'bg-cv-yellow-warm',
-      textColor: 'text-cv-gray-dark'
+      icon: UserPlus,
+      title: 'Seja Voluntário',
+      description: 'Junte-se à nossa missão como voluntário',
+      onClick: () => onNavigate('volunteers'),
+      color: 'bg-cv-green-mint hover:bg-cv-green-mint/90'
     }
   ];
 
-  const handleActionClick = (actionId: string) => {
-    if (onNavigate) {
-      onNavigate(actionId);
-    }
-  };
-
   return (
-    <div className="px-6 py-8">
-      <h2 className="text-xl font-heading font-bold text-cv-gray-dark mb-6 text-center">
-        Acesso Rápido
-      </h2>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {actions.map((action) => {
-          const IconComponent = action.icon;
-          return (
-            <Card 
-              key={action.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 border-0 shadow-sm"
-              onClick={() => handleActionClick(action.id)}
+    <Card className="bg-white border-cv-off-white">
+      <CardHeader>
+        <CardTitle className="text-lg text-cv-gray-dark">Ações Rápidas</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {actions.map((action, index) => (
+            <Button
+              key={index}
+              onClick={action.onClick}
+              className={`${action.color} text-white p-4 h-auto flex flex-col items-center gap-2 transition-all duration-200 hover:scale-105`}
             >
-              <CardContent className="p-4 text-center">
-                <div className={`w-12 h-12 mx-auto mb-3 rounded-full ${action.bgColor} flex items-center justify-center`}>
-                  <IconComponent className={`w-6 h-6 ${action.textColor}`} />
-                </div>
-                <h3 className="font-semibold text-sm text-cv-gray-dark mb-1">
-                  {action.title}
-                </h3>
-                <p className="text-xs text-cv-gray-light">
-                  {action.description}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+              <action.icon className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-semibold text-sm">{action.title}</div>
+                <div className="text-xs opacity-90 mt-1">{action.description}</div>
+              </div>
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
