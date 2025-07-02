@@ -65,7 +65,11 @@ const VolunteersScreen = ({ onBack, onNavigate }: VolunteersScreenProps) => {
               a expandir nosso impacto social, oferecendo suporte vital para quem mais precisa.
             </p>
             <Button 
-              onClick={() => onNavigate('donation')}
+              onClick={() => {
+                localStorage.setItem('redirect_to', 'donation');
+                localStorage.setItem('donation_type', 'supporter');
+                onNavigate('donation');
+              }}
               className="bg-cv-coral hover:bg-cv-coral/90 text-white"
             >
               Apoie Nossa Causa
@@ -112,13 +116,21 @@ const VolunteersScreen = ({ onBack, onNavigate }: VolunteersScreenProps) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button 
-                onClick={() => onNavigate('donation')}
+                onClick={() => {
+                  localStorage.setItem('redirect_to', 'donation');
+                  localStorage.setItem('donation_type', 'donation');
+                  onNavigate('donation');
+                }}
                 className="bg-cv-coral hover:bg-cv-coral/90 text-white flex-1"
               >
                 Faça Uma Doação
               </Button>
               <Button 
-                onClick={() => onNavigate('donation')}
+                onClick={() => {
+                  localStorage.setItem('redirect_to', 'donation');
+                  localStorage.setItem('donation_type', 'supporter');
+                  onNavigate('donation');
+                }}
                 variant="outline"
                 className="border-cv-coral text-cv-coral hover:bg-cv-coral hover:text-white flex-1"
               >

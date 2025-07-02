@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Heart, CreditCard, Gift } from 'lucide-react';
@@ -11,6 +12,14 @@ interface DonationScreenProps {
 
 const DonationScreen: React.FC<DonationScreenProps> = ({ onBack }) => {
   const [selectedOption, setSelectedOption] = useState<'donation' | 'supporter' | null>(null);
+
+  useEffect(() => {
+    const donationType = localStorage.getItem('donation_type');
+    if (donationType === 'donation' || donationType === 'supporter') {
+      setSelectedOption(donationType);
+      localStorage.removeItem('donation_type');
+    }
+  }, []);
 
   const handleBack = () => {
     if (selectedOption) {
