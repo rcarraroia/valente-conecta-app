@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import PlanSelector from './PlanSelector';
 import SupporterAmountSelector from './SupporterAmountSelector';
 import SupporterInformationForm from './SupporterInformationForm';
 import SupporterBenefits from './SupporterBenefits';
@@ -15,7 +14,6 @@ interface SupporterFormProps {
 }
 
 const SupporterForm = ({ onBack }: SupporterFormProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
   const [amount, setAmount] = useState('');
   const [supporterData, setSupporterData] = useState({
     name: '',
@@ -60,7 +58,7 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
       const subscriptionData = {
         amount: amountInCents,
         type: 'subscription' as const,
-        frequency: selectedPlan,
+        frequency: 'monthly' as const, // Always monthly now
         paymentMethod: 'CREDIT_CARD' as const, // Assinaturas geralmente são por cartão
         donor: supporterData,
         ambassadorCode: ambassadorCode,
@@ -134,22 +132,17 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
         <Card className="bg-gradient-to-br from-cv-blue-heart to-cv-purple-soft text-white border-none">
           <CardContent className="p-6 text-center">
             <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
-            <h2 className="text-xl font-bold mb-2">Apoio Contínuo</h2>
+            <h2 className="text-xl font-bold mb-2">Apoio Mensal</h2>
             <p className="opacity-90">
-              Torne-se um mantenedor e ajude o instituto de forma recorrente.
+              Torne-se um mantenedor e ajude o instituto mensalmente.
             </p>
           </CardContent>
         </Card>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <PlanSelector 
-            selectedPlan={selectedPlan}
-            onPlanChange={setSelectedPlan}
-          />
-
           <SupporterAmountSelector 
             amount={amount}
-            selectedPlan={selectedPlan}
+            selectedPlan="monthly"
             onAmountChange={setAmount}
           />
 
@@ -180,12 +173,7 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
             className="w-full h-12 bg-cv-blue-heart hover:bg-cv-blue-heart/90"
           >
             {isProcessing ? 'Processando...' : 
-              `Apoiar ${selectedPlan === 'monthly' ? 'Mensalmente' : 'Anualmente'} ${
-                amount ? (selectedPlan === 'monthly' 
-                  ? formatCurrency(amount) 
-                  : formatCurrency((parseInt(amount) * 10).toString())
-                ) : 'R$ 0,00'
-              }`
+              `Apoiar Mensalmente ${amount ? formatCurrency(amount) : 'R$ 0,00'}`
             }
           </Button>
         </form>

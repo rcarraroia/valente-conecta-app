@@ -23,7 +23,7 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
       description: "Dedique seu tempo para ajudar nossas famílias",
       icon: Users,
       color: "bg-cv-blue-heart",
-      action: () => alert('Formulário de voluntariado em desenvolvimento')
+      action: () => onNavigate ? onNavigate('volunteers') : alert('Funcionalidade de voluntariado em desenvolvimento')
     }
   ];
 
