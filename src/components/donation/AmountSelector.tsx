@@ -53,11 +53,11 @@ const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="custom-amount">Ou digite outro valor (mín. R$ 5,00)</Label>
+          <Label htmlFor="custom-amount">Ou digite outro valor</Label>
           <Input
             id="custom-amount"
             type="text"
-            placeholder="R$ 5,00"
+            placeholder="Quanto você pode doar hoje"
             value={amount ? formatCurrency(amount) : ''}
             onChange={handleAmountInputChange}
             className="text-lg text-center"

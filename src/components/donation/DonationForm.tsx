@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -203,9 +202,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             disabled={!amount || parseInt(amount) < 500 || !donorData.name || !donorData.email || isProcessing}
             className="w-full h-12 bg-cv-coral hover:bg-cv-coral/90"
           >
-            {isProcessing ? 'Processando...' : 
-              amount ? `Quanto você pode doar hoje ${formatCurrency(amount)}` : 'Quanto você pode doar hoje'
-            }
+            {isProcessing ? 'Processando...' : 'Doar Agora'}
           </Button>
         </form>
       </div>
