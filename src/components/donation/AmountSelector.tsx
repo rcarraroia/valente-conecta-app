@@ -11,8 +11,8 @@ interface AmountSelectorProps {
 }
 
 const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
-  // Valores mínimo R$ 5,00 conforme exigido pela Asaas
-  const predefinedAmounts = [5, 10, 25, 50, 100];
+  // Valores predefinidos sem R$ 5 e R$ 10
+  const predefinedAmounts = [25, 50, 100];
 
   const handleAmountSelect = (value: number) => {
     onAmountChange((value * 100).toString());
@@ -36,7 +36,6 @@ const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Valor da Doação</CardTitle>
-        <p className="text-sm text-cv-gray-light">Valor mínimo: R$ 5,00</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-3">

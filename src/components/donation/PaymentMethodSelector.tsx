@@ -1,18 +1,17 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, QrCode, FileText } from 'lucide-react';
+import { CreditCard, QrCode } from 'lucide-react';
 
 interface PaymentMethodSelectorProps {
-  paymentMethod: 'PIX' | 'CREDIT_CARD' | 'BOLETO';
-  onPaymentMethodChange: (method: 'PIX' | 'CREDIT_CARD' | 'BOLETO') => void;
+  paymentMethod: 'PIX' | 'CREDIT_CARD';
+  onPaymentMethodChange: (method: 'PIX' | 'CREDIT_CARD') => void;
 }
 
 const PaymentMethodSelector = ({ paymentMethod, onPaymentMethodChange }: PaymentMethodSelectorProps) => {
   const paymentMethods = [
     { value: 'PIX', label: 'PIX', icon: QrCode, description: 'Instantâneo' },
-    { value: 'CREDIT_CARD', label: 'Cartão de Crédito', icon: CreditCard, description: 'À vista' },
-    { value: 'BOLETO', label: 'Boleto Bancário', icon: FileText, description: 'Vencimento em 3 dias' }
+    { value: 'CREDIT_CARD', label: 'Cartão de Crédito', icon: CreditCard, description: 'À vista' }
   ];
 
   return (

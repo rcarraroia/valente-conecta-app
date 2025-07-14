@@ -14,7 +14,7 @@ interface DonationFormProps {
 
 const DonationForm = ({ onBack }: DonationFormProps) => {
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD' | 'BOLETO'>('PIX');
+  const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('PIX');
   const [donorData, setDonorData] = useState({
     name: '',
     email: '',
@@ -203,7 +203,9 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             disabled={!amount || parseInt(amount) < 500 || !donorData.name || !donorData.email || isProcessing}
             className="w-full h-12 bg-cv-coral hover:bg-cv-coral/90"
           >
-            {isProcessing ? 'Processando...' : `Doar ${amount ? formatCurrency(amount) : 'R$ 0,00'}`}
+            {isProcessing ? 'Processando...' : 
+              amount ? `Quanto você pode doar hoje ${formatCurrency(amount)}` : 'Quanto você pode doar hoje'
+            }
           </Button>
         </form>
       </div>
