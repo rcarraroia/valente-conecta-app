@@ -17,6 +17,7 @@ interface Partner {
 export const useProfessionalData = (partnerId?: string) => {
   const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (partnerId) {
@@ -26,6 +27,9 @@ export const useProfessionalData = (partnerId?: string) => {
 
   const loadPartner = async () => {
     try {
+      setError(null);
+      console.log('Loading partner with ID:', partnerId);
+      
       const { data, error } = await supabase
         .from('partners')
         .select('*')
@@ -33,23 +37,37 @@ export const useProfessionalData = (partnerId?: string) => {
         .eq('is_active', true)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading partner:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log('No partner found with ID:', partnerId);
+        setPartner(null);
+        return;
+      }
+
+      console.log('Partner data loaded:', data);
       
       // Transform the data to ensure specialties is always an array of strings
       const transformedData: Partner = {
         ...data,
         specialties: Array.isArray(data.specialties) 
           ? data.specialties.filter((spec): spec is string => typeof spec === 'string')
-          : []
+          : [],
+        specialty: data.specialty || 'Não informado'
       };
       
+      console.log('Transformed partner data:', transformedData);
       setPartner(transformedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar profissional:', error);
+      setError(error.message || 'Erro ao carregar dados do profissional');
     } finally {
       setLoading(false);
     }
   };
 
-  return { partner, loading };
+  return { partner, loading, error };
 };

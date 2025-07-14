@@ -5,7 +5,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { ChevronRight, Calendar } from 'lucide-react';
+import { ChevronRight, Calendar, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Partner {
   id: string;
@@ -23,6 +24,8 @@ interface PartnersCarouselProps {
 const PartnersCarousel = ({ onNavigate }: PartnersCarouselProps) => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadFeaturedPartners();
@@ -30,16 +33,36 @@ const PartnersCarousel = ({ onNavigate }: PartnersCarouselProps) => {
 
   const loadFeaturedPartners = async () => {
     try {
+      setError(null);
+      console.log('Loading featured partners...');
+      
       const { data, error } = await supabase
         .from('partners')
         .select('id, full_name, specialty, professional_photo_url, bio, crm_crp_register')
         .eq('is_active', true)
+        .order('created_at', { ascending: false })
         .limit(8);
 
-      if (error) throw error;
-      setPartners(data || []);
-    } catch (error) {
+      if (error) {
+        console.error('Error loading featured partners:', error);
+        throw error;
+      }
+
+      console.log('Featured partners data:', data);
+      
+      const transformedData = (data || []).map(partner => ({
+        ...partner,
+        specialty: partner.specialty || 'Não informado'
+      }));
+
+      setPartners(transformedData);
+
+      if (transformedData.length === 0) {
+        console.log('No featured partners found');
+      }
+    } catch (error: any) {
       console.error('Erro ao carregar parceiros:', error);
+      setError(error.message || 'Erro ao carregar profissionais');
     } finally {
       setLoading(false);
     }
@@ -76,8 +99,46 @@ const PartnersCarousel = ({ onNavigate }: PartnersCarouselProps) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="px-6 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-heading font-bold text-cv-gray-dark">
+            Nossos Profissionais Parceiros
+          </h2>
+        </div>
+        <div className="text-center py-8">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
+          <p className="text-cv-gray-light text-sm">
+            Erro ao carregar profissionais. Tente novamente.
+          </p>
+          <Button 
+            onClick={loadFeaturedPartners} 
+            size="sm" 
+            className="mt-2 bg-cv-coral hover:bg-cv-coral/90"
+          >
+            Recarregar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (partners.length === 0) {
-    return null;
+    return (
+      <div className="px-6 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-heading font-bold text-cv-gray-dark">
+            Nossos Profissionais Parceiros
+          </h2>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-cv-gray-light">
+            Nenhum profissional disponível no momento.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -94,6 +155,13 @@ const PartnersCarousel = ({ onNavigate }: PartnersCarouselProps) => {
           <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
+
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-2 p-1 bg-blue-100 text-blue-800 text-xs rounded">
+          Debug: {partners.length} profissionais carregados
+        </div>
+      )}
 
       <Carousel className="w-full">
         <CarouselContent className="-ml-2 md:-ml-4">

@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { Search, MapPin, Phone, Mail, Calendar, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Partner {
   id: string;
@@ -29,6 +30,8 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadPartners();
@@ -40,24 +43,49 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
 
   const loadPartners = async () => {
     try {
+      setError(null);
+      console.log('Loading partners...');
+      
       const { data, error } = await supabase
         .from('partners')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading partners:', error);
+        throw error;
+      }
+
+      console.log('Raw partners data:', data);
       
       const transformedData: Partner[] = (data || []).map(partner => ({
         ...partner,
         specialties: Array.isArray(partner.specialties) 
           ? partner.specialties.filter((spec): spec is string => typeof spec === 'string')
-          : []
+          : [],
+        specialty: partner.specialty || 'Não informado'
       }));
       
+      console.log('Transformed partners data:', transformedData);
       setPartners(transformedData);
-    } catch (error) {
+
+      if (transformedData.length === 0) {
+        console.log('No active partners found');
+        toast({
+          title: "Nenhum parceiro encontrado",
+          description: "Não há profissionais ativos cadastrados no momento.",
+          variant: "default"
+        });
+      }
+    } catch (error: any) {
       console.error('Erro ao carregar parceiros:', error);
+      setError(error.message || 'Erro ao carregar profissionais');
+      toast({
+        title: "Erro ao carregar profissionais",
+        description: "Não foi possível carregar a lista de profissionais. Tente novamente.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -69,7 +97,10 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
     if (searchTerm) {
       filtered = filtered.filter(partner =>
         partner.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
+        partner.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        partner.specialties.some(spec => 
+          spec.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
     }
 
@@ -80,13 +111,16 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
       );
     }
 
+    console.log('Filtered partners:', filtered);
     setFilteredPartners(filtered);
   };
 
   const getUniqueSpecialties = () => {
     const specialties = new Set<string>();
     partners.forEach(partner => {
-      if (partner.specialty) specialties.add(partner.specialty);
+      if (partner.specialty && partner.specialty !== 'Não informado') {
+        specialties.add(partner.specialty);
+      }
       if (partner.specialties) {
         partner.specialties.forEach(spec => specialties.add(spec));
       }
@@ -127,12 +161,38 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-cv-off-white p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h3 className="text-lg font-semibold text-cv-gray-dark mb-2">
+              Erro ao carregar profissionais
+            </h3>
+            <p className="text-cv-gray-light mb-4">{error}</p>
+            <Button onClick={loadPartners} className="bg-cv-coral hover:bg-cv-coral/90">
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cv-off-white p-6 pb-20">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-heading font-bold text-cv-gray-dark mb-6">
           Nossos Profissionais Parceiros
         </h1>
+
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 text-xs rounded">
+            Debug: {partners.length} parceiros carregados, {filteredPartners.length} após filtros
+          </div>
+        )}
 
         {/* Filtros */}
         <div className="space-y-4 mb-6">
@@ -154,7 +214,7 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
               onClick={() => setSelectedSpecialty('')}
               className="text-xs"
             >
-              Todas
+              Todas ({partners.length})
             </Button>
             {getUniqueSpecialties().map((specialty) => (
               <Button
@@ -274,7 +334,7 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
           ))}
         </div>
 
-        {filteredPartners.length === 0 && !loading && (
+        {filteredPartners.length === 0 && !loading && !error && (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">
               <Search className="w-12 h-12 mx-auto mb-4 text-cv-gray-light" />
@@ -282,8 +342,19 @@ const PartnersScreen = ({ onNavigate }: PartnersScreenProps) => {
                 Nenhum profissional encontrado
               </h3>
               <p className="text-cv-gray-light">
-                Tente ajustar os filtros ou buscar por termos diferentes.
+                {partners.length === 0 
+                  ? "Não há profissionais cadastrados no momento."
+                  : "Tente ajustar os filtros ou buscar por termos diferentes."
+                }
               </p>
+              {partners.length === 0 && (
+                <Button 
+                  onClick={loadPartners} 
+                  className="mt-4 bg-cv-coral hover:bg-cv-coral/90"
+                >
+                  Recarregar
+                </Button>
+              )}
             </div>
           </div>
         )}
