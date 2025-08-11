@@ -1,0 +1,124 @@
+{
+  "timestamp": "2025-08-11T20:10:31.218Z",
+  "environment": "unknown",
+  "overallStatus": "WARNING",
+  "totalTests": 18,
+  "passedTests": 16,
+  "failedTests": 2,
+  "results": [
+    {
+      "category": "Environment",
+      "test": "Environment Detection",
+      "passed": true,
+      "message": "Test environment should be properly detected"
+    },
+    {
+      "category": "Environment",
+      "test": "Configuration",
+      "passed": true,
+      "message": "Test environment should accept configuration changes"
+    },
+    {
+      "category": "Environment",
+      "test": "Test Data Generation",
+      "passed": true,
+      "message": "Test data generation works correctly"
+    },
+    {
+      "category": "Security",
+      "test": "Encryption/Decryption",
+      "passed": true,
+      "message": "Encryption and decryption should work correctly"
+    },
+    {
+      "category": "Security",
+      "test": "Input Sanitization",
+      "passed": true,
+      "message": "Input sanitization should prevent XSS attacks"
+    },
+    {
+      "category": "Security",
+      "test": "Rate Limiting",
+      "passed": true,
+      "message": "Rate limiting should prevent excessive requests"
+    },
+    {
+      "category": "Security",
+      "test": "Encryption Key Strength",
+      "passed": false,
+      "message": "Encryption key is weak or default"
+    },
+    {
+      "category": "Data Handling",
+      "test": "CPF Validation",
+      "passed": true,
+      "message": "Generated CPFs should be valid"
+    },
+    {
+      "category": "Data Handling",
+      "test": "Email Validation",
+      "passed": true,
+      "message": "Email validation should correctly identify valid and invalid emails"
+    },
+    {
+      "category": "Data Handling",
+      "test": "Phone Validation",
+      "passed": true,
+      "message": "Phone validation should correctly identify valid and invalid phone numbers"
+    },
+    {
+      "category": "Error Handling",
+      "test": "Error Reporting",
+      "passed": true,
+      "message": "Error handler should properly log and track errors"
+    },
+    {
+      "category": "Error Handling",
+      "test": "Error Statistics",
+      "passed": true,
+      "message": "Error statistics should be collected and accessible"
+    },
+    {
+      "category": "Error Handling",
+      "test": "Error Cleanup",
+      "passed": true,
+      "message": "Error cleanup should remove old error reports"
+    },
+    {
+      "category": "Performance",
+      "test": "Mock Response Time",
+      "passed": true,
+      "message": "Mock responses should respect configured delay (expected ~100ms, got 114ms)"
+    },
+    {
+      "category": "Performance",
+      "test": "Rate Limiter Performance",
+      "passed": true,
+      "message": "Rate limiter should be fast (0.011ms per check)"
+    },
+    {
+      "category": "Integration Flow",
+      "test": "Successful Integration",
+      "passed": false,
+      "message": "Integration should complete successfully with valid data"
+    },
+    {
+      "category": "Integration Flow",
+      "test": "Failure Handling",
+      "passed": "Configuração da integração não encontrada",
+      "message": "Integration should handle failures gracefully"
+    },
+    {
+      "category": "Integration Flow",
+      "test": "Statistics Collection",
+      "passed": true,
+      "message": "Integration statistics should be available"
+    }
+  ],
+  "recommendations": [
+    "Review security configuration and ensure encryption keys are properly set",
+    "Test integration with actual API endpoints in sandbox environment",
+    "Run validation again after addressing failed tests",
+    "Consider adding monitoring and alerting for production deployment"
+  ]
+}
