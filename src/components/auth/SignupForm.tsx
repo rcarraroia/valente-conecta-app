@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import UserTypeSelector from './UserTypeSelector';
-import EnhancedProfessionalFormFields from './EnhancedProfessionalFormFields';
-import EnhancedCommonFormFields from './EnhancedCommonFormFields';
+import ProfessionalFormFields from './ProfessionalFormFields';
+import CommonFormFields from './CommonFormFields';
 import { useSignup } from '@/hooks/useSignup';
-import { institutoUserDataSchema } from '@/schemas/instituto-integration.schema';
 
 const SignupForm = () => {
   const { handleSignup, loading } = useSignup();
@@ -18,12 +17,6 @@ const SignupForm = () => {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [userType, setUserType] = useState<'comum' | 'parceiro'>('comum');
-  const [cpf, setCpf] = useState('');
-  const [consentDataSharing, setConsentDataSharing] = useState(false);
-
-  // Validation errors
-  const [cpfError, setCpfError] = useState('');
-  const [consentError, setConsentError] = useState('');
 
   // Professional fields
   const [professionalData, setProfessionalData] = useState({
@@ -35,50 +28,8 @@ const SignupForm = () => {
     specialties: '',
   });
 
-  const validateCPF = (cpf: string): boolean => {
-    const cleanCPF = cpf.replace(/\D/g, '');
-    
-    if (cleanCPF.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-    
-    // Validação do primeiro dígito verificador
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
-    }
-    let remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cleanCPF.charAt(9))) return false;
-    
-    // Validação do segundo dígito verificador
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cleanCPF.charAt(10))) return false;
-    
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset errors
-    setCpfError('');
-    setConsentError('');
-    
-    // Validate CPF
-    if (!cpf.trim()) {
-      setCpfError('CPF é obrigatório');
-      return;
-    }
-    
-    if (!validateCPF(cpf)) {
-      setCpfError('CPF inválido');
-      return;
-    }
     
     await handleSignup({
       email,
@@ -87,9 +38,7 @@ const SignupForm = () => {
       phone,
       city,
       userType,
-      professionalData: userType === 'parceiro' ? professionalData : undefined,
-      cpf,
-      consentDataSharing
+      professionalData: userType === 'parceiro' ? professionalData : undefined
     });
   };
 
@@ -106,7 +55,7 @@ const SignupForm = () => {
           <UserTypeSelector value={userType} onChange={setUserType} />
 
           {userType === 'comum' ? (
-            <EnhancedCommonFormFields
+            <CommonFormFields
               fullName={fullName}
               setFullName={setFullName}
               email={email}
@@ -117,15 +66,9 @@ const SignupForm = () => {
               setCity={setCity}
               password={password}
               setPassword={setPassword}
-              cpf={cpf}
-              setCpf={setCpf}
-              consentDataSharing={consentDataSharing}
-              setConsentDataSharing={setConsentDataSharing}
-              cpfError={cpfError}
-              consentError={consentError}
             />
           ) : (
-            <EnhancedProfessionalFormFields
+            <ProfessionalFormFields
               fullName={fullName}
               setFullName={setFullName}
               email={email}
@@ -138,12 +81,6 @@ const SignupForm = () => {
               setProfessionalData={setProfessionalData}
               password={password}
               setPassword={setPassword}
-              cpf={cpf}
-              setCpf={setCpf}
-              consentDataSharing={consentDataSharing}
-              setConsentDataSharing={setConsentDataSharing}
-              cpfError={cpfError}
-              consentError={consentError}
             />
           )}
         </CardContent>
