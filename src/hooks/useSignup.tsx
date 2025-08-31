@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useInstitutoIntegrationRegistration } from '@/hooks/useInstitutoIntegration';
 
 interface ProfessionalData {
   specialty: string;
@@ -21,14 +20,11 @@ interface SignupData {
   city: string;
   userType: 'comum' | 'parceiro';
   professionalData?: ProfessionalData;
-  cpf?: string;
-  consentDataSharing?: boolean;
 }
 
 export const useSignup = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { sendRegistrationData } = useInstitutoIntegrationRegistration();
 
   // Função para gerar código único de embaixador
   const generateAmbassadorCode = (fullName: string, userId: string) => {
@@ -220,29 +216,6 @@ export const useSignup = () => {
           title: 'Conta criada com sucesso!',
           description: 'Você agora é um embaixador do Instituto. Redirecionando...',
         });
-      }
-
-      // 8. Enviar dados para Instituto Coração Valente (se consentimento foi dado)
-      if (data.consentDataSharing && data.cpf) {
-        console.log('=== ENVIANDO DADOS PARA INSTITUTO ===');
-        try {
-          await sendRegistrationData.mutateAsync({
-            name: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            cpf: data.cpf,
-            consent_data_sharing: true
-          });
-          console.log('Dados enviados para Instituto com sucesso');
-        } catch (institutoError) {
-          console.warn('Erro ao enviar dados para Instituto:', institutoError);
-          // Não bloquear o cadastro por erro na integração
-          toast({
-            title: 'Aviso',
-            description: 'Sua conta foi criada, mas houve um problema ao compartilhar dados com o Instituto.',
-            variant: 'default',
-          });
-        }
       }
 
     } catch (error) {
