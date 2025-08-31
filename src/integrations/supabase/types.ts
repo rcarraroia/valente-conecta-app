@@ -673,6 +673,75 @@ export type Database = {
         }
         Relationships: []
       }
+      diagnosis_chat_sessions: {
+        Row: {
+          completed_at: string | null
+          id: string
+          messages: Json
+          session_id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          messages?: Json
+          session_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          messages?: Json
+          session_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      relatorios_diagnostico: {
+        Row: {
+          created_at: string
+          diagnosis_data: Json | null
+          id: string
+          pdf_url: string
+          session_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_data?: Json | null
+          id?: string
+          pdf_url: string
+          session_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_data?: Json | null
+          id?: string
+          pdf_url?: string
+          session_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       schedules: {
         Row: {
           created_at: string | null
