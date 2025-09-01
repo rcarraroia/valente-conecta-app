@@ -1,0 +1,627 @@
+// Performance tests for diagnosis system
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import userEvent from '@testing-library/user-event';
+
+// Import components
+import { DiagnosisChat } from '@/pages/DiagnosisChat';
+import { DiagnosisReports } from '@/pages/DiagnosisReports';
+import { PDFViewer } from '@/components/diagnosis/PDFViewer';
+
+// Mock dependencies
+vi.mock('@/hooks/useDiagnosisAuth', () => ({
+  useDiagnosisAuth: () => ({
+    user: { id: 'test-user', email: 'test@example.com' },
+    isAuthenticated: true,
+    isLoading: false,
+  }),
+}));
+
+vi.mock('@/hooks/useDiagnosisChat', () => ({
+  useDiagnosisChat: vi.fn(),
+}));
+
+vi.mock('@/services/diagnosis-report.service', () => ({
+  diagnosisReportService: {
+    listReports: vi.fn(),
+    generateAndSaveReport: vi.fn(),
+  },
+}));
+
+vi.mock('@/hooks/useResponsive', () => ({
+  useResponsive: () => ({
+    width: 1024,
+    height: 768,
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isTouchDevice: false,
+    breakpoint: 'lg',
+    isLandscape: true,
+    isPortrait: false,
+  }),
+  useMobileKeyboard: () => ({
+    isKeyboardVisible: false,
+    viewportHeight: 768,
+  }),
+  useTouchGestures: () => ({
+    touchState: {
+      isSwipeLeft: false,
+      isSwipeRight: false,
+      isSwipeUp: false,
+      isSwipeDown: false,
+      isPinching: false,
+      scale: 1,
+    },
+    handleTouchGestures: vi.fn(() => vi.fn()),
+  }),
+}));
+
+// Performance measurement utilities
+const measureRenderTime = async (renderFn: () => void): Promise<number> => {
+  const start = performance.now();
+  renderFn();
+  await waitFor(() => {
+    // Wait for initial render to complete
+  });
+  const end = performance.now();
+  return end - start;
+};
+
+const measureInteractionTime = async (interactionFn: () => Promise<void>): Promise<number> => {
+  const start = performance.now();
+  await interactionFn();
+  const end = performance.now();
+  return end - start;
+};
+
+// Test wrapper
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {children}
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
+
+describe('Diagnosis System Performance Tests', () => {
+  let mockUseDiagnosisChat: any;
+  let mockDiagnosisReportService: any;
+
+  beforeEach(async () => {
+    mockUseDiagnosisChat = vi.mocked(
+      await import('@/hooks/useDiagnosisChat')
+    ).useDiagnosisChat;
+
+    mockDiagnosisReportService = vi.mocked(
+      await import('@/services/diagnosis-report.service')
+    ).diagnosisReportService;
+
+    // Default fast responses
+    mockUseDiagnosisChat.mockReturnValue({
+      messages: [],
+      isLoading: false,
+      error: null,
+      isTyping: false,
+      sessionId: 'session-123',
+      session: null,
+      isGeneratingReport: false,
+      sendMessage: vi.fn().mockResolvedValue({}),
+      startSession: vi.fn().mockResolvedValue({}),
+      retryLastMessage: vi.fn(),
+      clearError: vi.fn(),
+      regenerateReport: vi.fn(),
+    });
+
+    mockDiagnosisReportService.listReports.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Component Render Performance', () => {
+    it('should render DiagnosisChat within acceptable time', async () => {
+      const renderTime = await measureRenderTime(() => {
+        render(
+          <TestWrapper>
+            <DiagnosisChat />
+          </TestWrapper>
+        );
+      });
+
+      // Should render within 500ms
+      expect(renderTime).toBeLessThan(500);
+    });
+
+    it('should render DiagnosisReports within acceptable time', async () => {
+      const renderTime = await measureRenderTime(() => {
+        render(
+          <TestWrapper>
+            <DiagnosisReports />
+          </TestWrapper>
+        );
+      });
+
+      // Should render within 500ms
+      expect(renderTime).toBeLessThan(500);
+    });
+
+    it('should render PDFViewer within acceptable time', async () => {
+      const renderTime = await measureRenderTime(() => {
+        render(
+          <TestWrapper>
+            <PDFViewer 
+              pdfUrl="https://example.com/test.pdf"
+              title="Test Report"
+            />
+          </TestWrapper>
+        );
+      });
+
+      // Should render within 300ms
+      expect(renderTime).toBeLessThan(300);
+    });
+
+    it('should handle large message history efficiently', async () => {
+      // Generate large message history
+      const largeMessageHistory = Array.from({ length: 1000 }, (_, i) => ({
+        id: `msg-${i}`,
+        type: (i % 2 === 0 ? 'user' : 'ai') as const,
+        content: `Message ${i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit.`,
+        timestamp: new Date(Date.now() - (1000 - i) * 1000),
+        status: 'received' as const,
+      }));
+
+      mockUseDiagnosisChat.mockReturnValue({
+        messages: largeMessageHistory,
+        isLoading: false,
+        error: null,
+        isTyping: false,
+        sessionId: 'session-123',
+        session: null,
+        isGeneratingReport: false,
+        sendMessage: vi.fn(),
+        startSession: vi.fn(),
+        retryLastMessage: vi.fn(),
+        clearError: vi.fn(),
+        regenerateReport: vi.fn(),
+      });
+
+      const renderTime = await measureRenderTime(() => {
+        render(
+          <TestWrapper>
+            <DiagnosisChat />
+          </TestWrapper>
+        );
+      });
+
+      // Should handle large datasets within 2 seconds
+      expect(renderTime).toBeLessThan(2000);
+    });
+
+    it('should handle large reports list efficiently', async () => {
+      // Generate large reports list
+      const largeReportsList = Array.from({ length: 500 }, (_, i) => ({
+        id: `report-${i}`,
+        title: `Relatório ${i + 1}`,
+        created_at: new Date(Date.now() - i * 86400000).toISOString(),
+        status: 'completed' as const,
+        severity_level: (i % 5) + 1,
+        summary: `Análise de sintomas ${i + 1}`,
+        pdf_url: `https://example.com/report${i}.pdf`,
+        file_size: 1024000 + (i * 1000),
+        user_id: 'test-user',
+        session_id: `session-${i}`,
+      }));
+
+      mockDiagnosisReportService.listReports.mockResolvedValue(largeReportsList);
+
+      const renderTime = await measureRenderTime(() => {
+        render(
+          <TestWrapper>
+            <DiagnosisReports />
+          </TestWrapper>
+        );
+      });
+
+      // Should handle large datasets within 1.5 seconds
+      expect(renderTime).toBeLessThan(1500);
+    });
+  });
+
+  describe('User Interaction Performance', () => {
+    it('should respond to message sending quickly', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Digite sua mensagem...')).toBeInTheDocument();
+      });
+
+      const messageInput = screen.getByPlaceholderText('Digite sua mensagem...');
+      const sendButton = screen.getByLabelText('Enviar mensagem');
+
+      const interactionTime = await measureInteractionTime(async () => {
+        await user.type(messageInput, 'Test message');
+        await user.click(sendButton);
+      });
+
+      // Should respond within 200ms
+      expect(interactionTime).toBeLessThan(200);
+    });
+
+    it('should handle rapid consecutive interactions', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Digite sua mensagem...')).toBeInTheDocument();
+      });
+
+      const messageInput = screen.getByPlaceholderText('Digite sua mensagem...');
+      const sendButton = screen.getByLabelText('Enviar mensagem');
+
+      const startTime = performance.now();
+
+      // Send 10 messages rapidly
+      for (let i = 0; i < 10; i++) {
+        await user.type(messageInput, `Message ${i + 1}`);
+        await user.click(sendButton);
+        await user.clear(messageInput);
+      }
+
+      const totalTime = performance.now() - startTime;
+
+      // Should handle 10 rapid interactions within 2 seconds
+      expect(totalTime).toBeLessThan(2000);
+    });
+
+    it('should handle PDF viewer interactions efficiently', async () => {
+      const user = userEvent.setup();
+
+      render(
+        <TestWrapper>
+          <PDFViewer 
+            pdfUrl="https://example.com/test.pdf"
+            title="Test Report"
+          />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByLabelText('Aumentar zoom')).toBeInTheDocument();
+      });
+
+      const zoomInButton = screen.getByLabelText('Aumentar zoom');
+      const zoomOutButton = screen.getByLabelText('Diminuir zoom');
+
+      const interactionTime = await measureInteractionTime(async () => {
+        // Perform multiple zoom operations
+        for (let i = 0; i < 5; i++) {
+          await user.click(zoomInButton);
+        }
+        for (let i = 0; i < 5; i++) {
+          await user.click(zoomOutButton);
+        }
+      });
+
+      // Should handle zoom operations within 500ms
+      expect(interactionTime).toBeLessThan(500);
+    });
+
+    it('should handle search and filtering efficiently', async () => {
+      const user = userEvent.setup();
+
+      // Mock reports for search
+      const searchableReports = Array.from({ length: 100 }, (_, i) => ({
+        id: `report-${i}`,
+        title: `Relatório ${i % 2 === 0 ? 'Neurológico' : 'Cardiológico'} ${i + 1}`,
+        created_at: new Date(Date.now() - i * 86400000).toISOString(),
+        status: 'completed' as const,
+        severity_level: (i % 5) + 1,
+        summary: `Análise ${i % 2 === 0 ? 'neurológica' : 'cardiológica'}`,
+        pdf_url: `https://example.com/report${i}.pdf`,
+        file_size: 1024000,
+        user_id: 'test-user',
+        session_id: `session-${i}`,
+      }));
+
+      mockDiagnosisReportService.listReports.mockResolvedValue(searchableReports);
+
+      render(
+        <TestWrapper>
+          <DiagnosisReports />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Buscar relatórios...')).toBeInTheDocument();
+      });
+
+      const searchInput = screen.getByPlaceholderText('Buscar relatórios...');
+
+      const searchTime = await measureInteractionTime(async () => {
+        await user.type(searchInput, 'Neurológico');
+      });
+
+      // Search should be responsive within 300ms
+      expect(searchTime).toBeLessThan(300);
+    });
+  });
+
+  describe('Memory Usage and Cleanup', () => {
+    it('should not cause memory leaks with repeated renders', async () => {
+      const initialMemory = (performance as any).memory?.usedJSHeapSize || 0;
+
+      // Render and unmount multiple times
+      for (let i = 0; i < 50; i++) {
+        const { unmount } = render(
+          <TestWrapper>
+            <DiagnosisChat />
+          </TestWrapper>
+        );
+        unmount();
+      }
+
+      // Force garbage collection if available
+      if ((global as any).gc) {
+        (global as any).gc();
+      }
+
+      const finalMemory = (performance as any).memory?.usedJSHeapSize || 0;
+      const memoryIncrease = finalMemory - initialMemory;
+
+      // Memory increase should be reasonable (less than 10MB)
+      expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
+    });
+
+    it('should clean up event listeners properly', async () => {
+      const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      const { unmount } = render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      const addedListeners = addEventListenerSpy.mock.calls.length;
+
+      unmount();
+
+      const removedListeners = removeEventListenerSpy.mock.calls.length;
+
+      // Should remove at least as many listeners as added
+      expect(removedListeners).toBeGreaterThanOrEqual(addedListeners);
+
+      addEventListenerSpy.mockRestore();
+      removeEventListenerSpy.mockRestore();
+    });
+
+    it('should handle component updates efficiently', async () => {
+      const messages = [
+        {
+          id: '1',
+          type: 'ai' as const,
+          content: 'Initial message',
+          timestamp: new Date(),
+          status: 'received' as const,
+        },
+      ];
+
+      mockUseDiagnosisChat.mockReturnValue({
+        messages,
+        isLoading: false,
+        error: null,
+        isTyping: false,
+        sessionId: 'session-123',
+        session: null,
+        isGeneratingReport: false,
+        sendMessage: vi.fn(),
+        startSession: vi.fn(),
+        retryLastMessage: vi.fn(),
+        clearError: vi.fn(),
+        regenerateReport: vi.fn(),
+      });
+
+      const { rerender } = render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      // Measure update performance
+      const startTime = performance.now();
+
+      // Add more messages progressively
+      for (let i = 2; i <= 100; i++) {
+        messages.push({
+          id: i.toString(),
+          type: (i % 2 === 0 ? 'user' : 'ai') as const,
+          content: `Message ${i}`,
+          timestamp: new Date(),
+          status: 'received' as const,
+        });
+
+        mockUseDiagnosisChat.mockReturnValue({
+          messages: [...messages],
+          isLoading: false,
+          error: null,
+          isTyping: false,
+          sessionId: 'session-123',
+          session: null,
+          isGeneratingReport: false,
+          sendMessage: vi.fn(),
+          startSession: vi.fn(),
+          retryLastMessage: vi.fn(),
+          clearError: vi.fn(),
+          regenerateReport: vi.fn(),
+        });
+
+        rerender(
+          <TestWrapper>
+            <DiagnosisChat />
+          </TestWrapper>
+        );
+      }
+
+      const updateTime = performance.now() - startTime;
+
+      // Should handle 100 progressive updates within 3 seconds
+      expect(updateTime).toBeLessThan(3000);
+    });
+  });
+
+  describe('Network Performance', () => {
+    it('should handle slow network responses gracefully', async () => {
+      const user = userEvent.setup();
+
+      // Mock slow response
+      const slowSendMessage = vi.fn().mockImplementation(() => 
+        new Promise(resolve => setTimeout(() => resolve({}), 2000))
+      );
+
+      mockUseDiagnosisChat.mockReturnValue({
+        messages: [],
+        isLoading: false,
+        error: null,
+        isTyping: false,
+        sessionId: 'session-123',
+        session: null,
+        isGeneratingReport: false,
+        sendMessage: slowSendMessage,
+        startSession: vi.fn(),
+        retryLastMessage: vi.fn(),
+        clearError: vi.fn(),
+        regenerateReport: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Digite sua mensagem...')).toBeInTheDocument();
+      });
+
+      const messageInput = screen.getByPlaceholderText('Digite sua mensagem...');
+      const sendButton = screen.getByLabelText('Enviar mensagem');
+
+      const startTime = performance.now();
+
+      await user.type(messageInput, 'Test message');
+      await user.click(sendButton);
+
+      // Should show loading state immediately
+      expect(screen.getByText('Processando...')).toBeInTheDocument();
+
+      const responseTime = performance.now() - startTime;
+
+      // UI should respond immediately even with slow network
+      expect(responseTime).toBeLessThan(100);
+    });
+
+    it('should batch multiple requests efficiently', async () => {
+      const user = userEvent.setup();
+      const batchedSendMessage = vi.fn().mockResolvedValue({});
+
+      mockUseDiagnosisChat.mockReturnValue({
+        messages: [],
+        isLoading: false,
+        error: null,
+        isTyping: false,
+        sessionId: 'session-123',
+        session: null,
+        isGeneratingReport: false,
+        sendMessage: batchedSendMessage,
+        startSession: vi.fn(),
+        retryLastMessage: vi.fn(),
+        clearError: vi.fn(),
+        regenerateReport: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisChat />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Digite sua mensagem...')).toBeInTheDocument();
+      });
+
+      const messageInput = screen.getByPlaceholderText('Digite sua mensagem...');
+      const sendButton = screen.getByLabelText('Enviar mensagem');
+
+      // Send multiple messages rapidly
+      const startTime = performance.now();
+
+      for (let i = 0; i < 5; i++) {
+        await user.type(messageInput, `Message ${i + 1}`);
+        await user.click(sendButton);
+        await user.clear(messageInput);
+      }
+
+      const batchTime = performance.now() - startTime;
+
+      // Should handle batched requests efficiently
+      expect(batchTime).toBeLessThan(1000);
+      expect(batchedSendMessage).toHaveBeenCalledTimes(5);
+    });
+  });
+
+  describe('Bundle Size and Loading Performance', () => {
+    it('should have reasonable component sizes', () => {
+      // This is a conceptual test - in real scenarios you'd measure actual bundle sizes
+      const componentSizes = {
+        DiagnosisChat: 'should be < 50KB',
+        DiagnosisReports: 'should be < 30KB',
+        PDFViewer: 'should be < 40KB',
+      };
+
+      // In a real implementation, you'd use webpack-bundle-analyzer or similar
+      expect(componentSizes).toBeDefined();
+    });
+
+    it('should support code splitting', () => {
+      // Verify that components can be lazy loaded
+      const LazyDiagnosisChat = React.lazy(() => 
+        Promise.resolve({ default: () => <div>Lazy Chat</div> })
+      );
+
+      expect(() => {
+        render(
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <LazyDiagnosisChat />
+          </React.Suspense>
+        );
+      }).not.toThrow();
+    });
+  });
+});

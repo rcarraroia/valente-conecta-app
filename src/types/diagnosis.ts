@@ -66,16 +66,28 @@ export interface DiagnosisChatSession {
 // n8n webhook communication interfaces
 export interface N8nWebhookRequest {
   user_id: string;
-  text: string;
-  session_id?: string;
+  message: string;
+  session_id: string;
+  timestamp: string;
+  message_history?: Array<{
+    sender: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+  }>;
 }
 
 export interface N8nWebhookResponse {
-  response: string;
-  is_final?: boolean;
+  message: string;
+  diagnosis_complete: boolean;
   diagnosis_data?: DiagnosisData;
   session_id: string;
+  next_questions?: string[];
   error?: string;
+  metadata?: {
+    confidence_level?: number;
+    processing_time?: number;
+    tokens_used?: number;
+  };
 }
 
 // Error handling types
@@ -85,7 +97,8 @@ export enum DiagnosisErrorType {
   SUPABASE_ERROR = 'SUPABASE_ERROR',
   PDF_GENERATION_ERROR = 'PDF_GENERATION_ERROR',
   STORAGE_ERROR = 'STORAGE_ERROR',
-  AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR'
+  AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
 }
 
 export interface DiagnosisError {
@@ -94,6 +107,9 @@ export interface DiagnosisError {
   details?: any;
   retryable: boolean;
   timestamp: Date;
+  context?: string;
+  userId?: string | null;
+  errorId?: string;
 }
 
 // Component prop interfaces

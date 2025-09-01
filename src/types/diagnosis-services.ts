@@ -324,7 +324,54 @@ export interface ServiceConfiguration {
   };
 }
 
+// Diagnosis Report Service Types
+export interface DiagnosisReportServiceInterface {
+  generateAndSaveReport(
+    userId: string,
+    sessionId: string,
+    diagnosisData: DiagnosisData,
+    options?: ReportGenerationOptions
+  ): Promise<ServiceResponse<ReportGenerationResult>>;
+  
+  getReportWithSignedUrl(
+    reportId: string,
+    userId: string,
+    expiresIn?: number
+  ): Promise<ServiceResponse<{ report: any; signedUrl: string }>>;
+  
+  updateReportStatus(
+    reportId: string,
+    userId: string,
+    status: 'processing' | 'completed' | 'failed'
+  ): Promise<ServiceResponse<void>>;
+  
+  deleteReport(
+    reportId: string,
+    userId: string
+  ): Promise<ServiceResponse<void>>;
+}
+
+export interface ReportGenerationOptions {
+  title?: string;
+  includePatientInfo?: boolean;
+  includeRecommendations?: boolean;
+  notifyUser?: boolean;
+  autoSave?: boolean;
+}
+
+export interface ReportGenerationResult {
+  reportId: string;
+  pdfUrl: string;
+  signedUrl: string;
+  metadata: {
+    fileSize: number;
+    generationTime: number;
+    uploadTime: number;
+    totalTime: number;
+  };
+}
+
 // Export utility types
-export type ServiceName = 'chat' | 'pdf' | 'storage' | 'database' | 'validation' | 'analytics' | 'cache';
+export type ServiceName = 'chat' | 'pdf' | 'storage' | 'database' | 'validation' | 'analytics' | 'cache' | 'report';
 export type ServiceStatus = 'initializing' | 'ready' | 'error' | 'stopped';
 export type ServicePriority = 'low' | 'normal' | 'high' | 'critical';

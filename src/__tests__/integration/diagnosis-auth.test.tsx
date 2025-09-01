@@ -1,0 +1,774 @@
+// Integration tests for diagnosis authentication flow
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import userEvent from '@testing-library/user-event';
+
+// Import components
+import { DiagnosisRouteGuard } from '@/components/auth/DiagnosisRouteGuard';
+import { DiagnosisDashboard } from '@/pages/DiagnosisDashboard';
+import { DiagnosisChat } from '@/pages/DiagnosisChat';
+import { DiagnosisReports } from '@/pages/DiagnosisReports';
+
+// Mock authentication hook
+vi.mock('@/hooks/useDiagnosisAuth', () => ({
+  useDiagnosisAuth: vi.fn(),
+}));
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(),
+}));
+
+// Mock other dependencies
+vi.mock('@/hooks/useDiagnosisChat', () => ({
+  useDiagnosisChat: () => ({
+    messages: [],
+    isLoading: false,
+    error: null,
+    isTyping: false,
+    sessionId: null,
+    session: null,
+    isGeneratingReport: false,
+    sendMessage: vi.fn(),
+    startSession: vi.fn(),
+    retryLastMessage: vi.fn(),
+    clearError: vi.fn(),
+    regenerateReport: vi.fn(),
+  }),
+}));
+
+vi.mock('@/services/diagnosis-report.service', () => ({
+  diagnosisReportService: {
+    listReports: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+vi.mock('@/hooks/useResponsive', () => ({
+  useResponsive: () => ({
+    width: 1024,
+    height: 768,
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isTouchDevice: false,
+    breakpoint: 'lg',
+    isLandscape: true,
+    isPortrait: false,
+  }),
+  useMobileKeyboard: () => ({
+    isKeyboardVisible: false,
+    viewportHeight: 768,
+  }),
+  useTouchGestures: () => ({
+    touchState: {
+      isSwipeLeft: false,
+      isSwipeRight: false,
+      isSwipeUp: false,
+      isSwipeDown: false,
+      isPinching: false,
+      scale: 1,
+    },
+    handleTouchGestures: vi.fn(() => vi.fn()),
+  }),
+}));
+
+// Mock toast
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
+
+// Mock navigation
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+// Test wrapper
+const TestWrapper: React.FC<{ 
+  children: React.ReactNode;
+  initialEntries?: string[];
+}> = ({ children, initialEntries = ['/'] }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={initialEntries}>
+        {children}
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+};
+
+describe('Diagnosis Authentication Integration', () => {
+  let mockUseDiagnosisAuth: any;
+  let mockUseAuth: any;
+
+  beforeEach(async () => {
+    mockUseDiagnosisAuth = vi.mocked(
+      await import('@/hooks/useDiagnosisAuth')
+    ).useDiagnosisAuth;
+
+    mockUseAuth = vi.mocked(
+      await import('@/hooks/useAuth')
+    ).useAuth;
+
+    // Clear navigation mock
+    mockNavigate.mockClear();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  describe('Authenticated User Flow', () => {
+    beforeEach(() => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      mockUseAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    });
+
+    it('should allow access to diagnosis dashboard when authenticated', async () => {
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Dashboard de Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Bem-vindo, Test User!')).toBeInTheDocument();
+      expect(screen.getByText('Iniciar Novo Diagnóstico')).toBeInTheDocument();
+    });
+
+    it('should allow access to diagnosis chat when authenticated', async () => {
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisChat />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      expect(screen.getByText('Assistente de Pré-Diagnóstico')).toBeInTheDocument();
+    });
+
+    it('should allow access to diagnosis reports when authenticated', async () => {
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisReports />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Meus Relatórios')).toBeInTheDocument();
+      });
+    });
+
+    it('should update last access timestamp on page visit', async () => {
+      const mockUpdateLastAccess = vi.fn();
+      
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: mockUpdateLastAccess,
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(mockUpdateLastAccess).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Unauthenticated User Flow', () => {
+    beforeEach(() => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(false),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      mockUseAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+    });
+
+    it('should redirect to login when accessing protected route', async () => {
+      const mockRedirectToLogin = vi.fn();
+      
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(false),
+        redirectToLogin: mockRedirectToLogin,
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper initialEntries={['/diagnosis']}>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(mockRedirectToLogin).toHaveBeenCalledWith('/diagnosis');
+      });
+    });
+
+    it('should show loading state during authentication check', async () => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: true,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn(),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      expect(screen.getByText('Verificando autenticação...')).toBeInTheDocument();
+    });
+
+    it('should show fallback when authentication fails', async () => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockRejectedValue(new Error('Auth failed')),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard 
+            requireAuth={true}
+            fallback={<div>Acesso negado</div>}
+          >
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Acesso negado')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Session Management', () => {
+    it('should handle active session restoration', async () => {
+      // Mock active session in localStorage
+      localStorage.setItem('diagnosis_session', JSON.stringify({
+        sessionId: 'session-123',
+        timestamp: Date.now(),
+      }));
+
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: true,
+        lastDiagnosisAccess: new Date(),
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Dashboard de Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      // Should show active session indicator
+      expect(screen.getByText(/Sessão ativa/)).toBeInTheDocument();
+    });
+
+    it('should clear expired sessions', async () => {
+      // Mock expired session in localStorage
+      localStorage.setItem('diagnosis_session', JSON.stringify({
+        sessionId: 'session-123',
+        timestamp: Date.now() - (25 * 60 * 60 * 1000), // 25 hours ago
+      }));
+
+      const mockClearDiagnosisSession = vi.fn();
+
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: mockClearDiagnosisSession,
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(mockClearDiagnosisSession).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle session conflicts between tabs', async () => {
+      // Simulate different session in another tab
+      const originalSession = {
+        sessionId: 'session-123',
+        timestamp: Date.now(),
+      };
+
+      const newSession = {
+        sessionId: 'session-456',
+        timestamp: Date.now() + 1000,
+      };
+
+      localStorage.setItem('diagnosis_session', JSON.stringify(originalSession));
+
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: true,
+        lastDiagnosisAccess: new Date(),
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      // Simulate session change in another tab
+      localStorage.setItem('diagnosis_session', JSON.stringify(newSession));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'diagnosis_session',
+        newValue: JSON.stringify(newSession),
+        oldValue: JSON.stringify(originalSession),
+      }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Dashboard de Pré-Diagnóstico')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Navigation and Routing', () => {
+    beforeEach(() => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+    });
+
+    it('should handle navigation between diagnosis pages', async () => {
+      const user = userEvent.setup();
+      const mockRedirectToChat = vi.fn();
+      const mockRedirectToReports = vi.fn();
+
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: mockRedirectToChat,
+        redirectToReports: mockRedirectToReports,
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Dashboard de Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      // Navigate to chat
+      const startDiagnosisButton = screen.getByText('Iniciar Novo Diagnóstico');
+      await user.click(startDiagnosisButton);
+
+      expect(mockRedirectToChat).toHaveBeenCalled();
+
+      // Navigate to reports
+      const viewReportsButton = screen.getByText('Ver Relatórios');
+      await user.click(viewReportsButton);
+
+      expect(mockRedirectToReports).toHaveBeenCalled();
+    });
+
+    it('should preserve return URL after login', async () => {
+      const mockRedirectToLogin = vi.fn();
+
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(false),
+        redirectToLogin: mockRedirectToLogin,
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper initialEntries={['/diagnosis/chat/session-123']}>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisChat />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(mockRedirectToLogin).toHaveBeenCalledWith('/diagnosis/chat/session-123');
+      });
+    });
+
+    it('should handle deep linking to specific sessions', async () => {
+      render(
+        <TestWrapper initialEntries={['/diagnosis/chat/session-123']}>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisChat />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      // Should show session ID in the interface
+      expect(screen.getByText(/session-123/)).toBeInTheDocument();
+    });
+  });
+
+  describe('Error Handling and Recovery', () => {
+    it('should handle authentication service failures', async () => {
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockRejectedValue(new Error('Service unavailable')),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard 
+            requireAuth={true}
+            fallback={<div>Erro de autenticação</div>}
+          >
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Erro de autenticação')).toBeInTheDocument();
+      });
+    });
+
+    it('should handle network connectivity issues', async () => {
+      // Mock network error
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockRejectedValue(new Error('Network error')),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Erro ao verificar autenticação')).toBeInTheDocument();
+      });
+
+      // Should show retry option
+      expect(screen.getByText('Tentar Novamente')).toBeInTheDocument();
+    });
+
+    it('should handle token expiration gracefully', async () => {
+      const user = userEvent.setup();
+      
+      // Start with valid auth
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: {
+          id: 'test-user-123',
+          email: 'test@example.com',
+          user_metadata: { full_name: 'Test User' },
+        },
+        isAuthenticated: true,
+        isLoading: false,
+        canAccessDiagnosis: true,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(true),
+        redirectToLogin: vi.fn(),
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      const { rerender } = render(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Dashboard de Pré-Diagnóstico')).toBeInTheDocument();
+      });
+
+      // Simulate token expiration
+      const mockRedirectToLogin = vi.fn();
+      mockUseDiagnosisAuth.mockReturnValue({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        canAccessDiagnosis: false,
+        hasActiveSession: false,
+        lastDiagnosisAccess: null,
+        requireAuth: vi.fn().mockResolvedValue(false),
+        redirectToLogin: mockRedirectToLogin,
+        redirectToDashboard: vi.fn(),
+        redirectToChat: vi.fn(),
+        redirectToReports: vi.fn(),
+        clearDiagnosisSession: vi.fn(),
+        updateLastAccess: vi.fn(),
+      });
+
+      rerender(
+        <TestWrapper>
+          <DiagnosisRouteGuard requireAuth={true}>
+            <DiagnosisDashboard />
+          </DiagnosisRouteGuard>
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(mockRedirectToLogin).toHaveBeenCalled();
+      });
+    });
+  });
+});

@@ -23,6 +23,7 @@ import {
   retryWithBackoff, 
   extractErrorMessage 
 } from '@/utils/diagnosis-utils';
+import { diagnosisErrorHandler } from '@/utils/diagnosis-error-handler';
 import { N8N_CONFIG, DEFAULTS } from '@/lib/diagnosis-constants';
 import { isFeatureEnabled } from '@/lib/diagnosis-config';
 

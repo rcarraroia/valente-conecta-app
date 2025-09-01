@@ -2,8 +2,12 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { chatService } from '@/services/chat.service';
+import { diagnosisReportService } from '@/services/diagnosis-report.service';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useDiagnosisErrorHandler } from '@/hooks/useDiagnosisErrorHandler';
+import { analyticsService, AnalyticsEvent } from '@/services/analytics.service';
+import { loggingService, LogCategory } from '@/services/logging.service';
 import type { 
   ChatMessage, 
   DiagnosisChatSession, 
@@ -11,6 +15,7 @@ import type {
   N8nWebhookResponse,
   DiagnosisData 
 } from '@/types/diagnosis';
+import type { ReportGenerationResult } from '@/types/diagnosis-services';
 import { 
   createChatMessage, 
   createDiagnosisChatSession,
@@ -25,6 +30,8 @@ export interface ChatState {
   error: string | null;
   isConnected: boolean;
   diagnosisResult: DiagnosisData | null;
+  generatedReport: ReportGenerationResult | null;
+  isGeneratingReport: boolean;
 }
 
 export interface ChatActions {
@@ -33,6 +40,7 @@ export interface ChatActions {
   endSession: () => void;
   clearError: () => void;
   retryLastMessage: () => Promise<void>;
+  regenerateReport: () => Promise<void>;
   resetChat: () => void;
 }
 
@@ -47,6 +55,7 @@ export interface UseDiagnosisChatReturn {
 export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { actions: errorActions } = useDiagnosisErrorHandler();
   
   // Chat state
   const [session, setSession] = useState<DiagnosisChatSession | null>(null);
@@ -56,6 +65,8 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisData | null>(null);
+  const [generatedReport, setGeneratedReport] = useState<ReportGenerationResult | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   
   // Refs for managing state
   const lastMessageRef = useRef<string>('');
@@ -120,6 +131,16 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       
       setIsConnected(true);
       retryCountRef.current = 0;
+      
+      // Track session start
+      await analyticsService.trackChatInteraction(user.id, sessionId, 'session_started', {
+        initial_message_received: !!response.data.message,
+      });
+      
+      loggingService.logChatInteraction('session_started', user.id, sessionId, {
+        response_time: response.metadata?.response_time,
+        initial_message: response.data.message?.substring(0, 100),
+      });
       
       toast({
         title: 'Sessão Iniciada',
@@ -214,6 +235,29 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add AI message to state
       setMessages(prev => [...prev, aiMessage]);
 
+      // Track message exchange
+      await analyticsService.trackChatInteraction(user.id, session.id, 'message_sent', {
+        message_length: content.length,
+        response_time: response.metadata?.response_time,
+      });
+      
+      await analyticsService.trackChatInteraction(user.id, session.id, 'message_received', {
+        response_length: responseData.message.length,
+        diagnosis_complete: responseData.diagnosis_complete,
+      });
+      
+      loggingService.logChatInteraction('message_sent', user.id, session.id, {
+        message_preview: content.substring(0, 50),
+        message_length: content.length,
+      });
+      
+      loggingService.logChatInteraction('message_received', user.id, session.id, {
+        response_preview: responseData.message.substring(0, 50),
+        response_length: responseData.message.length,
+        diagnosis_complete: responseData.diagnosis_complete,
+        response_time: response.metadata?.response_time,
+      });
+
       // Check if diagnosis is complete
       if (responseData.diagnosis_complete && responseData.diagnosis_data) {
         setDiagnosisResult(responseData.diagnosis_data);
@@ -225,9 +269,23 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
           completed_at: new Date().toISOString(),
         } : null);
 
+        // Add completion message to chat
+        const completionMessage = createChatMessage({
+          id: `msg_${Date.now()}_completion`,
+          session_id: session.id,
+          sender: 'system',
+          content: '🎯 Diagnóstico concluído! Gerando seu relatório PDF...',
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(prev => [...prev, completionMessage]);
+
+        // Generate PDF report automatically
+        await generatePDFReport(responseData.diagnosis_data);
+
         toast({
           title: 'Diagnóstico Concluído',
-          description: 'Seu pré-diagnóstico foi finalizado. Você pode visualizar o relatório.',
+          description: 'Seu pré-diagnóstico foi finalizado. O relatório está sendo gerado.',
         });
       }
 
@@ -262,6 +320,204 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       setIsTyping(false);
     }
   }, [session, user?.id, messages, toast]);
+
+  /**
+   * Generates PDF report when diagnosis is completed
+   */
+  const generatePDFReport = useCallback(async (diagnosisData: DiagnosisData, retryCount = 0) => {
+    if (!session || !user?.id) {
+      console.error('Cannot generate PDF: missing session or user');
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    setError(null);
+
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 seconds
+
+    try {
+      // Track PDF generation start
+      await analyticsService.trackPDFOperation(user.id, session.id, 'generation_started', {
+        retry_count: retryCount,
+        diagnosis_severity: diagnosisData.severity_level,
+      });
+      
+      loggingService.logPDFOperation('generation_started', user.id, session.id, {
+        retry_count: retryCount,
+        diagnosis_data_size: JSON.stringify(diagnosisData).length,
+      });
+
+      // Add progress message
+      const progressMessage = createChatMessage({
+        id: `msg_${Date.now()}_progress`,
+        session_id: session.id,
+        sender: 'system',
+        content: `📄 Gerando relatório PDF... ${retryCount > 0 ? `(Tentativa ${retryCount + 1}/${maxRetries + 1})` : ''}`,
+        timestamp: new Date().toISOString(),
+      });
+
+      setMessages(prev => [...prev, progressMessage]);
+
+      const result = await diagnosisReportService.generateAndSaveReport(
+        user.id,
+        session.id,
+        diagnosisData,
+        {
+          title: `Pré-Diagnóstico - ${new Date().toLocaleDateString('pt-BR')}`,
+          includePatientInfo: true,
+          includeRecommendations: true,
+          notifyUser: false, // We'll handle notification manually
+          autoSave: true,
+        }
+      );
+
+      if (result.success && result.data) {
+        setGeneratedReport(result.data);
+        
+        // Track PDF generation success
+        await analyticsService.trackPDFOperation(user.id, session.id, 'generation_completed', {
+          file_size: result.data.metadata.fileSize,
+          generation_time: result.data.metadata.totalTime,
+          retry_count: retryCount,
+        });
+        
+        loggingService.logPDFOperation('generation_completed', user.id, session.id, {
+          file_size: result.data.metadata.fileSize,
+          generation_time: result.data.metadata.totalTime,
+          report_id: result.data.reportId,
+          retry_count: retryCount,
+        });
+        
+        // Success notification
+        toast({
+          title: 'Relatório Gerado com Sucesso',
+          description: `Relatório PDF gerado em ${result.data.metadata.totalTime}ms. Disponível para download.`,
+        });
+
+        // Add success message with download info
+        const successMessage = createChatMessage({
+          id: `msg_${Date.now()}_report_success`,
+          session_id: session.id,
+          sender: 'system',
+          content: `✅ Relatório PDF gerado com sucesso!\n\n📊 **Detalhes:**\n• Tamanho: ${(result.data.metadata.fileSize / 1024).toFixed(1)} KB\n• Tempo de geração: ${result.data.metadata.totalTime}ms\n• ID do relatório: ${result.data.reportId}\n\n🔗 Você pode visualizar e baixar seu relatório na seção "Meus Relatórios" ou no dashboard.`,
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(prev => [...prev, successMessage]);
+
+        // Emit custom event for other components
+        window.dispatchEvent(new CustomEvent('diagnosis-pdf-generated', {
+          detail: {
+            reportId: result.data.reportId,
+            signedUrl: result.data.signedUrl,
+            metadata: result.data.metadata,
+          }
+        }));
+
+      } else {
+        const errorMsg = result.error?.message || 'Erro desconhecido ao gerar relatório';
+        
+        // Check if error is retryable and we haven't exceeded max retries
+        if (result.error?.retryable && retryCount < maxRetries) {
+          toast({
+            title: 'Tentando Novamente',
+            description: `Erro temporário: ${errorMsg}. Tentando novamente em ${retryDelay/1000}s...`,
+            variant: 'default',
+          });
+
+          // Add retry message
+          const retryMessage = createChatMessage({
+            id: `msg_${Date.now()}_retry`,
+            session_id: session.id,
+            sender: 'system',
+            content: `⚠️ Erro temporário na geração do relatório: ${errorMsg}\n\n🔄 Tentando novamente em ${retryDelay/1000} segundos...`,
+            timestamp: new Date().toISOString(),
+          });
+
+          setMessages(prev => [...prev, retryMessage]);
+
+          // Wait and retry
+          setTimeout(() => {
+            generatePDFReport(diagnosisData, retryCount + 1);
+          }, retryDelay);
+
+          return;
+        }
+
+        // Final error - no more retries
+        toast({
+          title: 'Erro na Geração do Relatório',
+          description: errorMsg,
+          variant: 'destructive',
+        });
+
+        // Add final error message with manual retry option
+        const errorMessage = createChatMessage({
+          id: `msg_${Date.now()}_report_error`,
+          session_id: session.id,
+          sender: 'system',
+          content: `❌ **Erro ao gerar relatório PDF**\n\n**Erro:** ${errorMsg}\n**Tentativas:** ${retryCount + 1}/${maxRetries + 1}\n\n💡 **O que fazer:**\n• Verifique sua conexão com a internet\n• Tente gerar o relatório novamente na seção "Meus Relatórios"\n• Entre em contato com o suporte se o problema persistir`,
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(prev => [...prev, errorMessage]);
+      }
+
+    } catch (error: any) {
+      const errorMsg = error.message || 'Erro inesperado ao gerar relatório';
+      
+      // Track PDF generation failure
+      await analyticsService.trackPDFOperation(user.id, session.id, 'generation_failed', {
+        error_message: errorMsg,
+        retry_count: retryCount,
+        will_retry: retryCount < maxRetries,
+      });
+      
+      loggingService.logPDFOperation('generation_failed', user.id, session.id, {
+        error_message: errorMsg,
+        error_stack: error.stack,
+        retry_count: retryCount,
+        will_retry: retryCount < maxRetries,
+      });
+      
+      // Check if we should retry
+      if (retryCount < maxRetries) {
+        toast({
+          title: 'Erro Inesperado - Tentando Novamente',
+          description: `${errorMsg}. Tentativa ${retryCount + 1}/${maxRetries + 1}`,
+          variant: 'default',
+        });
+
+        setTimeout(() => {
+          generatePDFReport(diagnosisData, retryCount + 1);
+        }, retryDelay);
+
+        return;
+      }
+
+      // Final error
+      toast({
+        title: 'Erro Crítico na Geração do Relatório',
+        description: errorMsg,
+        variant: 'destructive',
+      });
+
+      const criticalErrorMessage = createChatMessage({
+        id: `msg_${Date.now()}_critical_error`,
+        session_id: session.id,
+        sender: 'system',
+        content: `🚨 **Erro crítico ao gerar relatório**\n\n**Erro:** ${errorMsg}\n\n⚠️ Por favor, entre em contato com o suporte técnico informando o ID da sessão: ${session.id}`,
+        timestamp: new Date().toISOString(),
+      });
+
+      setMessages(prev => [...prev, criticalErrorMessage]);
+
+      console.error('Erro crítico ao gerar relatório PDF:', error);
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  }, [session, user?.id, toast]);
 
   /**
    * Retries the last message that failed
@@ -317,6 +573,36 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
   }, []);
 
   /**
+   * Regenerates PDF report for completed diagnosis
+   */
+  const regenerateReport = useCallback(async () => {
+    if (!diagnosisResult) {
+      toast({
+        title: 'Diagnóstico Não Encontrado',
+        description: 'Não há dados de diagnóstico para gerar o relatório.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!session || session.status !== 'completed') {
+      toast({
+        title: 'Sessão Inválida',
+        description: 'A sessão deve estar completa para regenerar o relatório.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Regenerando Relatório',
+      description: 'Iniciando nova geração do relatório PDF...',
+    });
+
+    await generatePDFReport(diagnosisResult);
+  }, [diagnosisResult, session, generatePDFReport, toast]);
+
+  /**
    * Resets the entire chat state
    */
   const resetChat = useCallback(() => {
@@ -327,6 +613,8 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
     setError(null);
     setIsConnected(true);
     setDiagnosisResult(null);
+    setGeneratedReport(null);
+    setIsGeneratingReport(false);
     lastMessageRef.current = '';
     sessionIdRef.current = '';
     retryCountRef.current = 0;
@@ -351,6 +639,37 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
     });
   }, [messages]);
 
+  // Listen for diagnosis report ready events
+  useEffect(() => {
+    const handleReportReady = (event: CustomEvent) => {
+      const { title, description, reportTitle } = event.detail;
+      
+      toast({
+        title,
+        description,
+      });
+
+      // Add system message about report being ready
+      if (session) {
+        const reportReadyMessage = createChatMessage({
+          id: `msg_${Date.now()}_report_ready`,
+          session_id: session.id,
+          sender: 'system',
+          content: `📄 Seu relatório "${reportTitle}" está pronto para visualização!`,
+          timestamp: new Date().toISOString(),
+        });
+
+        setMessages(prev => [...prev, reportReadyMessage]);
+      }
+    };
+
+    window.addEventListener('diagnosis-report-ready', handleReportReady as EventListener);
+
+    return () => {
+      window.removeEventListener('diagnosis-report-ready', handleReportReady as EventListener);
+    };
+  }, [session, toast]);
+
   const state: ChatState = {
     session,
     messages,
@@ -359,6 +678,8 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
     error,
     isConnected,
     diagnosisResult,
+    generatedReport,
+    isGeneratingReport,
   };
 
   const actions: ChatActions = {
@@ -367,6 +688,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
     endSession,
     clearError,
     retryLastMessage,
+    regenerateReport,
     resetChat,
   };
 

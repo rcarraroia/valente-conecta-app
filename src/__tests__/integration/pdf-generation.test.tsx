@@ -1,0 +1,665 @@
+// Integration tests for PDF generation and storage
+
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Import services and components
+import { diagnosisReportService } from '@/services/diagnosis-report.service';
+import { PDFViewer } from '@/components/diagnosis/PDFViewer';
+import { ReportsList } from '@/components/diagnosis/ReportsList';
+
+// Mock external dependencies
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    storage: {
+      from: vi.fn(() => ({
+        upload: vi.fn(),
+        getPublicUrl: vi.fn(),
+        createSignedUrl: vi.fn(),
+      })),
+    },
+    from: vi.fn(() => ({
+      insert: vi.fn(() => ({
+        select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          order: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
+      })),
+    })),
+  },
+}));
+
+vi.mock('@/hooks/useResponsive', () => ({
+  useResponsive: () => ({
+    width: 1024,
+    height: 768,
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true,
+    isTouchDevice: false,
+    breakpoint: 'lg',
+    isLandscape: true,
+    isPortrait: false,
+  }),
+  useTouchGestures: () => ({
+    touchState: {
+      isSwipeLeft: false,
+      isSwipeRight: false,
+      isSwipeUp: false,
+      isSwipeDown: false,
+      isPinching: false,
+      scale: 1,
+    },
+    handleTouchGestures: vi.fn(() => vi.fn()),
+  }),
+}));
+
+// Mock PDF generation library
+vi.mock('react-pdf', () => ({
+  Document: ({ children }: any) => <div data-testid="pdf-document">{children}</div>,
+  Page: ({ children }: any) => <div data-testid="pdf-page">{children}</div>,
+  Text: ({ children }: any) => <span data-testid="pdf-text">{children}</span>,
+  View: ({ children }: any) => <div data-testid="pdf-view">{children}</div>,
+  StyleSheet: {
+    create: (styles: any) => styles,
+  },
+  pdf: vi.fn(() => ({
+    toBlob: vi.fn(() => Promise.resolve(new Blob(['fake-pdf'], { type: 'application/pdf' }))),
+  })),
+}));
+
+// Mock toast
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
+
+// Test wrapper
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {children}
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
+
+describe('PDF Generation and Storage Integration', () => {
+  let mockSupabase: any;
+
+  beforeEach(async () => {
+    mockSupabase = vi.mocked(
+      await import('@/integrations/supabase/client')
+    ).supabase;
+
+    // Reset all mocks
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('PDF Generation Process', () => {
+    it('should generate PDF from diagnosis data successfully', async () => {
+      const diagnosisData = {
+        symptoms: ['dor de cabeça', 'fadiga', 'tontura'],
+        analysis: 'Baseado nos sintomas relatados, há indicações de possível enxaqueca.',
+        recommendations: [
+          'Consultar um neurologista',
+          'Manter diário de dores de cabeça',
+          'Evitar fatores desencadeantes conhecidos',
+        ],
+        severity_level: 3,
+        confidence_level: 0.85,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock successful PDF generation
+      const mockPdfBlob = new Blob(['fake-pdf-content'], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(mockPdfBlob),
+      });
+
+      // Mock successful storage upload
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'reports/user-456/report-123.pdf' },
+          error: null,
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'https://example.com/signed-url' },
+          error: null,
+        }),
+      });
+
+      // Mock successful database insert
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{
+              id: 'report-123',
+              title: 'Relatório de Pré-Diagnóstico',
+              pdf_url: 'https://example.com/signed-url',
+              file_size: mockPdfBlob.size,
+              status: 'completed',
+              created_at: new Date().toISOString(),
+            }],
+            error: null,
+          }),
+        }),
+      });
+
+      const result = await diagnosisReportService.generateAndSaveReport(diagnosisData);
+
+      expect(result).toBeDefined();
+      expect(result.id).toBe('report-123');
+      expect(result.pdf_url).toBe('https://example.com/signed-url');
+      expect(result.status).toBe('completed');
+
+      // Verify PDF generation was called
+      expect(vi.mocked(await import('react-pdf')).pdf).toHaveBeenCalled();
+
+      // Verify storage upload was called
+      expect(mockSupabase.storage.from).toHaveBeenCalledWith('diagnosis-reports');
+
+      // Verify database insert was called
+      expect(mockSupabase.from).toHaveBeenCalledWith('relatorios_diagnostico');
+    });
+
+    it('should handle PDF generation failures gracefully', async () => {
+      const diagnosisData = {
+        symptoms: ['test symptom'],
+        analysis: 'test analysis',
+        recommendations: ['test recommendation'],
+        severity_level: 2,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock PDF generation failure
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockRejectedValue(new Error('PDF generation failed')),
+      });
+
+      await expect(
+        diagnosisReportService.generateAndSaveReport(diagnosisData)
+      ).rejects.toThrow('PDF generation failed');
+    });
+
+    it('should handle storage upload failures', async () => {
+      const diagnosisData = {
+        symptoms: ['test symptom'],
+        analysis: 'test analysis',
+        recommendations: ['test recommendation'],
+        severity_level: 2,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock successful PDF generation
+      const mockPdfBlob = new Blob(['fake-pdf-content'], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(mockPdfBlob),
+      });
+
+      // Mock storage upload failure
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Storage upload failed' },
+        }),
+      });
+
+      await expect(
+        diagnosisReportService.generateAndSaveReport(diagnosisData)
+      ).rejects.toThrow('Storage upload failed');
+    });
+
+    it('should handle database insert failures', async () => {
+      const diagnosisData = {
+        symptoms: ['test symptom'],
+        analysis: 'test analysis',
+        recommendations: ['test recommendation'],
+        severity_level: 2,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock successful PDF generation and storage
+      const mockPdfBlob = new Blob(['fake-pdf-content'], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(mockPdfBlob),
+      });
+
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'reports/user-456/report-123.pdf' },
+          error: null,
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'https://example.com/signed-url' },
+          error: null,
+        }),
+      });
+
+      // Mock database insert failure
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'Database insert failed' },
+          }),
+        }),
+      });
+
+      await expect(
+        diagnosisReportService.generateAndSaveReport(diagnosisData)
+      ).rejects.toThrow('Database insert failed');
+    });
+  });
+
+  describe('PDF Content Validation', () => {
+    it('should generate PDF with correct content structure', async () => {
+      const diagnosisData = {
+        symptoms: ['dor de cabeça', 'náusea', 'sensibilidade à luz'],
+        analysis: 'Os sintomas apresentados são consistentes com enxaqueca clássica.',
+        recommendations: [
+          'Consultar neurologista para avaliação detalhada',
+          'Manter diário de dores de cabeça',
+          'Evitar fatores desencadeantes (stress, certos alimentos)',
+          'Considerar medicação preventiva se episódios frequentes',
+        ],
+        severity_level: 4,
+        confidence_level: 0.92,
+        session_id: 'session-123',
+        user_id: 'user-456',
+        patient_info: {
+          age: 35,
+          gender: 'feminino',
+          medical_history: ['hipertensão'],
+        },
+      };
+
+      // Mock PDF generation to capture content
+      let pdfContent: any;
+      vi.mocked(await import('react-pdf')).pdf.mockImplementation((content) => {
+        pdfContent = content;
+        return {
+          toBlob: vi.fn().mockResolvedValue(new Blob(['fake-pdf'], { type: 'application/pdf' })),
+        };
+      });
+
+      // Mock successful storage and database operations
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'reports/user-456/report-123.pdf' },
+          error: null,
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'https://example.com/signed-url' },
+          error: null,
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{ id: 'report-123', pdf_url: 'https://example.com/signed-url' }],
+            error: null,
+          }),
+        }),
+      });
+
+      await diagnosisReportService.generateAndSaveReport(diagnosisData);
+
+      // Verify PDF was generated with content
+      expect(vi.mocked(await import('react-pdf')).pdf).toHaveBeenCalled();
+      expect(pdfContent).toBeDefined();
+    });
+
+    it('should include all required sections in PDF', async () => {
+      const diagnosisData = {
+        symptoms: ['sintoma 1', 'sintoma 2'],
+        analysis: 'análise detalhada',
+        recommendations: ['recomendação 1', 'recomendação 2'],
+        severity_level: 3,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock to verify PDF structure
+      const mockPdf = vi.fn().mockResolvedValue(new Blob(['pdf'], { type: 'application/pdf' }));
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: mockPdf,
+      });
+
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'test-path' },
+          error: null,
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'test-url' },
+          error: null,
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{ id: 'test-id' }],
+            error: null,
+          }),
+        }),
+      });
+
+      await diagnosisReportService.generateAndSaveReport(diagnosisData);
+
+      // Verify PDF generation was called with proper structure
+      expect(vi.mocked(await import('react-pdf')).pdf).toHaveBeenCalled();
+    });
+  });
+
+  describe('PDF Viewing Integration', () => {
+    it('should display PDF in viewer component', async () => {
+      const pdfUrl = 'https://example.com/test-report.pdf';
+      const reportData = {
+        createdAt: '2024-01-15T10:30:00Z',
+        severityLevel: 3,
+      };
+
+      render(
+        <TestWrapper>
+          <PDFViewer
+            pdfUrl={pdfUrl}
+            title="Test Report"
+            reportData={reportData}
+          />
+        </TestWrapper>
+      );
+
+      // Should show PDF viewer interface
+      expect(screen.getByText('Test Report')).toBeInTheDocument();
+      expect(screen.getByLabelText('Aumentar zoom')).toBeInTheDocument();
+      expect(screen.getByLabelText('Diminuir zoom')).toBeInTheDocument();
+      expect(screen.getByLabelText('Baixar PDF')).toBeInTheDocument();
+
+      // Should show report metadata
+      expect(screen.getByText(/Criado em:/)).toBeInTheDocument();
+      expect(screen.getByText(/Severidade:/)).toBeInTheDocument();
+    });
+
+    it('should handle PDF loading errors', async () => {
+      render(
+        <TestWrapper>
+          <PDFViewer
+            pdfUrl=""
+            title="Invalid Report"
+          />
+        </TestWrapper>
+      );
+
+      // Should show error message
+      expect(screen.getByText('URL do PDF não fornecida')).toBeInTheDocument();
+    });
+
+    it('should support PDF download functionality', async () => {
+      const mockDownload = vi.fn();
+      
+      render(
+        <TestWrapper>
+          <PDFViewer
+            pdfUrl="https://example.com/test-report.pdf"
+            title="Test Report"
+            onDownload={mockDownload}
+          />
+        </TestWrapper>
+      );
+
+      const downloadButton = screen.getByLabelText('Baixar PDF');
+      downloadButton.click();
+
+      expect(mockDownload).toHaveBeenCalled();
+    });
+  });
+
+  describe('Reports List Integration', () => {
+    it('should display list of generated reports', async () => {
+      const mockReports = [
+        {
+          id: 'report-1',
+          title: 'Relatório de Pré-Diagnóstico',
+          created_at: '2024-01-15T10:30:00Z',
+          status: 'completed' as const,
+          severity_level: 3,
+          summary: 'Análise de sintomas neurológicos',
+          pdf_url: 'https://example.com/report1.pdf',
+          file_size: 1024000,
+          user_id: 'test-user',
+          session_id: 'session-123',
+        },
+        {
+          id: 'report-2',
+          title: 'Relatório de Pré-Diagnóstico',
+          created_at: '2024-01-14T15:45:00Z',
+          status: 'completed' as const,
+          severity_level: 2,
+          summary: 'Análise de sintomas respiratórios',
+          pdf_url: 'https://example.com/report2.pdf',
+          file_size: 856000,
+          user_id: 'test-user',
+          session_id: 'session-456',
+        },
+      ];
+
+      render(
+        <TestWrapper>
+          <ReportsList
+            reports={mockReports}
+            onViewReport={vi.fn()}
+            onDownloadReport={vi.fn()}
+          />
+        </TestWrapper>
+      );
+
+      // Should display both reports
+      expect(screen.getByText('Análise de sintomas neurológicos')).toBeInTheDocument();
+      expect(screen.getByText('Análise de sintomas respiratórios')).toBeInTheDocument();
+
+      // Should show report actions
+      const viewButtons = screen.getAllByText('Visualizar');
+      const downloadButtons = screen.getAllByText('Baixar');
+      
+      expect(viewButtons).toHaveLength(2);
+      expect(downloadButtons).toHaveLength(2);
+    });
+
+    it('should handle report filtering and search', async () => {
+      const mockReports = Array.from({ length: 10 }, (_, i) => ({
+        id: `report-${i}`,
+        title: 'Relatório de Pré-Diagnóstico',
+        created_at: new Date(Date.now() - i * 86400000).toISOString(),
+        status: 'completed' as const,
+        severity_level: (i % 5) + 1,
+        summary: `Análise ${i % 2 === 0 ? 'neurológica' : 'cardiológica'}`,
+        pdf_url: `https://example.com/report${i}.pdf`,
+        file_size: 1024000,
+        user_id: 'test-user',
+        session_id: `session-${i}`,
+      }));
+
+      render(
+        <TestWrapper>
+          <ReportsList
+            reports={mockReports}
+            onViewReport={vi.fn()}
+            onDownloadReport={vi.fn()}
+          />
+        </TestWrapper>
+      );
+
+      // Should show search input
+      expect(screen.getByPlaceholderText('Buscar relatórios...')).toBeInTheDocument();
+
+      // Should show filter options
+      expect(screen.getByText('Filtrar por status')).toBeInTheDocument();
+      expect(screen.getByText('Ordenar por')).toBeInTheDocument();
+
+      // Should show all reports initially
+      expect(screen.getByText('10 de 10 relatórios')).toBeInTheDocument();
+    });
+  });
+
+  describe('Storage Management', () => {
+    it('should handle file size limits', async () => {
+      const largeDiagnosisData = {
+        symptoms: Array.from({ length: 1000 }, (_, i) => `Sintoma ${i + 1}`),
+        analysis: 'A'.repeat(10000), // Very long analysis
+        recommendations: Array.from({ length: 100 }, (_, i) => `Recomendação ${i + 1}`),
+        severity_level: 3,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      // Mock large PDF blob (>10MB)
+      const largePdfBlob = new Blob(['x'.repeat(11 * 1024 * 1024)], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(largePdfBlob),
+      });
+
+      // Mock storage rejection for large files
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'File too large' },
+        }),
+      });
+
+      await expect(
+        diagnosisReportService.generateAndSaveReport(largeDiagnosisData)
+      ).rejects.toThrow('File too large');
+    });
+
+    it('should generate unique file names', async () => {
+      const diagnosisData = {
+        symptoms: ['test'],
+        analysis: 'test',
+        recommendations: ['test'],
+        severity_level: 2,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      const mockPdfBlob = new Blob(['pdf'], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(mockPdfBlob),
+      });
+
+      const mockUpload = vi.fn().mockResolvedValue({
+        data: { path: 'reports/user-456/unique-filename.pdf' },
+        error: null,
+      });
+
+      mockSupabase.storage.from.mockReturnValue({
+        upload: mockUpload,
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'test-url' },
+          error: null,
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{ id: 'test-id' }],
+            error: null,
+          }),
+        }),
+      });
+
+      await diagnosisReportService.generateAndSaveReport(diagnosisData);
+
+      // Verify upload was called with unique filename
+      expect(mockUpload).toHaveBeenCalled();
+      const uploadCall = mockUpload.mock.calls[0];
+      const filename = uploadCall[0]; // First argument should be filename
+      
+      // Should include user ID and timestamp for uniqueness
+      expect(filename).toMatch(/user-456/);
+      expect(filename).toMatch(/\.pdf$/);
+    });
+
+    it('should handle concurrent PDF generations', async () => {
+      const diagnosisData1 = {
+        symptoms: ['test1'],
+        analysis: 'test1',
+        recommendations: ['test1'],
+        severity_level: 2,
+        session_id: 'session-123',
+        user_id: 'user-456',
+      };
+
+      const diagnosisData2 = {
+        symptoms: ['test2'],
+        analysis: 'test2',
+        recommendations: ['test2'],
+        severity_level: 3,
+        session_id: 'session-456',
+        user_id: 'user-456',
+      };
+
+      // Mock successful operations
+      const mockPdfBlob = new Blob(['pdf'], { type: 'application/pdf' });
+      vi.mocked(await import('react-pdf')).pdf.mockReturnValue({
+        toBlob: vi.fn().mockResolvedValue(mockPdfBlob),
+      });
+
+      mockSupabase.storage.from.mockReturnValue({
+        upload: vi.fn().mockResolvedValue({
+          data: { path: 'test-path' },
+          error: null,
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'test-url' },
+          error: null,
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: vi.fn().mockReturnValue({
+          select: vi.fn().mockResolvedValue({
+            data: [{ id: 'test-id' }],
+            error: null,
+          }),
+        }),
+      });
+
+      // Generate PDFs concurrently
+      const [result1, result2] = await Promise.all([
+        diagnosisReportService.generateAndSaveReport(diagnosisData1),
+        diagnosisReportService.generateAndSaveReport(diagnosisData2),
+      ]);
+
+      expect(result1).toBeDefined();
+      expect(result2).toBeDefined();
+      expect(result1.id).toBe('test-id');
+      expect(result2.id).toBe('test-id');
+    });
+  });
+});
