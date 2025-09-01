@@ -12,6 +12,7 @@ import { SystemDiagnostic } from '@/pages/SystemDiagnostic';
 import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
 import DiagnosisChat from '@/pages/DiagnosisChat';
 import DiagnosisReports from '@/pages/DiagnosisReports';
+import '@/services/chat-service-test'; // Import test for development
 import './App.css';
 
 const App = () => {

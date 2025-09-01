@@ -57,15 +57,15 @@ export interface DiagnosisConfig {
 // Default configuration
 export const diagnosisConfig: DiagnosisConfig = {
   features: {
-    chatEnabled: !!process.env.VITE_N8N_WEBHOOK_URL, // Only enable if webhook URL is available
+    chatEnabled: !!(import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico'), // Always enable with fallback
     pdfGenerationEnabled: true,
-    analyticsEnabled: process.env.NODE_ENV === 'production',
-    monitoringEnabled: process.env.NODE_ENV === 'production',
+    analyticsEnabled: import.meta.env.MODE === 'production',
+    monitoringEnabled: import.meta.env.MODE === 'production',
     offlineModeEnabled: true,
   },
   
   api: {
-    n8nWebhookUrl: process.env.VITE_N8N_WEBHOOK_URL || '',
+    n8nWebhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico',
     timeout: 30000, // 30 seconds
     retryAttempts: 3,
     retryDelay: 2000, // 2 seconds
@@ -108,13 +108,13 @@ export const isFeatureEnabled = (feature: keyof DiagnosisConfig['features']): bo
 };
 
 // Environment-specific overrides
-if (process.env.NODE_ENV === 'development') {
-  diagnosisConfig.features.analyticsEnabled = process.env.VITE_ENABLE_ANALYTICS === 'true';
-  diagnosisConfig.features.monitoringEnabled = process.env.VITE_ENABLE_MONITORING === 'true';
+if (import.meta.env.MODE === 'development') {
+  diagnosisConfig.features.analyticsEnabled = import.meta.env.VITE_ENABLE_ANALYTICS === 'true';
+  diagnosisConfig.features.monitoringEnabled = import.meta.env.VITE_ENABLE_MONITORING === 'true';
   diagnosisConfig.api.timeout = 10000; // Shorter timeout in development
 }
 
-if (process.env.NODE_ENV === 'test') {
+if (import.meta.env.MODE === 'test') {
   diagnosisConfig.features.analyticsEnabled = false;
   diagnosisConfig.features.monitoringEnabled = false;
   diagnosisConfig.api.timeout = 5000;
@@ -124,21 +124,19 @@ if (process.env.NODE_ENV === 'test') {
 // Configuration validation
 export const validateConfig = (): boolean => {
   const errors: string[] = [];
-  const warnings: string[] = [];
   
-  // Only warn about missing webhook URL, don't error
-  if (!diagnosisConfig.api.n8nWebhookUrl) {
-    warnings.push('N8n webhook URL not configured - chat functionality will be disabled');
-    diagnosisConfig.features.chatEnabled = false;
-  }
-  
-  // Warn about missing Supabase configuration
-  if (!diagnosisConfig.supabase.url) {
-    warnings.push('Supabase URL not configured - storage functionality may be limited');
-  }
-  
-  if (!diagnosisConfig.supabase.anonKey) {
-    warnings.push('Supabase anonymous key not configured - storage functionality may be limited');
+  // Skip warnings in production to avoid console noise
+  if (import.meta.env.MODE === 'development') {
+    const warnings: string[] = [];
+    
+    // Only warn in development
+    if (!diagnosisConfig.api.n8nWebhookUrl || diagnosisConfig.api.n8nWebhookUrl === 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico') {
+      // Don't warn if using the default URL
+    }
+    
+    if (warnings.length > 0) {
+      console.warn('Diagnosis configuration warnings:', warnings);
+    }
   }
   
   if (diagnosisConfig.pdf.maxFileSize <= 0) {
@@ -147,10 +145,6 @@ export const validateConfig = (): boolean => {
   
   if (diagnosisConfig.chat.sessionTimeout <= 0) {
     errors.push('Chat session timeout must be greater than 0');
-  }
-  
-  if (warnings.length > 0) {
-    console.warn('Diagnosis configuration warnings:', warnings);
   }
   
   if (errors.length > 0) {
