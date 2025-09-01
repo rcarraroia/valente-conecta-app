@@ -204,6 +204,13 @@ export class ChatService implements ChatServiceInterface {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
+    console.log('🚀 Making request to n8n:', {
+      url: this.options.webhookUrl,
+      method: 'POST',
+      body: request,
+      timestamp: new Date().toISOString()
+    });
+
     try {
       const response = await fetch(this.options.webhookUrl, {
         method: 'POST',
@@ -217,7 +224,26 @@ export class ChatService implements ChatServiceInterface {
 
       clearTimeout(timeoutId);
 
-      const data = await response.json();
+      console.log('📡 Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        url: response.url
+      });
+
+      // Always try to get response as text first
+      const responseText = await response.text();
+      console.log('📄 Response text:', responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('📊 Parsed response data:', data);
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError);
+        console.log('Raw response:', responseText);
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+      }
       
       // Check for n8n workflow errors even in 200 responses
       if (data && data.error === 'workflow_inactive') {
@@ -252,6 +278,13 @@ export class ChatService implements ChatServiceInterface {
 
     } catch (error: any) {
       clearTimeout(timeoutId);
+      
+      console.error('💥 Request failed:', {
+        error: error.message,
+        name: error.name,
+        stack: error.stack,
+        url: this.options.webhookUrl
+      });
 
       if (error.name === 'AbortError') {
         throw createDiagnosisError(

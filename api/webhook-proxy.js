@@ -52,17 +52,18 @@ export default async function handler(req, res) {
       data = { message: responseText };
     }
 
-    // Handle n8n specific errors
-    if (!response.ok || (data && data.message && data.message.includes('Workflow could not be started'))) {
+    // Handle n8n specific errors - check data first, then response status
+    if ((data && data.message && data.message.includes('Workflow could not be started')) || !response.ok) {
       console.error('N8N Workflow error:', response.status, data);
       
       // Return a user-friendly error for workflow issues
       if (data && data.message && data.message.includes('Workflow could not be started')) {
         return res.status(200).json({
           error: 'workflow_inactive',
-          message: 'O sistema de diagnóstico está temporariamente indisponível. Nossa equipe técnica foi notificada.',
+          message: 'O sistema de diagnóstico está temporariamente indisponível.',
           technical_details: data.message,
-          user_message: 'Tente novamente em alguns minutos ou entre em contato conosco.',
+          user_message: 'O workflow do n8n não está ativo. Verifique se o fluxo está publicado e funcionando no Railway.',
+          n8n_error: data,
         });
       }
       
