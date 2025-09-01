@@ -129,12 +129,18 @@ class AnalyticsService {
       return;
     }
 
+    // Validate metric data before adding to queue
+    if (!metricName || typeof value !== 'number' || isNaN(value) || !unit) {
+      console.warn('Invalid performance metric data:', { metricName, value, unit });
+      return;
+    }
+
     const metric: PerformanceMetric = {
       metric_name: metricName,
-      value,
+      value: Math.round(value * 100) / 100, // Round to 2 decimal places
       unit,
       timestamp: new Date().toISOString(),
-      context,
+      context: context || {},
     };
 
     this.performanceQueue.push(metric);
@@ -275,17 +281,27 @@ class AnalyticsService {
       // Flush events
       if (this.eventQueue.length > 0) {
         const events = this.eventQueue.splice(0, this.batchSize);
-        await supabase
-          .from('analytics_events')
-          .insert(events);
+        try {
+          await supabase
+            .from('analytics_events')
+            .insert(events);
+        } catch (error) {
+          console.warn('Failed to insert analytics events:', error);
+          // Don't re-throw to prevent breaking the main flow
+        }
       }
 
       // Flush performance metrics
       if (this.performanceQueue.length > 0) {
         const metrics = this.performanceQueue.splice(0, this.batchSize);
-        await supabase
-          .from('analytics_performance')
-          .insert(metrics);
+        try {
+          await supabase
+            .from('analytics_performance')
+            .insert(metrics);
+        } catch (error) {
+          console.warn('Failed to insert performance metrics:', error);
+          // Don't re-throw to prevent breaking the main flow
+        }
       }
     } catch (error) {
       console.error('Failed to flush analytics data:', error);

@@ -208,7 +208,8 @@ export class ChatService implements ChatServiceInterface {
       url: this.options.webhookUrl,
       method: 'POST',
       body: request,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      timeout: this.options.timeout
     });
 
     try {

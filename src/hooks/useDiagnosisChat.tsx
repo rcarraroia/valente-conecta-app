@@ -269,19 +269,22 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add AI message to state
       setMessages(prev => [...prev, aiMessage]);
 
-      // Track message exchange (temporarily disabled due to Supabase error)
+      // Track message exchange with improved error handling
       try {
-        await analyticsService.trackChatInteraction(user.id, session.id, 'message_sent', {
-          message_length: content.length,
-          response_time: response.metadata?.response_time,
-        });
-        
-        await analyticsService.trackChatInteraction(user.id, session.id, 'message_received', {
-          response_length: responseData.message.length,
-          diagnosis_complete: responseData.diagnosis_complete,
-        });
+        if (analyticsService) {
+          await analyticsService.trackChatInteraction(user.id, session.id, 'message_sent', {
+            message_length: content.length,
+            response_time: response.metadata?.duration || 0,
+          });
+          
+          await analyticsService.trackChatInteraction(user.id, session.id, 'message_received', {
+            response_length: responseData.message.length,
+            diagnosis_complete: responseData.diagnosis_complete || false,
+          });
+        }
       } catch (analyticsError) {
-        console.warn('Analytics tracking failed:', analyticsError);
+        // Silently fail analytics to not affect user experience
+        console.warn('Analytics tracking failed (non-critical):', analyticsError);
       }
       
       loggingService.logChatInteraction('message_sent', user.id, session.id, {

@@ -26,23 +26,57 @@ export default async function handler(req, res) {
     console.log('🚀 Proxying request to:', webhookUrl);
     console.log('📝 Request method:', req.method);
     console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
-    console.log('📋 Request headers:', req.headers);
+    console.log('📋 Request headers (filtered):', {
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent'],
+      'content-length': req.headers['content-length']
+    });
+
+    // Validate request body
+    if (!req.body || typeof req.body !== 'object') {
+      console.error('❌ Invalid request body:', req.body);
+      return res.status(400).json({
+        error: 'invalid_request',
+        message: 'Request body must be a valid JSON object'
+      });
+    }
+
+    if (!req.body.chatInput) {
+      console.error('❌ Missing chatInput in request body');
+      return res.status(400).json({
+        error: 'missing_chat_input',
+        message: 'chatInput field is required'
+      });
+    }
 
     // Forward the request to the actual webhook
+    const startTime = Date.now();
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Valente-Conecta-Proxy/1.0',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(req.body),
+      timeout: 30000, // 30 second timeout
     });
 
-    console.log('Webhook response status:', response.status);
+    const responseTime = Date.now() - startTime;
+
+    console.log('📡 Webhook response:', {
+      status: response.status,
+      statusText: response.statusText,
+      responseTime: `${responseTime}ms`,
+      headers: {
+        'content-type': response.headers.get('content-type'),
+        'content-length': response.headers.get('content-length')
+      }
+    });
     
     // Always try to get response as text first
     const responseText = await response.text();
-    console.log('Webhook response text:', responseText);
+    console.log('📄 Webhook response text (first 500 chars):', responseText.substring(0, 500));
 
     // Try to parse as JSON
     let data;
@@ -80,11 +114,34 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
 
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('💥 Proxy error:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Handle specific error types
+    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+      return res.status(408).json({
+        error: 'request_timeout',
+        message: 'Request to n8n webhook timed out',
+        user_message: 'O sistema está demorando para responder. Tente novamente em alguns segundos.'
+      });
+    }
+
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      return res.status(503).json({
+        error: 'service_unavailable',
+        message: 'Unable to connect to n8n webhook service',
+        user_message: 'O serviço de pré-diagnóstico está temporariamente indisponível.'
+      });
+    }
     
     return res.status(500).json({
-      error: 'Proxy request failed',
+      error: 'proxy_error',
       message: error.message,
+      user_message: 'Erro interno do servidor. Tente novamente em alguns minutos.',
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
