@@ -219,17 +219,27 @@ export class ChatService implements ChatServiceInterface {
 
       clearTimeout(timeoutId);
 
+      const data = await response.json();
+      
+      // Check for n8n workflow errors even in 200 responses
+      if (data && data.error === 'workflow_inactive') {
+        throw createDiagnosisError(
+          DiagnosisErrorType.WEBHOOK_TIMEOUT,
+          data.user_message || 'O sistema de diagnóstico está temporariamente indisponível.',
+          { error: data, technical_details: data.technical_details },
+          true
+        );
+      }
+
       if (!response.ok) {
         // Handle specific N8N workflow errors
         if (response.status === 500) {
-          const errorText = await response.text();
           try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.message && errorData.message.includes('Workflow could not be started')) {
+            if (data.message && data.message.includes('Workflow could not be started')) {
               throw createDiagnosisError(
                 DiagnosisErrorType.WEBHOOK_TIMEOUT,
                 'O workflow de diagnóstico não está ativo. Verifique se o fluxo N8N está publicado e funcionando.',
-                { status: response.status, error: errorData },
+                { status: response.status, error: data },
                 true
               );
             }
@@ -240,8 +250,6 @@ export class ChatService implements ChatServiceInterface {
         
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
-      const data = await response.json();
       return data as N8nWebhookResponse;
 
     } catch (error: any) {

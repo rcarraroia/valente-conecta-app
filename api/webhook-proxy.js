@@ -24,6 +24,7 @@ export default async function handler(req, res) {
     const webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
     
     console.log('Proxying request to:', webhookUrl);
+    console.log('Request method:', req.method);
     console.log('Request body:', req.body);
 
     // Forward the request to the actual webhook
@@ -37,19 +38,42 @@ export default async function handler(req, res) {
     });
 
     console.log('Webhook response status:', response.status);
+    
+    // Always try to get response as text first
+    const responseText = await response.text();
+    console.log('Webhook response text:', responseText);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Webhook error:', errorText);
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Failed to parse response as JSON:', parseError);
+      data = { message: responseText };
+    }
+
+    // Handle n8n specific errors
+    if (!response.ok || (data && data.message && data.message.includes('Workflow could not be started'))) {
+      console.error('N8N Workflow error:', response.status, data);
       
-      return res.status(response.status).json({
-        error: 'Webhook request failed',
+      // Return a user-friendly error for workflow issues
+      if (data && data.message && data.message.includes('Workflow could not be started')) {
+        return res.status(200).json({
+          error: 'workflow_inactive',
+          message: 'O sistema de diagnóstico está temporariamente indisponível. Nossa equipe técnica foi notificada.',
+          technical_details: data.message,
+          user_message: 'Tente novamente em alguns minutos ou entre em contato conosco.',
+        });
+      }
+      
+      return res.status(400).json({
+        error: 'webhook_error',
         status: response.status,
-        message: errorText,
+        data: data,
+        message: data.message || responseText,
       });
     }
 
-    const data = await response.json();
     console.log('Webhook response data:', data);
 
     // Return the response
@@ -61,6 +85,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       error: 'Proxy request failed',
       message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 }
