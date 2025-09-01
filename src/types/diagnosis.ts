@@ -19,6 +19,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   status?: 'sending' | 'sent' | 'error';
+  sender?: 'user' | 'ai' | 'system'; // For backward compatibility
 }
 
 // Diagnosis data structure from n8n

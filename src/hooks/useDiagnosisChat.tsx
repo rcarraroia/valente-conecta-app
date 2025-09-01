@@ -223,13 +223,13 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
 
     try {
       // Create user message
-      const userMessage = createChatMessage({
+      const userMessage: ChatMessage = {
         id: `msg_${Date.now()}_user`,
-        session_id: session.id,
-        sender: 'user',
+        type: 'user',
         content: content.trim(),
-        timestamp: new Date().toISOString(),
-      });
+        timestamp: new Date(),
+        status: 'sending',
+      };
 
       // Add user message to state immediately
       setMessages(prev => [...prev, userMessage]);
@@ -241,9 +241,9 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
         session_id: session.id,
         timestamp: new Date().toISOString(),
         message_history: messages.map(msg => ({
-          sender: msg.sender,
+          sender: msg.type,
           content: msg.content,
-          timestamp: msg.timestamp,
+          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : new Date(msg.timestamp).toISOString(),
         })),
       };
 
@@ -262,13 +262,13 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       const responseData = response.data;
 
       // Create AI response message
-      const aiMessage = createChatMessage({
+      const aiMessage: ChatMessage = {
         id: `msg_${Date.now()}_ai`,
-        session_id: session.id,
-        sender: 'ai',
+        type: 'ai',
         content: responseData.message,
-        timestamp: new Date().toISOString(),
-      });
+        timestamp: new Date(),
+        status: 'sent',
+      };
 
       // Add AI message to state
       setMessages(prev => [...prev, aiMessage]);
