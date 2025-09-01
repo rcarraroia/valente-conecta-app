@@ -1,180 +1,196 @@
 // Utility functions for diagnosis system
 
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { 
-  DiagnosisError, 
-  DiagnosisErrorType, 
+import type { 
   ChatMessage, 
-  DiagnosisData,
-  DiagnosisReport 
+  DiagnosisChatSession,
+  DiagnosisData 
 } from '@/types/diagnosis';
-import { 
-  ERROR_MESSAGES, 
-  SEVERITY_LEVELS, 
-  DEFAULTS,
-  VALIDATION_RULES 
-} from '@/lib/diagnosis-constants';
 
 /**
- * Creates a standardized diagnosis error
+ * Creates a new chat message with proper validation
  */
-export const createDiagnosisError = (
-  type: DiagnosisErrorType,
-  message?: string,
-  details?: any,
-  retryable: boolean = true
-): DiagnosisError => {
+export const createChatMessage = (data: Partial<ChatMessage> & { 
+  id: string; 
+  session_id: string; 
+  sender: 'user' | 'ai' | 'system'; 
+  content: string; 
+  timestamp: string; 
+}): ChatMessage => {
   return {
-    type,
-    message: message || ERROR_MESSAGES[type] || ERROR_MESSAGES.GENERIC_ERROR,
-    details,
-    retryable,
-    timestamp: new Date(),
+    id: data.id,
+    session_id: data.session_id,
+    sender: data.sender,
+    content: data.content,
+    timestamp: data.timestamp,
+    status: data.status || 'sent',
+    metadata: data.metadata,
+    type: data.sender, // Map sender to type for compatibility
   };
+};
+
+/**
+ * Creates a new diagnosis chat session
+ */
+export const createDiagnosisChatSession = (data: Partial<DiagnosisChatSession> & {
+  id: string;
+  user_id: string;
+  status: 'active' | 'completed' | 'abandoned';
+  started_at: string;
+}): DiagnosisChatSession => {
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    status: data.status,
+    started_at: data.started_at,
+    completed_at: data.completed_at,
+    last_activity: data.last_activity || data.started_at,
+    message_count: data.message_count || 0,
+    metadata: data.metadata,
+  };
+};
+
+/**
+ * Validates if a chat message is properly formatted
+ */
+export const isValidChatMessage = (message: any): message is ChatMessage => {
+  return (
+    message &&
+    typeof message.id === 'string' &&
+    typeof message.session_id === 'string' &&
+    typeof message.content === 'string' &&
+    typeof message.timestamp === 'string' &&
+    ['user', 'ai', 'system'].includes(message.sender) &&
+    ['user', 'ai', 'system'].includes(message.type)
+  );
+};
+
+/**
+ * Validates if a diagnosis session is properly formatted
+ */
+export const isValidDiagnosisSession = (session: any): session is DiagnosisChatSession => {
+  return (
+    session &&
+    typeof session.id === 'string' &&
+    typeof session.user_id === 'string' &&
+    typeof session.started_at === 'string' &&
+    ['active', 'completed', 'abandoned'].includes(session.status)
+  );
+};
+
+/**
+ * Formats a timestamp for display
+ */
+export const formatTimestamp = (timestamp: string): string => {
+  try {
+    return new Date(timestamp).toLocaleString('pt-BR');
+  } catch {
+    return 'Data inválida';
+  }
 };
 
 /**
  * Generates a unique session ID
  */
-export const generateSessionId = (): string => {
-  const timestamp = Date.now().toString(36);
-  const randomStr = Math.random().toString(36).substring(2, 15);
-  return `session_${timestamp}_${randomStr}`;
+export const generateSessionId = (userId: string): string => {
+  return `session_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 /**
  * Generates a unique message ID
  */
-export const generateMessageId = (): string => {
-  const timestamp = Date.now().toString(36);
-  const randomStr = Math.random().toString(36).substring(2, 10);
-  return `msg_${timestamp}_${randomStr}`;
+export const generateMessageId = (sessionId: string, sender: string): string => {
+  return `msg_${sessionId}_${sender}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 /**
- * Creates a chat message object
+ * Extracts severity level from diagnosis data
  */
-export const createChatMessage = (
-  content: string,
-  type: 'user' | 'ai' | 'system' = 'user',
-  status?: 'sending' | 'sent' | 'error'
-): ChatMessage => {
+export const extractSeverityLevel = (diagnosisData: DiagnosisData): number => {
+  return diagnosisData.severity_level || 1;
+};
+
+/**
+ * Formats diagnosis summary for display
+ */
+export const formatDiagnosisSummary = (diagnosisData: DiagnosisData): string => {
+  const symptoms = diagnosisData.symptoms?.join(', ') || 'Não informado';
+  const analysis = diagnosisData.analysis || 'Análise não disponível';
+  
+  return `Sintomas: ${symptoms}\nAnálise: ${analysis}`;
+};
+
+/**
+ * Validates diagnosis data completeness
+ */
+export const isCompleteDiagnosisData = (data: any): data is DiagnosisData => {
+  return (
+    data &&
+    Array.isArray(data.symptoms) &&
+    data.symptoms.length > 0 &&
+    typeof data.analysis === 'string' &&
+    data.analysis.length > 0 &&
+    Array.isArray(data.recommendations) &&
+    data.recommendations.length > 0
+  );
+};
+
+/**
+ * Sanitizes user input for chat messages
+ */
+export const sanitizeMessageContent = (content: string): string => {
+  return content
+    .trim()
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .substring(0, 2000); // Limit message length
+};
+
+/**
+ * Checks if a session is expired (24 hours)
+ */
+export const isSessionExpired = (session: DiagnosisChatSession): boolean => {
+  const lastActivity = new Date(session.last_activity || session.started_at);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60);
+  
+  return hoursDiff > 24;
+};
+
+/**
+ * Gets session duration in minutes
+ */
+export const getSessionDuration = (session: DiagnosisChatSession): number => {
+  const start = new Date(session.started_at);
+  const end = session.completed_at ? new Date(session.completed_at) : new Date();
+  
+  return Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+};
+
+/**
+ * Formats session duration for display
+ */
+export const formatSessionDuration = (session: DiagnosisChatSession): string => {
+  const minutes = getSessionDuration(session);
+  
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  return `${hours}h ${remainingMinutes}min`;
+};
+
+/**
+ * Creates a diagnosis error with proper typing
+ */
+export const createDiagnosisError = (type: string, message: string, details?: any): any => {
   return {
-    id: generateMessageId(),
     type,
-    content,
-    timestamp: new Date(),
-    status,
+    message,
+    details,
+    timestamp: new Date().toISOString(),
   };
-};
-
-/**
- * Validates a message content
- */
-export const validateMessage = (message: string): { isValid: boolean; error?: string } => {
-  if (!message || message.trim().length === 0) {
-    return { isValid: false, error: 'Mensagem não pode estar vazia' };
-  }
-
-  if (message.length < VALIDATION_RULES.MIN_MESSAGE_LENGTH) {
-    return { isValid: false, error: 'Mensagem muito curta' };
-  }
-
-  if (message.length > VALIDATION_RULES.MAX_MESSAGE_LENGTH) {
-    return { isValid: false, error: ERROR_MESSAGES.MESSAGE_TOO_LONG };
-  }
-
-  return { isValid: true };
-};
-
-/**
- * Validates a UUID
- */
-export const isValidUUID = (uuid: string): boolean => {
-  return VALIDATION_RULES.UUID_REGEX.test(uuid);
-};
-
-/**
- * Formats a date for display in Portuguese
- */
-export const formatDate = (date: string | Date, formatStr: string = 'dd/MM/yyyy HH:mm'): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return format(dateObj, formatStr, { locale: ptBR });
-};
-
-/**
- * Formats a relative date (e.g., "há 2 horas")
- */
-export const formatRelativeDate = (date: string | Date): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const now = new Date();
-  const diffInMinutes = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60));
-
-  if (diffInMinutes < 1) return 'agora mesmo';
-  if (diffInMinutes < 60) return `há ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `há ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
-  
-  return formatDate(dateObj, 'dd/MM/yyyy');
-};
-
-/**
- * Gets severity level information
- */
-export const getSeverityInfo = (level: number) => {
-  return SEVERITY_LEVELS[level as keyof typeof SEVERITY_LEVELS] || SEVERITY_LEVELS[1];
-};
-
-/**
- * Generates a PDF filename
- */
-export const generatePDFFilename = (userId: string, timestamp?: Date): string => {
-  const date = timestamp || new Date();
-  const timestampStr = date.getTime().toString();
-  return DEFAULTS.PDF_FILENAME_FORMAT
-    .replace('{userId}', userId)
-    .replace('{timestamp}', timestampStr);
-};
-
-/**
- * Generates a report title
- */
-export const generateReportTitle = (timestamp?: Date): string => {
-  const date = timestamp || new Date();
-  const dateStr = formatDate(date, 'dd/MM/yyyy HH:mm');
-  return `${DEFAULTS.REPORT_TITLE_PREFIX} - ${dateStr}`;
-};
-
-/**
- * Sanitizes text content for display
- */
-export const sanitizeText = (text: string): string => {
-  return text
-    .replace(/[<>]/g, '') // Remove potential HTML tags
-    .replace(/\n{3,}/g, '\n\n') // Limit consecutive line breaks
-    .trim();
-};
-
-/**
- * Truncates text to a maximum length
- */
-export const truncateText = (text: string, maxLength: number = 100): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
-};
-
-/**
- * Checks if a session is expired
- */
-export const isSessionExpired = (startedAt: string | Date, timeoutMs: number = 30 * 60 * 1000): boolean => {
-  const startDate = typeof startedAt === 'string' ? new Date(startedAt) : startedAt;
-  const now = new Date();
-  return (now.getTime() - startDate.getTime()) > timeoutMs;
 };
 
 /**
@@ -183,87 +199,77 @@ export const isSessionExpired = (startedAt: string | Date, timeoutMs: number = 3
 export const extractErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
   if (error?.message) return error.message;
-  if (error?.error) return error.error;
-  if (error?.details?.message) return error.details.message;
-  return ERROR_MESSAGES.GENERIC_ERROR;
+  if (error?.error?.message) return error.error.message;
+  return 'Erro desconhecido';
 };
 
 /**
- * Determines if an error is retryable
+ * Retry function with exponential backoff
  */
-export const isRetryableError = (error: any): boolean => {
-  if (error?.retryable !== undefined) return error.retryable;
+export const retryWithBackoff = async <T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> => {
+  let lastError: any;
   
-  // Check error message for authentication issues (before type is set)
-  const message = extractErrorMessage(error);
-  if (message.includes('unauthorized') || message.includes('forbidden')) {
-    return false;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      const delay = baseDelay * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
   
-  // Network errors are usually retryable
-  if (error?.type === DiagnosisErrorType.NETWORK_ERROR) return true;
-  if (error?.type === DiagnosisErrorType.WEBHOOK_TIMEOUT) return true;
-  if (error?.type === DiagnosisErrorType.SUPABASE_ERROR) return true;
-  
-  // Authentication errors are not retryable
-  if (error?.type === DiagnosisErrorType.AUTHENTICATION_ERROR) return false;
-  
-  // Default to retryable for unknown errors
-  return true;
+  throw lastError;
 };
 
 /**
- * Formats file size for display
+ * Formats date for display
  */
-export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+export const formatDate = (date: string | Date): string => {
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('pt-BR');
+  } catch {
+    return 'Data inválida';
+  }
 };
 
 /**
- * Validates diagnosis data structure
+ * Formats currency for display
  */
-export const validateDiagnosisData = (data: any): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!data) {
-    errors.push('Dados de diagnóstico não fornecidos');
-    return { isValid: false, errors };
-  }
-
-  if (!data.analysis || typeof data.analysis !== 'string') {
-    errors.push('Análise é obrigatória');
-  }
-
-  if (!data.recommendations || !Array.isArray(data.recommendations) || data.recommendations.length === 0) {
-    errors.push('Recomendações são obrigatórias');
-  }
-
-  if (!data.severity_level || typeof data.severity_level !== 'number' || data.severity_level < 1 || data.severity_level > 5) {
-    errors.push('Nível de severidade deve ser entre 1 e 5');
-  }
-
-  if (!data.symptoms || !Array.isArray(data.symptoms) || data.symptoms.length === 0) {
-    errors.push('Sintomas são obrigatórios');
-  }
-
-  return { isValid: errors.length === 0, errors };
+export const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
 };
 
 /**
- * Creates a storage path for user files
+ * Validates email format
  */
-export const createUserStoragePath = (userId: string, filename: string): string => {
-  return `${userId}/${filename}`;
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 /**
- * Debounce function for limiting API calls
+ * Generates a random ID
+ */
+export const generateId = (prefix: string = 'id'): string => {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Debounce function
  */
 export const debounce = <T extends (...args: any[]) => any>(
   func: T,
@@ -278,35 +284,19 @@ export const debounce = <T extends (...args: any[]) => any>(
 };
 
 /**
- * Retry function with exponential backoff
+ * Throttle function
  */
-export const retryWithBackoff = async <T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
-): Promise<T> => {
-  let lastError: any;
-
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      
-      if (attempt === maxRetries) {
-        throw error;
-      }
-
-      // Don't retry if error is not retryable
-      if (!isRetryableError(error)) {
-        throw error;
-      }
-
-      // Exponential backoff: 1s, 2s, 4s, 8s...
-      const delay = baseDelay * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, delay));
+export const throttle = <T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+): ((...args: Parameters<T>) => void) => {
+  let inThrottle: boolean;
+  
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
     }
-  }
-
-  throw lastError;
+  };
 };

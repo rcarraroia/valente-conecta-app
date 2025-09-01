@@ -1,152 +1,243 @@
-// Constants and configuration for diagnosis system
+// Diagnosis system constants
 
-// n8n webhook configuration
-export const N8N_CONFIG = {
-  WEBHOOK_URL: 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico',
-  TIMEOUT: 30000, // 30 seconds
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000, // 1 second
-} as const;
-
-// PDF configuration
+// PDF Configuration
 export const PDF_CONFIG = {
-  MAX_SIZE: 10 * 1024 * 1024, // 10MB
-  ALLOWED_FORMATS: ['application/pdf'],
-  TEMPLATES: {
-    STANDARD: 'standard',
-    DETAILED: 'detailed',
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  COMPRESSION_QUALITY: 0.8,
+  PAGE_MARGINS: {
+    top: 50,
+    bottom: 50,
+    left: 50,
+    right: 50,
+  },
+  FONT_SIZES: {
+    title: 18,
+    subtitle: 14,
+    body: 12,
+    caption: 10,
+  },
+  COLORS: {
+    primary: '#2563eb',
+    secondary: '#64748b',
+    success: '#16a34a',
+    warning: '#d97706',
+    error: '#dc2626',
+    text: '#1f2937',
+    muted: '#6b7280',
   },
 } as const;
 
-// Storage configuration
-export const STORAGE_CONFIG = {
-  BUCKET_NAME: 'diagnosis-reports',
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-  ALLOWED_MIME_TYPES: ['application/pdf'],
-  FILE_NAME_PREFIX: 'diagnostico',
+// N8n Webhook Configuration
+export const N8N_CONFIG = {
+  TIMEOUT: 30000, // 30 seconds
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY: 2000, // 2 seconds
+  MAX_MESSAGE_LENGTH: 2000,
+  HEADERS: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
 } as const;
 
-// Chat configuration
-export const CHAT_CONFIG = {
-  MAX_MESSAGE_LENGTH: 1000,
-  MAX_MESSAGES_PER_SESSION: 100,
-  SESSION_TIMEOUT: 30 * 60 * 1000, // 30 minutes
-  TYPING_INDICATOR_DELAY: 500, // 0.5 seconds
-} as const;
-
-// Error messages in Portuguese
-export const ERROR_MESSAGES = {
-  NETWORK_ERROR: 'Erro de conexão. Verifique sua internet e tente novamente.',
-  WEBHOOK_TIMEOUT: 'O sistema demorou para responder. Tente novamente.',
-  SUPABASE_ERROR: 'Erro no banco de dados. Tente novamente em alguns instantes.',
-  PDF_GENERATION_ERROR: 'Erro ao gerar o relatório PDF. Tente novamente.',
-  STORAGE_ERROR: 'Erro ao salvar o arquivo. Tente novamente.',
-  AUTHENTICATION_ERROR: 'Erro de autenticação. Faça login novamente.',
-  INVALID_SESSION: 'Sessão inválida. Inicie uma nova conversa.',
-  MESSAGE_TOO_LONG: `Mensagem muito longa. Máximo ${CHAT_CONFIG.MAX_MESSAGE_LENGTH} caracteres.`,
-  SESSION_EXPIRED: 'Sessão expirada. Inicie uma nova conversa.',
-  GENERIC_ERROR: 'Ocorreu um erro inesperado. Tente novamente.',
-} as const;
-
-// Success messages in Portuguese
-export const SUCCESS_MESSAGES = {
-  SESSION_STARTED: 'Conversa iniciada com sucesso!',
-  MESSAGE_SENT: 'Mensagem enviada!',
-  PDF_GENERATED: 'Relatório gerado com sucesso!',
-  REPORT_SAVED: 'Relatório salvo com sucesso!',
-  SESSION_COMPLETED: 'Diagnóstico concluído com sucesso!',
-} as const;
-
-// Diagnosis severity levels
-export const SEVERITY_LEVELS = {
-  1: { label: 'Muito Baixo', color: 'green', description: 'Sintomas leves ou ausentes' },
-  2: { label: 'Baixo', color: 'lime', description: 'Sintomas leves que não interferem significativamente' },
-  3: { label: 'Moderado', color: 'yellow', description: 'Sintomas moderados que podem interferir no dia a dia' },
-  4: { label: 'Alto', color: 'orange', description: 'Sintomas significativos que interferem nas atividades' },
-  5: { label: 'Muito Alto', color: 'red', description: 'Sintomas graves que requerem atenção imediata' },
-} as const;
-
-// Chat message types
-export const MESSAGE_TYPES = {
-  USER: 'user',
-  AI: 'ai',
-  SYSTEM: 'system',
-} as const;
-
-// Chat message status
-export const MESSAGE_STATUS = {
-  SENDING: 'sending',
-  SENT: 'sent',
-  ERROR: 'error',
-} as const;
-
-// Session status
-export const SESSION_STATUS = {
-  ACTIVE: 'active',
-  COMPLETED: 'completed',
-  ERROR: 'error',
-} as const;
-
-// Report status
-export const REPORT_STATUS = {
-  COMPLETED: 'completed',
-  PROCESSING: 'processing',
-  ERROR: 'error',
-} as const;
-
-// Default values
+// Default Values
 export const DEFAULTS = {
-  CHAT_PLACEHOLDER: 'Digite sua mensagem...',
-  INITIAL_MESSAGE: 'iniciar',
-  SESSION_TITLE: 'Pré-Diagnóstico',
-  REPORT_TITLE_PREFIX: 'Relatório de Pré-Diagnóstico',
-  PDF_FILENAME_FORMAT: 'diagnostico-{userId}-{timestamp}.pdf',
+  SESSION_TIMEOUT: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  MAX_MESSAGES_PER_SESSION: 100,
+  BATCH_SIZE: 20,
+  FLUSH_INTERVAL: 30000, // 30 seconds
+  RETRY_DELAY: 2000, // 2 seconds
+  MAX_RETRIES: 3,
 } as const;
 
-// Validation rules
+// Validation Rules
 export const VALIDATION_RULES = {
   MIN_MESSAGE_LENGTH: 1,
-  MAX_MESSAGE_LENGTH: CHAT_CONFIG.MAX_MESSAGE_LENGTH,
+  MAX_MESSAGE_LENGTH: 2000,
   MIN_TITLE_LENGTH: 1,
   MAX_TITLE_LENGTH: 255,
-  UUID_REGEX: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  UUID_REGEX: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  MESSAGE: {
+    MIN_LENGTH: 1,
+    MAX_LENGTH: 2000,
+  },
+  SESSION_ID: {
+    MIN_LENGTH: 10,
+    MAX_LENGTH: 100,
+    PATTERN: /^session_[a-zA-Z0-9_-]+$/,
+  },
+  USER_ID: {
+    MIN_LENGTH: 1,
+    MAX_LENGTH: 100,
+  },
+  EMAIL: {
+    PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  },
+  PDF: {
+    MAX_SIZE: 10 * 1024 * 1024, // 10MB
+    ALLOWED_TYPES: ['application/pdf'],
+  },
 } as const;
 
-// Environment variables keys
-export const ENV_KEYS = {
-  SUPABASE_URL: 'VITE_SUPABASE_URL',
-  SUPABASE_ANON_KEY: 'VITE_SUPABASE_ANON_KEY',
-  N8N_WEBHOOK_URL: 'VITE_N8N_WEBHOOK_URL',
-  STORAGE_BUCKET: 'VITE_SUPABASE_STORAGE_BUCKET',
+// Severity Levels
+export const SEVERITY_LEVELS = {
+  1: { label: 'Muito Baixo', color: 'green' },
+  2: { label: 'Baixo', color: 'lime' },
+  3: { label: 'Moderado', color: 'yellow' },
+  4: { label: 'Alto', color: 'orange' },
+  5: { label: 'Muito Alto', color: 'red' },
 } as const;
 
-// API endpoints
-export const API_ENDPOINTS = {
-  DIAGNOSIS_REPORTS: '/rest/v1/relatorios_diagnostico',
-  CHAT_SESSIONS: '/rest/v1/diagnosis_chat_sessions',
-  STORAGE: '/storage/v1/object',
+// Error Types
+export const ERROR_TYPES = {
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  WEBHOOK_TIMEOUT: 'WEBHOOK_TIMEOUT',
+  SUPABASE_ERROR: 'SUPABASE_ERROR',
+  PDF_GENERATION_ERROR: 'PDF_GENERATION_ERROR',
+  STORAGE_ERROR: 'STORAGE_ERROR',
+  AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
 
-// Local storage keys
-export const STORAGE_KEYS = {
-  CURRENT_SESSION: 'diagnosis_current_session',
-  CHAT_HISTORY: 'diagnosis_chat_history',
-  USER_PREFERENCES: 'diagnosis_user_preferences',
+// HTTP Status Codes
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  TIMEOUT: 408,
+  CONFLICT: 409,
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
 } as const;
 
-// Animation durations (in milliseconds)
-export const ANIMATIONS = {
-  FADE_IN: 200,
-  SLIDE_UP: 300,
-  TYPING_INDICATOR: 1000,
-  MESSAGE_APPEAR: 150,
+// Analytics Events
+export const ANALYTICS_EVENTS = {
+  // User Journey
+  DIAGNOSIS_STARTED: 'diagnosis_started',
+  DIAGNOSIS_COMPLETED: 'diagnosis_completed',
+  DIAGNOSIS_ABANDONED: 'diagnosis_abandoned',
+  
+  // Chat Events
+  CHAT_SESSION_STARTED: 'chat_session_started',
+  CHAT_MESSAGE_SENT: 'chat_message_sent',
+  CHAT_MESSAGE_RECEIVED: 'chat_message_received',
+  CHAT_SESSION_ENDED: 'chat_session_ended',
+  
+  // PDF Events
+  PDF_GENERATION_STARTED: 'pdf_generation_started',
+  PDF_GENERATION_COMPLETED: 'pdf_generation_completed',
+  PDF_GENERATION_FAILED: 'pdf_generation_failed',
+  PDF_DOWNLOADED: 'pdf_downloaded',
+  PDF_VIEWED: 'pdf_viewed',
+  
+  // System Events
+  ERROR_OCCURRED: 'error_occurred',
+  ERROR_RECOVERED: 'error_recovered',
+  FEATURE_USED: 'feature_used',
 } as const;
 
-// Responsive breakpoints (matching Tailwind)
+// Log Levels
+export const LOG_LEVELS = {
+  DEBUG: 'debug',
+  INFO: 'info',
+  WARN: 'warn',
+  ERROR: 'error',
+  FATAL: 'fatal',
+} as const;
+
+// Log Categories
+export const LOG_CATEGORIES = {
+  SYSTEM: 'system',
+  AUTH: 'auth',
+  CHAT: 'chat',
+  PDF: 'pdf',
+  STORAGE: 'storage',
+  DATABASE: 'database',
+  WEBHOOK: 'webhook',
+  PERFORMANCE: 'performance',
+  SECURITY: 'security',
+  USER_ACTION: 'user_action',
+} as const;
+
+// Health Check Status
+export const HEALTH_STATUS = {
+  HEALTHY: 'healthy',
+  DEGRADED: 'degraded',
+  UNHEALTHY: 'unhealthy',
+  UNKNOWN: 'unknown',
+} as const;
+
+// Alert Severities
+export const ALERT_SEVERITIES = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+} as const;
+
+// Responsive Breakpoints
 export const BREAKPOINTS = {
-  SM: 640,
-  MD: 768,
-  LG: 1024,
-  XL: 1280,
-  '2XL': 1536,
+  xs: 480,
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+} as const;
+
+// Storage Buckets
+export const STORAGE_BUCKETS = {
+  DIAGNOSIS_REPORTS: 'diagnosis-reports',
+  USER_UPLOADS: 'user-uploads',
+  SYSTEM_BACKUPS: 'system-backups',
+} as const;
+
+// Database Tables
+export const DB_TABLES = {
+  DIAGNOSIS_REPORTS: 'relatorios_diagnostico',
+  DIAGNOSIS_SESSIONS: 'diagnosis_sessions',
+  ANALYTICS_EVENTS: 'analytics_events',
+  ANALYTICS_PERFORMANCE: 'analytics_performance',
+  SYSTEM_LOGS: 'system_logs',
+  MONITORING_HEALTH_CHECKS: 'monitoring_health_checks',
+  MONITORING_ALERTS: 'monitoring_alerts',
+} as const;
+
+// Feature Flags
+export const FEATURE_FLAGS = {
+  CHAT_ENABLED: 'chatEnabled',
+  PDF_GENERATION_ENABLED: 'pdfGenerationEnabled',
+  ANALYTICS_ENABLED: 'analyticsEnabled',
+  MONITORING_ENABLED: 'monitoringEnabled',
+  OFFLINE_MODE_ENABLED: 'offlineModeEnabled',
+} as const;
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  CHAT_WEBHOOK: '/webhook/diagnosis-chat',
+  HEALTH_CHECK: '/health',
+  ANALYTICS: '/api/analytics',
+  MONITORING: '/api/monitoring',
+} as const;
+
+// Time Constants
+export const TIME = {
+  SECOND: 1000,
+  MINUTE: 60 * 1000,
+  HOUR: 60 * 60 * 1000,
+  DAY: 24 * 60 * 60 * 1000,
+  WEEK: 7 * 24 * 60 * 60 * 1000,
+  MONTH: 30 * 24 * 60 * 60 * 1000,
+} as const;
+
+// File Size Constants
+export const FILE_SIZE = {
+  KB: 1024,
+  MB: 1024 * 1024,
+  GB: 1024 * 1024 * 1024,
 } as const;
