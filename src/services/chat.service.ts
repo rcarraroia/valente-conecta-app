@@ -73,7 +73,9 @@ const retryWithBackoff = async <T>(
 };
 // Constants to avoid import issues
 const N8N_CONFIG = {
-  WEBHOOK_URL: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico',
+  WEBHOOK_URL: import.meta.env.MODE === 'production' 
+    ? '/api/webhook-proxy' // Use proxy in production to avoid CORS
+    : (import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico'),
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 2000,
@@ -485,25 +487,38 @@ export const createChatService = (options?: Partial<ChatServiceOptions>): ChatSe
 let chatServiceInstance: ChatService | null = null;
 
 try {
-  const webhookUrl = N8N_CONFIG.WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+  const webhookUrl = import.meta.env.MODE === 'production' 
+    ? '/api/webhook-proxy' // Use proxy in production
+    : (import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico');
+    
+  console.log('Initializing ChatService with URL:', webhookUrl);
+  
   chatServiceInstance = new ChatService({
     webhookUrl,
     timeout: 30000,
     retryAttempts: 3,
     retryDelay: 2000
   });
+  
+  console.log('✅ ChatService initialized successfully');
 } catch (error) {
   console.warn('ChatService initialization failed:', error);
-  // Try with minimal configuration
+  // Try with fallback configuration
   try {
+    const fallbackUrl = import.meta.env.MODE === 'production' 
+      ? '/api/webhook-proxy'
+      : 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+      
     chatServiceInstance = new ChatService({
-      webhookUrl: 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico',
+      webhookUrl: fallbackUrl,
       timeout: 30000,
       retryAttempts: 3,
       retryDelay: 2000
     });
+    
+    console.log('✅ ChatService initialized with fallback');
   } catch (fallbackError) {
-    console.error('ChatService fallback initialization failed:', fallbackError);
+    console.error('❌ ChatService fallback initialization failed:', fallbackError);
     chatServiceInstance = null;
   }
 }
