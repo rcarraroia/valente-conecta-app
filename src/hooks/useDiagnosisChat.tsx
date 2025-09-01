@@ -106,6 +106,11 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       
       setSession(newSession);
       
+      // Check if chat service is available
+      if (!chatService) {
+        throw new Error('Serviço de chat não está disponível no momento');
+      }
+      
       // Create initial request
       const initialRequest = chatService.createInitialRequest(user.id, sessionId);
       
@@ -213,6 +218,11 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
           timestamp: msg.timestamp,
         })),
       };
+
+      // Check if chat service is available
+      if (!chatService) {
+        throw new Error('Serviço de chat não está disponível no momento');
+      }
 
       // Send message to chat service
       const response = await chatService.sendMessage(request);
@@ -358,6 +368,11 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       });
 
       setMessages(prev => [...prev, progressMessage]);
+
+      // Check if diagnosis report service is available
+      if (!diagnosisReportService) {
+        throw new Error('Serviço de relatórios não está disponível no momento');
+      }
 
       const result = await diagnosisReportService.generateAndSaveReport(
         user.id,

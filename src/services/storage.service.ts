@@ -616,5 +616,12 @@ export const createStorageService = (options?: Partial<StorageServiceOptions>): 
   return new StorageService(options);
 };
 
-// Default StorageService instance
-export const storageService = createStorageService();
+// Default StorageService instance - only create if configuration is valid
+export const storageService = (() => {
+  try {
+    return createStorageService();
+  } catch (error) {
+    console.warn('StorageService initialization failed:', error);
+    return null;
+  }
+})();

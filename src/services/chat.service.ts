@@ -404,5 +404,7 @@ export const createChatService = (options?: Partial<ChatServiceOptions>): ChatSe
   return new ChatService(options);
 };
 
-// Default ChatService instance
-export const chatService = createChatService();
+// Default ChatService instance - only create if chat is enabled
+export const chatService = isFeatureEnabled('chatEnabled') 
+  ? createChatService() 
+  : null;

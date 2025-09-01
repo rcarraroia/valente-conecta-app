@@ -50,7 +50,7 @@ export interface DiagnosisConfig {
 // Default configuration
 export const diagnosisConfig: DiagnosisConfig = {
   features: {
-    chatEnabled: true,
+    chatEnabled: !!process.env.VITE_N8N_WEBHOOK_URL, // Only enable if webhook URL is available
     pdfGenerationEnabled: true,
     analyticsEnabled: process.env.NODE_ENV === 'production',
     monitoringEnabled: process.env.NODE_ENV === 'production',
@@ -111,9 +111,12 @@ if (process.env.NODE_ENV === 'test') {
 // Configuration validation
 export const validateConfig = (): boolean => {
   const errors: string[] = [];
+  const warnings: string[] = [];
   
-  if (!diagnosisConfig.api.n8nWebhookUrl && diagnosisConfig.features.chatEnabled) {
-    errors.push('N8n webhook URL is required when chat is enabled');
+  // Only warn about missing webhook URL, don't error
+  if (!diagnosisConfig.api.n8nWebhookUrl) {
+    warnings.push('N8n webhook URL not configured - chat functionality will be disabled');
+    diagnosisConfig.features.chatEnabled = false;
   }
   
   if (diagnosisConfig.pdf.maxFileSize <= 0) {
@@ -122,6 +125,10 @@ export const validateConfig = (): boolean => {
   
   if (diagnosisConfig.chat.sessionTimeout <= 0) {
     errors.push('Chat session timeout must be greater than 0');
+  }
+  
+  if (warnings.length > 0) {
+    console.warn('Diagnosis configuration warnings:', warnings);
   }
   
   if (errors.length > 0) {
