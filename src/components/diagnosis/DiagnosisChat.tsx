@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Smartphone } from 'lucide-react';
+import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Smartphone, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDiagnosisChat } from '@/hooks/useDiagnosisChat';
 import { useResponsive, useMobileKeyboard, useTouchGestures } from '@/hooks/useResponsive';
 import { ChatMessage } from '@/types/diagnosis';
+import { WebhookDebugger } from '@/components/debug/WebhookDebugger';
 
 interface DiagnosisChatProps {
   sessionId?: string;
@@ -26,15 +27,16 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
   isKeyboardVisible: propIsKeyboardVisible
 }) => {
   const [inputMessage, setInputMessage] = useState('');
+  const [showDebugger, setShowDebugger] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Responsive hooks
   const { isMobile, isTablet, isTouchDevice, breakpoint } = useResponsive();
   const { isKeyboardVisible, viewportHeight } = useMobileKeyboard();
   const { touchState, handleTouchGestures } = useTouchGestures();
-  
+
   // Use props if provided, otherwise use hooks
   const actualIsMobile = propIsMobile ?? isMobile;
   const actualIsTouchDevice = propIsTouchDevice ?? isTouchDevice;
@@ -50,16 +52,16 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
     startSession,
     retryLastMessage,
     clearError
-  } = useDiagnosisChat(sessionId);
+  } = useDiagnosisChat();
 
   // Auto-scroll to latest messages - Mobile optimized
   useEffect(() => {
     if (messagesEndRef.current && typeof messagesEndRef.current.scrollIntoView === 'function') {
       // Use different scroll behavior for mobile
-      const scrollOptions = actualIsMobile 
+      const scrollOptions = actualIsMobile
         ? { behavior: 'smooth' as const, block: 'end' as const }
         : { behavior: 'smooth' as const };
-      
+
       messagesEndRef.current.scrollIntoView(scrollOptions);
     }
   }, [messages, isTyping, actualIsMobile]);
@@ -93,7 +95,7 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
   useEffect(() => {
     if (currentSessionId && onSessionComplete) {
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage?.type === 'ai' && lastMessage.metadata?.isComplete) {
+      if (lastMessage?.type === 'ai') {
         onSessionComplete(currentSessionId);
       }
     }
@@ -148,29 +150,26 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
         className={`flex gap-2 sm:gap-3 mb-3 sm:mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}
       >
         {isAI && (
-          <div className={`flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center ${
-            actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
-          }`}>
+          <div className={`flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center ${actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
+            }`}>
             <Bot className={`text-blue-600 ${actualIsMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
           </div>
         )}
-        
+
         <div className={`${actualIsMobile ? 'max-w-[85%]' : 'max-w-[80%]'} ${isUser ? 'order-first' : ''}`}>
           <div
-            className={`rounded-lg px-3 sm:px-4 py-2 ${
-              isUser
-                ? 'bg-blue-600 text-white ml-auto'
-                : 'bg-gray-100 text-gray-900'
-            }`}
+            className={`rounded-lg px-3 sm:px-4 py-2 ${isUser
+              ? 'bg-blue-600 text-white ml-auto'
+              : 'bg-gray-100 text-gray-900'
+              }`}
           >
             <p className={`whitespace-pre-wrap ${actualIsMobile ? 'text-sm' : 'text-sm'}`}>
               {message.content}
             </p>
           </div>
-          
-          <div className={`flex items-center gap-1 sm:gap-2 mt-1 text-xs text-gray-500 ${
-            isUser ? 'justify-end' : 'justify-start'
-          }`}>
+
+          <div className={`flex items-center gap-1 sm:gap-2 mt-1 text-xs text-gray-500 ${isUser ? 'justify-end' : 'justify-start'
+            }`}>
             <span>{formatMessageTime(message.timestamp)}</span>
             {message.status === 'error' && (
               <AlertCircle className="w-3 h-3 text-red-500" />
@@ -179,9 +178,8 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
         </div>
 
         {isUser && (
-          <div className={`flex-shrink-0 bg-blue-600 rounded-full flex items-center justify-center ${
-            actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
-          }`}>
+          <div className={`flex-shrink-0 bg-blue-600 rounded-full flex items-center justify-center ${actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
+            }`}>
             <User className={`text-white ${actualIsMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
           </div>
         )}
@@ -194,9 +192,8 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
 
     return (
       <div className={`flex gap-2 sm:gap-3 mb-3 sm:mb-4`}>
-        <div className={`flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center ${
-          actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
-        }`}>
+        <div className={`flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center ${actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'
+          }`}>
           <Bot className={`text-blue-600 ${actualIsMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
         </div>
         <div className="bg-gray-100 rounded-lg px-3 sm:px-4 py-2">
@@ -232,7 +229,7 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
               <span>Otimizado para dispositivos móveis</span>
             </div>
           )}
-          <Button 
+          <Button
             onClick={handleStartSession}
             disabled={isLoading}
             className="w-full"
@@ -253,40 +250,49 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
   }
 
   return (
-    <Card 
+    <Card
       ref={chatContainerRef}
       className={`flex flex-col ${className}`}
       style={{
-        height: actualIsMobile && actualIsKeyboardVisible 
-          ? `${viewportHeight - 100}px` 
-          : actualIsMobile 
-            ? '100vh' 
+        height: actualIsMobile && actualIsKeyboardVisible
+          ? `${viewportHeight - 100}px`
+          : actualIsMobile
+            ? '100vh'
             : '600px',
         maxHeight: actualIsMobile ? '100vh' : '600px',
       }}
     >
       {/* Header - Responsive */}
-      <div className={`flex items-center justify-between border-b flex-shrink-0 ${
-        actualIsMobile ? 'p-3' : 'p-4'
-      }`}>
+      <div className={`flex items-center justify-between border-b flex-shrink-0 ${actualIsMobile ? 'p-3' : 'p-4'
+        }`}>
         <div className="flex items-center gap-2 overflow-hidden">
           <Bot className={`text-blue-600 flex-shrink-0 ${actualIsMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
           <h3 className={`font-semibold truncate ${actualIsMobile ? 'text-sm' : 'text-base'}`}>
             {actualIsMobile ? 'Assistente IA' : 'Assistente de Pré-Diagnóstico'}
           </h3>
         </div>
-        <div className={`text-gray-500 flex-shrink-0 ${actualIsMobile ? 'text-xs' : 'text-xs'}`}>
-          {actualIsMobile ? currentSessionId?.slice(-6) : `Sessão: ${currentSessionId?.slice(-8)}`}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDebugger(!showDebugger)}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <Bug className="w-4 h-4" />
+            {!actualIsMobile && <span className="ml-1 text-xs">Debug</span>}
+          </Button>
+          <div className={`text-gray-500 flex-shrink-0 ${actualIsMobile ? 'text-xs' : 'text-xs'}`}>
+            {actualIsMobile ? currentSessionId?.slice(-6) : `Sessão: ${currentSessionId?.slice(-8)}`}
+          </div>
         </div>
       </div>
 
       {/* Messages Area - Responsive */}
-      <div className={`flex-1 overflow-y-auto space-y-2 sm:space-y-4 ${
-        actualIsMobile ? 'p-3' : 'p-4'
-      }`} style={{ 
-        WebkitOverflowScrolling: 'touch',
-        overscrollBehavior: 'contain'
-      }}>
+      <div className={`flex-1 overflow-y-auto space-y-2 sm:space-y-4 ${actualIsMobile ? 'p-3' : 'p-4'
+        }`} style={{
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
+        }}>
         {messages.length === 0 && !isLoading && (
           <div className={`text-center text-gray-500 ${actualIsMobile ? 'py-6' : 'py-8'}`}>
             <Bot className={`mx-auto mb-2 text-gray-400 ${actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'}`} />
@@ -301,7 +307,7 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
 
         {messages.map((message, index) => renderMessage(message, index))}
         {renderTypingIndicator()}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -367,11 +373,10 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
             )}
           </Button>
         </div>
-        
+
         {!actualIsKeyboardVisible && (
-          <div className={`flex items-center justify-between mt-2 text-gray-500 ${
-            actualIsMobile ? 'text-xs' : 'text-xs'
-          }`}>
+          <div className={`flex items-center justify-between mt-2 text-gray-500 ${actualIsMobile ? 'text-xs' : 'text-xs'
+            }`}>
             <span>
               {actualIsMobile ? 'Enter para enviar' : 'Pressione Enter para enviar'}
             </span>
@@ -384,6 +389,13 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
           </div>
         )}
       </div>
+
+      {/* Debug Panel */}
+      {showDebugger && (
+        <div className="border-t">
+          <WebhookDebugger />
+        </div>
+      )}
     </Card>
   );
 };

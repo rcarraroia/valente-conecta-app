@@ -1,108 +1,142 @@
-// Script para testar o webhook do Railway
-const WEBHOOK_URL = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
-
-async function testWebhook() {
-  console.log('🚀 Testando webhook do Railway...');
-  console.log('URL:', WEBHOOK_URL);
-  
-  // Teste 1: Requisição básica
-  const testRequest = {
-    user_id: 'test-user-123',
-    session_id: 'session_test_' + Date.now(),
-    message: 'Olá, este é um teste do webhook',
-    timestamp: new Date().toISOString(),
-    message_history: []
+// Script para testar o webhook proxy
+const testWebhook = async (messageContent = null) => {
+  const timestamp = new Date().toISOString();
+  const testMessage = {
+    chatInput: messageContent || `Teste de conectividade - ${timestamp}`,
+    user_id: "test_user_123",
+    session_id: "test_session_456",
+    timestamp: timestamp
   };
 
-  await testBasicRequest(testRequest);
-  
-  // Teste 2: Verificar se é um problema de estrutura de dados
-  console.log('\n🔄 Testando com estrutura alternativa...');
-  const alternativeRequest = {
-    userId: 'test-user-123',
-    sessionId: 'session_test_' + Date.now(),
-    text: 'Olá, este é um teste alternativo',
-    timestamp: new Date().toISOString()
-  };
-  
-  await testBasicRequest(alternativeRequest);
-}
+  console.log('🧪 Testando webhook proxy...');
+  console.log('📦 Payload de teste:', JSON.stringify(testMessage, null, 2));
+  console.log('⏰ Timestamp do teste:', timestamp);
 
-async function testBasicRequest(testRequest) {
+  const startTime = Date.now();
 
   try {
-    console.log('\n📤 Enviando requisição de teste...');
-    console.log('Payload:', JSON.stringify(testRequest, null, 2));
-    
-    const startTime = Date.now();
-    
-    const response = await fetch(WEBHOOK_URL, {
+    const response = await fetch('http://localhost:8080/api/webhook-proxy', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'Valente-Conecta-Test/1.0',
+        'User-Agent': 'Test-Script/1.0',
       },
-      body: JSON.stringify(testRequest),
+      body: JSON.stringify(testMessage)
     });
 
-    const responseTime = Date.now() - startTime;
-    
-    console.log('\n📥 Resposta recebida:');
-    console.log('Status:', response.status, response.statusText);
-    console.log('Tempo de resposta:', responseTime + 'ms');
-    
+    const duration = Date.now() - startTime;
+
+    console.log('📡 Status da resposta:', response.status);
+    console.log('⏱️ Tempo de resposta:', `${duration}ms`);
+    console.log('📋 Headers da resposta:', Object.fromEntries(response.headers.entries()));
+
+    const responseText = await response.text();
+    console.log('📄 Texto da resposta (primeiros 500 chars):', responseText.substring(0, 500));
+    console.log('📊 Tamanho da resposta:', responseText.length, 'caracteres');
+
     if (response.ok) {
-      const data = await response.json();
-      console.log('\n✅ Sucesso! Dados da resposta:');
-      console.log(JSON.stringify(data, null, 2));
-      
-      // Validar estrutura da resposta
-      if (data.message && data.session_id) {
-        console.log('\n🎯 Webhook está funcionando corretamente!');
-        console.log('- Mensagem recebida:', data.message.substring(0, 100) + '...');
-        console.log('- Session ID:', data.session_id);
-        console.log('- Diagnóstico completo:', data.diagnosis_complete || false);
-      } else {
-        console.log('\n⚠️ Resposta recebida mas estrutura inesperada');
+      try {
+        const data = JSON.parse(responseText);
+        console.log('✅ Resposta JSON:', data);
+        
+        // Verificar se a resposta contém os campos esperados
+        if (data.message) {
+          console.log('✅ Campo "message" encontrado:', data.message.substring(0, 100) + '...');
+        } else {
+          console.log('⚠️ Campo "message" não encontrado na resposta');
+        }
+        
+        if (data.session_id) {
+          console.log('✅ Campo "session_id" encontrado:', data.session_id);
+        } else {
+          console.log('⚠️ Campo "session_id" não encontrado na resposta');
+        }
+        
+      } catch (e) {
+        console.log('⚠️ Resposta não é JSON válido:', e.message);
+        console.log('📄 Resposta raw:', responseText);
       }
     } else {
-      const errorText = await response.text();
-      console.log('\n❌ Erro na resposta:');
-      console.log('Corpo da resposta:', errorText);
+      console.log('❌ Erro na requisição:', response.status, response.statusText);
       
-      // Analisar o erro específico
-      if (response.status === 500) {
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.message && errorData.message.includes('Workflow could not be started')) {
-            console.log('\n🔍 Diagnóstico do erro:');
-            console.log('- O webhook está acessível (Railway funcionando)');
-            console.log('- O workflow N8N não está ativo ou configurado corretamente');
-            console.log('- Verifique se o workflow está publicado e ativo no N8N');
-            console.log('- Confirme se a URL do webhook está correta');
-          }
-        } catch (parseError) {
-          console.log('- Erro interno do servidor (500)');
-        }
+      try {
+        const errorData = JSON.parse(responseText);
+        console.log('❌ Detalhes do erro:', errorData);
+      } catch (e) {
+        console.log('❌ Erro raw:', responseText);
       }
     }
-    
+
   } catch (error) {
-    console.log('\n💥 Erro ao testar webhook:');
-    console.error('Erro:', error.message);
+    const duration = Date.now() - startTime;
+    console.error('💥 Erro ao testar webhook:', error);
+    console.error('⏱️ Tempo até erro:', `${duration}ms`);
+    console.error('🔍 Tipo do erro:', error.name);
+    console.error('📝 Mensagem do erro:', error.message);
+  }
+};
+
+// Função para testar múltiplas mensagens em sequência
+const testMultipleMessages = async (count = 3, delay = 2000) => {
+  console.log(`🔄 Testando ${count} mensagens com delay de ${delay}ms...`);
+  
+  for (let i = 1; i <= count; i++) {
+    console.log(`\n--- Teste ${i}/${count} ---`);
+    await testWebhook(`Mensagem de teste ${i} - ${new Date().toISOString()}`);
     
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.log('\n🔍 Possíveis causas:');
-      console.log('- Problema de conectividade de rede');
-      console.log('- URL do webhook incorreta');
-      console.log('- Serviço do Railway indisponível');
+    if (i < count) {
+      console.log(`⏳ Aguardando ${delay}ms antes do próximo teste...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+  }
+  
+  console.log('\n✅ Todos os testes concluídos!');
+};
+
+// Função para testar conectividade básica
+const testConnectivity = async () => {
+  console.log('🔍 Testando conectividade básica...');
+  
+  try {
+    const response = await fetch('http://localhost:8080/api/webhook-proxy', {
+      method: 'HEAD',
+    });
+    
+    console.log('📡 Status HEAD:', response.status);
+    console.log('✅ Proxy está respondendo');
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Proxy não está respondendo:', error.message);
+    return false;
+  }
+};
+
+// Executar teste se chamado diretamente
+if (typeof window === 'undefined') {
+  // Node.js environment
+  const args = process.argv.slice(2);
+  
+  if (args.includes('--multiple')) {
+    const count = parseInt(args.find(arg => arg.startsWith('--count='))?.split('=')[1]) || 3;
+    const delay = parseInt(args.find(arg => arg.startsWith('--delay='))?.split('=')[1]) || 2000;
+    testMultipleMessages(count, delay);
+  } else if (args.includes('--connectivity')) {
+    testConnectivity();
+  } else {
+    const message = args.find(arg => arg.startsWith('--message='))?.split('=')[1];
+    testWebhook(message);
   }
 }
 
-// Executar teste
-testWebhook().then(() => {
-  console.log('\n🏁 Teste concluído');
-}).catch(error => {
-  console.error('Erro fatal:', error);
-});
+// Exportar para uso no browser
+if (typeof window !== 'undefined') {
+  window.testWebhook = testWebhook;
+  window.testMultipleMessages = testMultipleMessages;
+  window.testConnectivity = testConnectivity;
+  
+  console.log('🌐 Funções de teste disponíveis no window:');
+  console.log('- testWebhook(message)');
+  console.log('- testMultipleMessages(count, delay)');
+  console.log('- testConnectivity()');
+}

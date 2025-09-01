@@ -22,15 +22,27 @@ export default async function handler(req, res) {
 
   try {
     const webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+    const timestamp = new Date().toISOString();
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('🚀 Proxying request to:', webhookUrl);
-    console.log('📝 Request method:', req.method);
-    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
-    console.log('📋 Request headers (filtered):', {
+    console.log(`� [$q{requestId}] [${timestamp}] Proxying request to:`, webhookUrl);
+    console.log(`� R[${requestId}] Request method:`, req.method);
+    console.log(`📦 [${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`📋 [${requestId}] Request headers (filtered):`, {
       'content-type': req.headers['content-type'],
       'user-agent': req.headers['user-agent'],
-      'content-length': req.headers['content-length']
+      'content-length': req.headers['content-length'],
+      'origin': req.headers['origin'],
+      'referer': req.headers['referer']
     });
+    
+    // Log the specific message content for debugging
+    if (req.body && req.body.chatInput) {
+      console.log(`💬 [${requestId}] Message content:`, req.body.chatInput);
+      console.log(`👤 [${requestId}] User ID:`, req.body.user_id);
+      console.log(`🔗 [${requestId}] Session ID:`, req.body.session_id);
+      console.log(`⏰ [${requestId}] Timestamp:`, req.body.timestamp);
+    }
 
     // Validate request body
     if (!req.body || typeof req.body !== 'object') {
@@ -51,12 +63,15 @@ export default async function handler(req, res) {
 
     // Forward the request to the actual webhook
     const startTime = Date.now();
+    console.log(`🔄 [${requestId}] Forwarding to n8n webhook at ${startTime}`);
+    
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Valente-Conecta-Proxy/1.0',
         'Accept': 'application/json',
+        'X-Request-ID': requestId,
       },
       body: JSON.stringify(req.body),
       timeout: 30000, // 30 second timeout
@@ -64,7 +79,7 @@ export default async function handler(req, res) {
 
     const responseTime = Date.now() - startTime;
 
-    console.log('📡 Webhook response:', {
+    console.log(`📡 [${requestId}] Webhook response:`, {
       status: response.status,
       statusText: response.statusText,
       responseTime: `${responseTime}ms`,
@@ -76,7 +91,8 @@ export default async function handler(req, res) {
     
     // Always try to get response as text first
     const responseText = await response.text();
-    console.log('📄 Webhook response text (first 500 chars):', responseText.substring(0, 500));
+    console.log(`📄 [${requestId}] Webhook response text (first 500 chars):`, responseText.substring(0, 500));
+    console.log(`📊 [${requestId}] Full response length:`, responseText.length);
 
     // Try to parse as JSON
     let data;
@@ -108,17 +124,20 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('Webhook response data:', data);
+    console.log(`✅ [${requestId}] Webhook response data:`, data);
+    console.log(`🏁 [${requestId}] Request completed successfully in ${responseTime}ms`);
 
     // Return the response
     return res.status(200).json(data);
 
   } catch (error) {
-    console.error('💥 Proxy error:', {
+    const errorTimestamp = new Date().toISOString();
+    console.error(`💥 [${requestId || 'unknown'}] [${errorTimestamp}] Proxy error:`, {
       message: error.message,
       name: error.name,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      requestBody: req.body ? JSON.stringify(req.body) : 'undefined',
+      url: webhookUrl
     });
     
     // Handle specific error types

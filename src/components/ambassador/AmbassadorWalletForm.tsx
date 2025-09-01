@@ -153,7 +153,7 @@ const AmbassadorWalletForm = ({ currentWalletId, onWalletUpdated }: AmbassadorWa
         <div className="bg-cv-blue-heart/10 p-4 rounded-lg">
           <h4 className="font-semibold text-cv-gray-dark mb-2">Como funciona:</h4>
           <ul className="text-sm text-cv-gray-light space-y-1">
-            <li>• Você receberá 10% de comissão em todas as doações através do seu link</li>
+            <li>• Você receberá 20% de comissão em todas as doações através do seu link</li>
             <li>• Os valores são depositados diretamente na sua conta Asaas</li>
             <li>• A comissão é calculada automaticamente no momento da doação</li>
           </ul>

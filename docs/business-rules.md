@@ -269,17 +269,17 @@ enum PaymentMethod {
 ### 5.3 Split de Pagamento
 ```typescript
 const splitConfiguration = {
-  institutePercentage: 80,    // 80% para o instituto
-  adminPercentage: 10,        // 10% para administração
-  ambassadorPercentage: 10    // 10% para embaixador (se houver)
+  institutePercentage: 70,    // 70% para o instituto (sempre)
+  adminPercentage: 10,        // 10% para Renum com embaixador, 30% sem embaixador
+  ambassadorPercentage: 20    // 20% para embaixador (quando houver)
 };
 ```
 
 **Regras**:
 - Split automático em todas doações
-- Instituto recebe 80% (ou 90% sem embaixador)
-- Admin sempre recebe 10%
-- Embaixador recebe 10% quando aplicável
+- Instituto sempre recebe 70%
+- Renum recebe 10% com embaixador, 30% sem embaixador
+- Embaixador recebe 20% quando aplicável
 - Split processado pelo Asaas
 
 ## 6. Sistema de Embaixadores

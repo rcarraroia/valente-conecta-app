@@ -129,15 +129,22 @@ const handler = async (req: Request): Promise<Response> => {
     // 4. Configurar split se necessário
     const splits: AsaasSplit[] = [];
     const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
+    const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum
     const totalAmountInReais = paymentData.amount / 100;
     
     let ambassadorShare = 0;
-    let instituteShare = totalAmountInReais;
+    let renumShare = 0;
+    let instituteShare = 0;
 
     if (ambassadorData?.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
-      const ambassadorCommissionPercent = 10;
+      // Cenário COM embaixador: Instituto 70%, Embaixador 20%, Renum 10%
+      const ambassadorCommissionPercent = 20;
+      const renumCommissionPercent = 10;
+      const instituteCommissionPercent = 70;
+      
       ambassadorShare = Math.round((totalAmountInReais * ambassadorCommissionPercent) / 100 * 100) / 100;
-      instituteShare = totalAmountInReais - ambassadorShare;
+      renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
+      instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
 
       splits.push({
         walletId: ambassadorData.ambassador_wallet_id,
@@ -145,11 +152,35 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       splits.push({
+        walletId: renumWalletId,
+        fixedValue: renumShare
+      });
+
+      splits.push({
         walletId: instituteWalletId,
         fixedValue: instituteShare
       });
 
-      console.log('Split configurado:', { ambassadorShare, instituteShare });
+      console.log('Split configurado COM embaixador:', { ambassadorShare, renumShare, instituteShare });
+    } else {
+      // Cenário SEM embaixador: Instituto 70%, Renum 30%
+      const renumCommissionPercent = 30;
+      const instituteCommissionPercent = 70;
+      
+      renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
+      instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
+
+      splits.push({
+        walletId: renumWalletId,
+        fixedValue: renumShare
+      });
+
+      splits.push({
+        walletId: instituteWalletId,
+        fixedValue: instituteShare
+      });
+
+      console.log('Split configurado SEM embaixador:', { renumShare, instituteShare });
     }
 
     // 5. Criar pagamento/assinatura na Asaas
@@ -271,6 +302,7 @@ const handler = async (req: Request): Promise<Response> => {
       split: {
         total: totalAmountInReais,
         instituto: instituteShare,
+        renum: renumShare,
         embaixador: ambassadorShare,
         ambassador: ambassadorData ? {
           name: ambassadorData.full_name,

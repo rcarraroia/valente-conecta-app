@@ -249,7 +249,16 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
         timestamp: new Date().toISOString(),
       };
       
-      console.log('🚀 Sending to n8n:', request);
+      const hookRequestId = `hook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log(`🚀 [${hookRequestId}] useDiagnosisChat: Sending to n8n:`, request);
+      console.log(`📝 [${hookRequestId}] Message details:`, {
+        originalContent: content,
+        trimmedContent: content.trim(),
+        messageLength: content.trim().length,
+        userId: user.id,
+        sessionId: session.id,
+        timestamp: request.timestamp
+      });
 
       // Check if chat service is available
       if (!chatService) {
@@ -257,12 +266,20 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
         throw new Error('O sistema de pré-diagnóstico não está configurado. Entre em contato com o suporte técnico.');
       }
 
-      console.log('🎯 useDiagnosisChat: chatService available, calling sendMessage');
+      console.log(`🎯 [${hookRequestId}] useDiagnosisChat: chatService available, calling sendMessage`);
       
       // Send message to chat service
       const response = await chatService.sendMessage(request);
       
-      console.log('🎯 useDiagnosisChat: chatService.sendMessage response:', response);
+      console.log(`🎯 [${hookRequestId}] useDiagnosisChat: chatService.sendMessage response:`, response);
+      console.log(`📊 [${hookRequestId}] Response analysis:`, {
+        success: response.success,
+        hasData: !!response.data,
+        hasError: !!response.error,
+        errorType: response.error?.type,
+        errorMessage: response.error?.message,
+        responseMessage: response.data?.message?.substring(0, 100) + '...'
+      });
 
       if (!response.success || !response.data) {
         throw new Error(response.error?.message || 'Falha ao enviar mensagem');

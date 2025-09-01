@@ -211,7 +211,7 @@ const AmbassadorDashboard = ({ onBack }: AmbassadorDashboardProps) => {
                           : '0,00'
                         }
                       </p>
-                      <p className="text-sm text-cv-gray-light">10% das doações geradas</p>
+                      <p className="text-sm text-cv-gray-light">20% das doações geradas</p>
                     </div>
                     
                     <div className="p-4 bg-cv-purple-soft/10 rounded-lg">
@@ -234,7 +234,7 @@ const AmbassadorDashboard = ({ onBack }: AmbassadorDashboardProps) => {
 
                   {profile?.ambassador_wallet_id && (
                     <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <h4 className="font-semibold text-green-900 mb-2">✅ Split de Pagamentos Ativo</h4>
+                      <h4 className="font-semibold text-green-900 mb-2">✅ Split de Pagamentos Ativo (20%)</h4>
                       <p className="text-sm text-green-800">
                         Suas comissões serão depositadas automaticamente na sua conta Asaas sempre que uma doação for realizada através do seu link.
                       </p>

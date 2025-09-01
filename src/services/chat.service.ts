@@ -207,13 +207,23 @@ export class ChatService implements ChatServiceInterface {
   private async makeHttpRequest(request: any): Promise<N8nWebhookResponse> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
+    const requestTimestamp = new Date().toISOString();
+    const requestId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log('🚀 Making request to n8n:', {
+    console.log(`🚀 [${requestId}] [${requestTimestamp}] Making request to n8n:`, {
       url: this.options.webhookUrl,
       method: 'POST',
       body: request,
-      timestamp: new Date().toISOString(),
       timeout: this.options.timeout
+    });
+    
+    // Log detailed request information
+    console.log(`📝 [${requestId}] Request details:`, {
+      chatInput: request.chatInput,
+      user_id: request.user_id,
+      session_id: request.session_id,
+      timestamp: request.timestamp,
+      messageLength: request.chatInput ? request.chatInput.length : 0
     });
 
     try {
@@ -229,7 +239,7 @@ export class ChatService implements ChatServiceInterface {
 
       clearTimeout(timeoutId);
 
-      console.log('📡 Response received:', {
+      console.log(`📡 [${requestId}] Response received:`, {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries()),
@@ -238,15 +248,15 @@ export class ChatService implements ChatServiceInterface {
 
       // Always try to get response as text first
       const responseText = await response.text();
-      console.log('📄 Response text:', responseText);
+      console.log(`📄 [${requestId}] Response text:`, responseText);
 
       let data;
       try {
         data = JSON.parse(responseText);
-        console.log('📊 Parsed response data:', data);
+        console.log(`📊 [${requestId}] Parsed response data:`, data);
       } catch (parseError) {
-        console.error('❌ Failed to parse response as JSON:', parseError);
-        console.log('Raw response:', responseText);
+        console.error(`❌ [${requestId}] Failed to parse response as JSON:`, parseError);
+        console.log(`📄 [${requestId}] Raw response:`, responseText);
         throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
       }
       
@@ -284,11 +294,12 @@ export class ChatService implements ChatServiceInterface {
     } catch (error: any) {
       clearTimeout(timeoutId);
       
-      console.error('💥 Request failed:', {
+      console.error(`💥 [${requestId}] Request failed:`, {
         error: error.message,
         name: error.name,
         stack: error.stack,
-        url: this.options.webhookUrl
+        url: this.options.webhookUrl,
+        requestBody: request
       });
 
       if (error.name === 'AbortError') {

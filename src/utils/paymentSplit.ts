@@ -5,9 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 // Configuração com dados reais do Asaas - Wallet ID atualizada
 const SPLIT_CONFIG: SplitConfiguration = {
   instituteWalletId: 'eff311bc-7737-4870-93cd-16080c00d379', // Nova Wallet ID do instituto
-  adminWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Wallet ID do administrador (permanece a mesma)
-  adminCommissionPercent: 10, // 10% para administrador do app
-  ambassadorCommissionPercent: 10, // 10% para embaixadores
+  adminWalletId: 'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Wallet ID da Renum (administrador)
+  adminCommissionPercent: 10, // 10% para Renum quando há embaixador, 30% quando não há
+  ambassadorCommissionPercent: 20, // 20% para embaixadores (aumentou de 10%)
   ambassadorWallets: {
     // Mapeamento será feito via banco de dados
   }
@@ -116,11 +116,9 @@ export const calculatePaymentSplitWithDB = async (
   
   console.log('Calculando split para:', { amount, ambassadorCode });
   
-  // Calcular comissão do administrador (sempre aplicada)
-  const adminShare = Math.round((amount * SPLIT_CONFIG.adminCommissionPercent) / 100);
-  
   let ambassadorShare = 0;
-  let instituteShare = amount - adminShare;
+  let adminShare = 0;
+  let instituteShare = 0;
   let ambassadorWalletId = null;
 
   if (ambassadorCode) {
@@ -130,9 +128,10 @@ export const calculatePaymentSplitWithDB = async (
     if (ambassadorData && ambassadorData.ambassador_wallet_id) {
       ambassadorWalletId = ambassadorData.ambassador_wallet_id;
       
-      // Calcular comissão do embaixador
+      // Cenário COM embaixador: Instituto 70%, Embaixador 20%, Renum 10%
       ambassadorShare = Math.round((amount * SPLIT_CONFIG.ambassadorCommissionPercent) / 100);
-      instituteShare = amount - adminShare - ambassadorShare;
+      adminShare = Math.round((amount * SPLIT_CONFIG.adminCommissionPercent) / 100);
+      instituteShare = Math.round((amount * 70) / 100); // 70% fixo para o instituto
 
       // Adicionar split para o embaixador
       splits.push({
@@ -140,23 +139,32 @@ export const calculatePaymentSplitWithDB = async (
         fixedValue: ambassadorShare
       });
 
-      console.log('Split configurado para embaixador:', {
+      console.log('Split configurado COM embaixador:', {
         walletId: ambassadorWalletId,
         ambassadorShare,
+        adminShare,
+        instituteShare,
         ambassadorName: ambassadorData.full_name
       });
     } else {
       console.warn('Embaixador não encontrado ou sem wallet configurado:', ambassadorCode);
+      // Se embaixador não encontrado, tratar como cenário sem embaixador
+      adminShare = Math.round((amount * 30) / 100); // 30% para Renum
+      instituteShare = Math.round((amount * 70) / 100); // 70% para instituto
     }
+  } else {
+    // Cenário SEM embaixador: Instituto 70%, Renum 30%
+    adminShare = Math.round((amount * 30) / 100); // 30% para Renum
+    instituteShare = Math.round((amount * 70) / 100); // 70% para instituto
   }
 
-  // Adicionar split para o administrador (sempre presente)
+  // Adicionar split para a Renum (sempre presente)
   splits.push({
     walletId: SPLIT_CONFIG.adminWalletId,
     fixedValue: adminShare
   });
 
-  // Adicionar split para o instituto (valor restante)
+  // Adicionar split para o instituto (sempre presente)
   splits.push({
     walletId: SPLIT_CONFIG.instituteWalletId,
     fixedValue: instituteShare
@@ -217,18 +225,24 @@ export const calculatePaymentSplit = (
   console.warn('Usando função legada calculatePaymentSplit. Use calculatePaymentSplitWithDB para funcionalidade completa.');
   
   const splits: AsaasSplit[] = [];
-  const adminShare = Math.round((amount * SPLIT_CONFIG.adminCommissionPercent) / 100);
   let ambassadorShare = 0;
-  let instituteShare = amount - adminShare;
+  let adminShare = 0;
+  let instituteShare = 0;
 
   if (ambassadorCode && SPLIT_CONFIG.ambassadorWallets[ambassadorCode]) {
+    // Cenário COM embaixador: Instituto 70%, Embaixador 20%, Renum 10%
     ambassadorShare = Math.round((amount * SPLIT_CONFIG.ambassadorCommissionPercent) / 100);
-    instituteShare = amount - adminShare - ambassadorShare;
+    adminShare = Math.round((amount * SPLIT_CONFIG.adminCommissionPercent) / 100);
+    instituteShare = Math.round((amount * 70) / 100);
 
     splits.push({
       walletId: SPLIT_CONFIG.ambassadorWallets[ambassadorCode],
       fixedValue: ambassadorShare
     });
+  } else {
+    // Cenário SEM embaixador: Instituto 70%, Renum 30%
+    adminShare = Math.round((amount * 30) / 100);
+    instituteShare = Math.round((amount * 70) / 100);
   }
 
   splits.push({
@@ -264,8 +278,9 @@ export const getSplitConfiguration = (): SplitConfiguration => {
 
 export const getDisplayPercentages = () => {
   return {
-    institute: 80,
-    ambassador: SPLIT_CONFIG.ambassadorCommissionPercent,
+    institute: 70, // Instituto sempre recebe 70%
+    ambassador: SPLIT_CONFIG.ambassadorCommissionPercent, // 20% para embaixadores
+    renum: 10, // Renum recebe 10% com embaixador, 30% sem embaixador
   };
 };
 

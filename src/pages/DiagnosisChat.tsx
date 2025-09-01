@@ -38,7 +38,7 @@ const DiagnosisChatPage: React.FC = () => {
   useEffect(() => {
     if (chatState.session) {
       authContext.actions.updateLastAccess();
-      
+
       // Store session ID for persistence
       localStorage.setItem('diagnosis_session_id', chatState.session.id);
     }
@@ -89,7 +89,7 @@ const DiagnosisChatPage: React.FC = () => {
                 Pré-Diagnóstico
               </h1>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <SystemStatus autoCheck={true} />
               <Button
@@ -129,7 +129,7 @@ const DiagnosisChatPage: React.FC = () => {
                     </span>
                   )}
                 </div>
-                
+
                 {chatState.isGeneratingReport && (
                   <div className="flex items-center gap-2 text-blue-600">
                     <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
