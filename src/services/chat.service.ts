@@ -245,12 +245,12 @@ export class ChatService implements ChatServiceInterface {
         throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
       }
       
-      // Check for n8n workflow errors even in 200 responses
-      if (data && data.error === 'workflow_inactive') {
+      // Check for service unavailable errors even in 200 responses
+      if (data && data.error === 'service_unavailable') {
         throw createDiagnosisError(
           DiagnosisErrorType.WEBHOOK_TIMEOUT,
-          data.user_message || 'O sistema de diagnóstico está temporariamente indisponível.',
-          { error: data, technical_details: data.technical_details },
+          data.user_message || 'O assistente de pré-diagnóstico está temporariamente indisponível.',
+          { error: data },
           true
         );
       }

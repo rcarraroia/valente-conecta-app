@@ -17,7 +17,6 @@ import type {
 } from '@/types/diagnosis';
 import type { ReportGenerationResult } from '@/types/diagnosis-services';
 import { 
-  createChatMessage, 
   createDiagnosisChatSession,
   isValidChatMessage 
 } from '@/utils/diagnosis-utils';
@@ -148,13 +147,13 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       
       // Add initial AI message if provided
       if (response.data.message) {
-        const aiMessage = createChatMessage({
+        const aiMessage: ChatMessage = {
           id: `msg_${Date.now()}`,
-          session_id: sessionId,
-          sender: 'ai',
+          type: 'ai',
           content: response.data.message,
-          timestamp: new Date().toISOString(),
-        });
+          timestamp: new Date(),
+          status: 'sent',
+        };
         
         setMessages([aiMessage]);
       }
@@ -273,16 +272,20 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add AI message to state
       setMessages(prev => [...prev, aiMessage]);
 
-      // Track message exchange
-      await analyticsService.trackChatInteraction(user.id, session.id, 'message_sent', {
-        message_length: content.length,
-        response_time: response.metadata?.response_time,
-      });
-      
-      await analyticsService.trackChatInteraction(user.id, session.id, 'message_received', {
-        response_length: responseData.message.length,
-        diagnosis_complete: responseData.diagnosis_complete,
-      });
+      // Track message exchange (temporarily disabled due to Supabase error)
+      try {
+        await analyticsService.trackChatInteraction(user.id, session.id, 'message_sent', {
+          message_length: content.length,
+          response_time: response.metadata?.response_time,
+        });
+        
+        await analyticsService.trackChatInteraction(user.id, session.id, 'message_received', {
+          response_length: responseData.message.length,
+          diagnosis_complete: responseData.diagnosis_complete,
+        });
+      } catch (analyticsError) {
+        console.warn('Analytics tracking failed:', analyticsError);
+      }
       
       loggingService.logChatInteraction('message_sent', user.id, session.id, {
         message_preview: content.substring(0, 50),
@@ -336,13 +339,13 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       setIsConnected(false);
 
       // Add error message to chat
-      const errorMessage = createChatMessage({
+      const errorMessage: ChatMessage = {
         id: `msg_${Date.now()}_error`,
-        session_id: session.id,
-        sender: 'system',
+        type: 'system',
         content: `Erro: ${errorMsg}. Clique em "Tentar Novamente" para reenviar.`,
-        timestamp: new Date().toISOString(),
-      });
+        timestamp: new Date(),
+        status: 'error',
+      };
 
       setMessages(prev => [...prev, errorMessage]);
 

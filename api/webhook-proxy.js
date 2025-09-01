@@ -59,11 +59,9 @@ export default async function handler(req, res) {
       // Return a user-friendly error for workflow issues
       if (data && data.message && data.message.includes('Workflow could not be started')) {
         return res.status(200).json({
-          error: 'workflow_inactive',
-          message: 'O sistema de diagnóstico está temporariamente indisponível.',
-          technical_details: data.message,
-          user_message: 'O workflow do n8n não está ativo. Verifique se o fluxo está publicado e funcionando no Railway.',
-          n8n_error: data,
+          error: 'service_unavailable',
+          message: 'O assistente de pré-diagnóstico está temporariamente indisponível.',
+          user_message: 'Tente novamente em alguns minutos. Se o problema persistir, entre em contato conosco.',
         });
       }
       
