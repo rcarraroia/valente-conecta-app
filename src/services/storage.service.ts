@@ -477,15 +477,17 @@ export class StorageService implements StorageServiceInterface {
    */
   private validateConfiguration(): void {
     if (!this.options.bucketName) {
-      throw new Error('Storage bucket name is required');
+      console.warn('StorageService: Storage bucket name not configured - service will be limited');
     }
 
-    if (!diagnosisConfig.supabase.url) {
-      throw new Error('Supabase URL is required');
+    if (!diagnosisConfig.supabase?.url) {
+      console.warn('StorageService: Supabase URL not configured - service will be disabled');
+      return;
     }
 
-    if (!diagnosisConfig.supabase.anonKey) {
-      throw new Error('Supabase anonymous key is required');
+    if (!diagnosisConfig.supabase?.anonKey) {
+      console.warn('StorageService: Supabase anonymous key not configured - service will be disabled');
+      return;
     }
   }
 

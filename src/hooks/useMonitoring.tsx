@@ -11,75 +11,113 @@ export const useMonitoring = () => {
 
   // Track page views
   const trackPageView = useCallback((pageName: string, additionalData?: Record<string, any>) => {
-    analyticsService.track(AnalyticsEvent.FEATURE_USED, {
-      feature: 'page_view',
-      page: pageName,
-      ...additionalData,
-    }, user?.id);
+    if (analyticsService) {
+      analyticsService.track(AnalyticsEvent.FEATURE_USED, {
+        feature: 'page_view',
+        page: pageName,
+        ...additionalData,
+      }, user?.id);
+    }
 
-    loggingService.logUserAction(`Page view: ${pageName}`, user?.id || 'anonymous', undefined, additionalData);
+    if (loggingService) {
+      loggingService.logUserAction(`Page view: ${pageName}`, user?.id || 'anonymous', undefined, additionalData);
+    }
   }, [user?.id]);
 
   // Track user actions
   const trackUserAction = useCallback((action: string, details?: Record<string, any>) => {
     if (!user?.id) return;
 
-    analyticsService.trackDiagnosisJourney(user.id, details?.sessionId, action, details);
-    loggingService.logUserAction(action, user.id, details?.sessionId, details);
+    if (analyticsService) {
+      analyticsService.trackDiagnosisJourney(user.id, details?.sessionId, action, details);
+    }
+    
+    if (loggingService) {
+      loggingService.logUserAction(action, user.id, details?.sessionId, details);
+    }
   }, [user?.id]);
 
   // Track errors
   const trackError = useCallback((error: Error, context?: Record<string, any>) => {
-    analyticsService.trackError(error, context, user?.id, context?.sessionId);
-    loggingService.logError(error, LogCategory.SYSTEM, {
-      user_id: user?.id,
-      ...context,
-    });
+    if (analyticsService) {
+      analyticsService.trackError(error, context, user?.id, context?.sessionId);
+    }
+    
+    if (loggingService) {
+      loggingService.logError(error, LogCategory.SYSTEM, {
+        user_id: user?.id,
+        ...context,
+      });
+    }
   }, [user?.id]);
 
   // Track performance metrics
   const trackPerformance = useCallback((metric: string, value: number, unit: string, context?: Record<string, any>) => {
-    analyticsService.trackPerformance(metric, value, unit as any, context);
-    loggingService.logPerformanceMetric(metric, value, unit, context);
+    if (analyticsService) {
+      analyticsService.trackPerformance(metric, value, unit as any, context);
+    }
+    
+    if (loggingService) {
+      loggingService.logPerformanceMetric(metric, value, unit, context);
+    }
   }, []);
 
   // Track diagnosis events
   const trackDiagnosisEvent = useCallback((event: string, sessionId?: string, details?: Record<string, any>) => {
     if (!user?.id) return;
 
-    analyticsService.trackDiagnosisJourney(user.id, sessionId || '', event, details);
-    loggingService.info(`Diagnosis event: ${event}`, LogCategory.CHAT, {
-      user_id: user.id,
-      session_id: sessionId,
-      ...details,
-    });
+    if (analyticsService) {
+      analyticsService.trackDiagnosisJourney(user.id, sessionId || '', event, details);
+    }
+    
+    if (loggingService) {
+      loggingService.info(`Diagnosis event: ${event}`, LogCategory.CHAT, {
+        user_id: user.id,
+        session_id: sessionId,
+        ...details,
+      });
+    }
   }, [user?.id]);
 
   // Track chat interactions
   const trackChatInteraction = useCallback((type: 'message_sent' | 'message_received' | 'session_started' | 'session_ended', sessionId: string, details?: Record<string, any>) => {
     if (!user?.id) return;
 
-    analyticsService.trackChatInteraction(user.id, sessionId, type, details);
-    loggingService.logChatInteraction(type, user.id, sessionId, details);
+    if (analyticsService) {
+      analyticsService.trackChatInteraction(user.id, sessionId, type, details);
+    }
+    
+    if (loggingService) {
+      loggingService.logChatInteraction(type, user.id, sessionId, details);
+    }
   }, [user?.id]);
 
   // Track PDF operations
   const trackPDFOperation = useCallback((operation: 'generation_started' | 'generation_completed' | 'generation_failed' | 'downloaded' | 'viewed', sessionId?: string, details?: Record<string, any>) => {
     if (!user?.id) return;
 
-    analyticsService.trackPDFOperation(user.id, sessionId || '', operation, details);
-    loggingService.logPDFOperation(operation, user.id, sessionId, details);
+    if (analyticsService) {
+      analyticsService.trackPDFOperation(user.id, sessionId || '', operation, details);
+    }
+    
+    if (loggingService) {
+      loggingService.logPDFOperation(operation, user.id, sessionId, details);
+    }
   }, [user?.id]);
 
   // Track authentication events
   const trackAuthEvent = useCallback((event: 'login' | 'logout' | 'token_refresh' | 'auth_failure', details?: Record<string, any>) => {
-    analyticsService.track(
-      event === 'login' ? AnalyticsEvent.USER_LOGIN : AnalyticsEvent.USER_LOGOUT,
-      details,
-      user?.id
-    );
+    if (analyticsService) {
+      analyticsService.track(
+        event === 'login' ? AnalyticsEvent.USER_LOGIN : AnalyticsEvent.USER_LOGOUT,
+        details,
+        user?.id
+      );
+    }
 
-    loggingService.logAuthEvent(event, user?.id, details);
+    if (loggingService) {
+      loggingService.logAuthEvent(event, user?.id, details);
+    }
   }, [user?.id]);
 
   // Get system health
@@ -89,6 +127,9 @@ export const useMonitoring = () => {
 
   // Get analytics summary
   const getAnalyticsSummary = useCallback(async (startDate: string, endDate: string) => {
+    if (!analyticsService) {
+      return null;
+    }
     return await analyticsService.getAnalyticsSummary(startDate, endDate);
   }, []);
 

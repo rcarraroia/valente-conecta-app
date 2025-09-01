@@ -39,6 +39,13 @@ export interface DiagnosisConfig {
     allowedFileTypes: string[];
   };
   
+  // Supabase configuration
+  supabase: {
+    url: string;
+    anonKey: string;
+    storageBucket: string;
+  };
+  
   // Analytics configuration
   analytics: {
     batchSize: number;
@@ -82,6 +89,12 @@ export const diagnosisConfig: DiagnosisConfig = {
     allowedFileTypes: ['application/pdf'],
   },
   
+  supabase: {
+    url: process.env.VITE_SUPABASE_URL || '',
+    anonKey: process.env.VITE_SUPABASE_ANON_KEY || '',
+    storageBucket: 'diagnosis-reports',
+  },
+  
   analytics: {
     batchSize: 20,
     flushInterval: 30000, // 30 seconds
@@ -117,6 +130,15 @@ export const validateConfig = (): boolean => {
   if (!diagnosisConfig.api.n8nWebhookUrl) {
     warnings.push('N8n webhook URL not configured - chat functionality will be disabled');
     diagnosisConfig.features.chatEnabled = false;
+  }
+  
+  // Warn about missing Supabase configuration
+  if (!diagnosisConfig.supabase.url) {
+    warnings.push('Supabase URL not configured - storage functionality may be limited');
+  }
+  
+  if (!diagnosisConfig.supabase.anonKey) {
+    warnings.push('Supabase anonymous key not configured - storage functionality may be limited');
   }
   
   if (diagnosisConfig.pdf.maxFileSize <= 0) {

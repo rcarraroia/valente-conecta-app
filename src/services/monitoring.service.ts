@@ -570,8 +570,15 @@ class MonitoringService {
   }
 }
 
-// Export singleton instance
-export const monitoringService = new MonitoringService();
+// Export singleton instance with error handling
+export const monitoringService = (() => {
+  try {
+    return new MonitoringService();
+  } catch (error) {
+    console.warn('MonitoringService initialization failed:', error);
+    return null;
+  }
+})();
 
 // Cleanup on page unload
 if (typeof window !== 'undefined') {

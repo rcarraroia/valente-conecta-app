@@ -466,8 +466,15 @@ class AnalyticsService {
   }
 }
 
-// Export singleton instance
-export const analyticsService = new AnalyticsService();
+// Export singleton instance with error handling
+export const analyticsService = (() => {
+  try {
+    return new AnalyticsService();
+  } catch (error) {
+    console.warn('AnalyticsService initialization failed:', error);
+    return null;
+  }
+})();
 
 // Cleanup on page unload
 if (typeof window !== 'undefined') {

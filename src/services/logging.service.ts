@@ -465,8 +465,15 @@ class LoggingService {
   }
 }
 
-// Export singleton instance
-export const loggingService = new LoggingService();
+// Export singleton instance with error handling
+export const loggingService = (() => {
+  try {
+    return new LoggingService();
+  } catch (error) {
+    console.warn('LoggingService initialization failed:', error);
+    return null;
+  }
+})();
 
 // Cleanup on page unload
 if (typeof window !== 'undefined') {

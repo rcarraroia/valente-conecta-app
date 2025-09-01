@@ -8,4 +8,18 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Create client with error handling
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
+
+try {
+  if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+    supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  } else {
+    console.warn('Supabase configuration missing - client will be null');
+  }
+} catch (error) {
+  console.error('Failed to create Supabase client:', error);
+  supabaseClient = null;
+}
+
+export const supabase = supabaseClient;

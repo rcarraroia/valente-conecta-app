@@ -138,9 +138,11 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       retryCountRef.current = 0;
       
       // Track session start
-      await analyticsService.trackChatInteraction(user.id, sessionId, 'session_started', {
-        initial_message_received: !!response.data.message,
-      });
+      if (analyticsService) {
+        await analyticsService.trackChatInteraction(user.id, sessionId, 'session_started', {
+          initial_message_received: !!response.data.message,
+        });
+      }
       
       loggingService.logChatInteraction('session_started', user.id, sessionId, {
         response_time: response.metadata?.response_time,
