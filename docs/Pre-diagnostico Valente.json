@@ -1,0 +1,613 @@
+{
+  "name": "Pre-diagnostico Valente",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "multiagente-ia-diagnostico",
+        "options": {}
+      },
+      "id": "8340a992-3a33-41dc-b684-39496ee26b44",
+      "name": "Webhook Entrada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1504,
+        864
+      ],
+      "webhookId": "481b7146-40f7-4d47-a145-83cdb9598892"
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {
+              "stringValue": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8a219856-16b6-492b-b993-295bc0344816",
+      "name": "Validar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -1216,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "85987ba8-c8a1-4c80-b203-341a3e23614e",
+      "name": "Consolidar Resultados IA",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        -1152,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "81ce7ff1-aae0-40f4-8f0e-b5fb272e15af",
+      "name": "Processar Respostas IA",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.parse($json.choices[0].message.content) }}",
+        "options": {}
+      },
+      "id": "04b0083a-0ccb-43e9-8ea1-c133349cfaa4",
+      "name": "Resposta Final IA",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        816,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": " 'Você é um integrador de análises médicas especializado em neurodesenvolvimento. Receba os resultados dos 4 sub-agentes especializados (TEA, TDAH, Linguagem, Síndromes) e gere um relatório final em português brasileiro, empático e acessível para pais. SEMPRE inclua aviso de que NÃO é diagnóstico médico. Determine o nível de urgência baseado nas pontuações. Responda APENAS em JSON válido com: {\"resumo_analise\": \"texto explicativo\", \"possiveis_sinais\": [{\"categoria\": \"nome\", \"sinais\": [\"lista\"]}], \"orientacoes_personalizadas\": [\"lista de orientações\"], \"proximos_passos\": [\"lista de próximos passos\"], \"nivel_urgencia\": \"Alta/Moderada/Baixa\", \"aviso_nao_substituicao\": \"Este relatório é uma ferramenta de orientação inicial e NÃO substitui a avaliação de profissionais qualificados.\", \"timestamp\": \"data atual\", \"session_id\": \"id da sessão\"}'\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        464,
+        864
+      ],
+      "id": "d1596045-d06c-4e8d-97ca-338d91160804",
+      "name": "Gerar Relatório Final (IA)1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        448,
+        1088
+      ],
+      "id": "b368d1f6-88c2-4b5b-b746-8ca661e8a588",
+      "name": "Groq Chat Model4",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Especialista em síndromes genéticas e cromossômicas, responsável por analisar sinais relacionados a histórico familiar, malformações, atraso global e múltiplas áreas afetadas. Sua função é identificar indícios que possam apontar para condições sindrômicas e orientar encaminhamentos iniciais, como avaliação genética ou multidisciplinar.",
+        "text": "Você é um especialista em síndromes genéticas e cromossômicas.\nSua função é analisar os dados fornecidos sobre a criança e identificar sinais que possam indicar a presença de síndromes.\n\nO que você deve considerar na análise:\n\nHistórico familiar\n\nPresença de malformações\n\nAtraso global no desenvolvimento\n\nImpactos em múltiplas áreas (motor, cognitivo, linguagem, social)\n\nComo deve ser a resposta:\n\nClassifique a categoria como “Síndromes”\n\nAtribua uma pontuação de 0 a 10 (quanto maior, mais sinais presentes)\n\nIndique o nível de risco: Alto, Moderado ou Baixo\n\nListe os sinais identificados em linguagem simples\n\nForneça uma lista de recomendações específicas (ex.: procurar geneticista, exames complementares, acompanhamento multidisciplinar)\n\nInclua um índice de confiança entre 0.0 e 1.0\n\nA resposta deve estar organizada em formato JSON válido para integração posterior.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -992,
+        1088
+      ],
+      "id": "a1fa1cf8-7bd7-4afd-b816-bf6fd6ee25ab",
+      "name": "Sub-Agente Síndromes (IA)"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Especialista em Transtornos de Linguagem e Comunicação, analisa aspectos como desenvolvimento da fala, vocabulário, compreensão, articulação e fluência. O foco é identificar dificuldades de comunicação que possam impactar no desenvolvimento escolar e social, recomendando avaliação fonoaudiológica e estratégias de estímulo.",
+        "text": "Você é um especialista em Transtornos de Linguagem e Comunicação.\nSua função é analisar os dados fornecidos sobre a criança e identificar possíveis problemas de linguagem.\n\nO que você deve considerar na análise:\n\nDesenvolvimento da fala (idade de início, clareza, progressão)\n\nVocabulário (variedade e adequação)\n\nCompreensão (capacidade de entender instruções e perguntas)\n\nArticulação (clareza ao pronunciar palavras e sons)\n\nFluência (ritmo e continuidade da fala)\n\nComo deve ser a resposta:\n\nDefina a categoria como “Linguagem”\n\nAtribua uma pontuação de 0 a 10 (quanto maior, mais sinais foram identificados)\n\nIndique o nível de risco: Alto, Moderado ou Baixo\n\nListe os sinais observados de forma clara e acessível\n\nForneça uma lista de recomendações iniciais (ex.: avaliação com fonoaudiólogo, estímulo de leitura, acompanhamento pedagógico)\n\nInclua um índice de confiança entre 0.0 e 1.0\n\nA resposta deve ser entregue em JSON válido, organizado conforme os campos especificados, para integração no relatório final.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        1088
+      ],
+      "id": "39a18925-4d2c-4305-a34d-17f4ce671ba8",
+      "name": "Sub-Agente Linguagem (IA)2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Especialista em Transtorno do Déficit de Atenção e Hiperatividade (TDAH), avalia sinais de desatenção, hiperatividade, impulsividade e coordenação motora. Busca identificar padrões que possam indicar TDAH e orientar sobre acompanhamento neuropediátrico, psicológico e suporte escolar.",
+        "text": "=Você é um especialista em Transtorno do Déficit de Atenção e Hiperatividade (TDAH).\nSua função é analisar os dados fornecidos sobre a criança e identificar possíveis sinais de TDAH.\n\nO que você deve considerar na análise:\n\nAtenção (nível de concentração, facilidade de distração, manutenção em tarefas)\n\nHiperatividade (inquietação, agitação, dificuldade em permanecer parado)\n\nImpulsividade (respostas precipitadas, dificuldade em esperar, comportamentos arriscados)\n\nCoordenação motora (atrasos ou dificuldades que possam estar relacionados ao quadro)\n\nComo deve ser a resposta:\n\nDefina a categoria como “TDAH”\n\nAtribua uma pontuação de 0 a 10 (quanto maior, mais sinais foram identificados)\n\nIndique o nível de risco: Alto, Moderado ou Baixo\n\nListe os sinais observados de forma clara e compreensível\n\nForneça uma lista de recomendações iniciais (ex.: avaliação com neuropediatra ou psicólogo, estratégias de apoio escolar, acompanhamento multidisciplinar)\n\nInclua um índice de confiança entre 0.0 e 1.0\n\nA resposta deve ser entregue em JSON válido, estruturado conforme os campos definidos, para integração posterior ao relatório final.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -416,
+        1088
+      ],
+      "id": "ab89ab47-5314-4f58-b2e0-05d63f797248",
+      "name": "Sub-Agente TDAH (IA)"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Especialista em Transtorno do Espectro Autista (TEA), foca na análise de interação social, comunicação verbal e não verbal, presença de comportamentos repetitivos e sensibilidades sensoriais. Seu objetivo é detectar possíveis sinais de autismo e orientar sobre a importância da avaliação profissional precoce.",
+        "text": "Você é um especialista em Transtorno do Espectro Autista (TEA).\nSua função é analisar os dados fornecidos sobre a criança e identificar possíveis sinais relacionados ao TEA.\n\nO que você deve considerar na análise:\n\nInteração social (respostas a outras pessoas, interesse em brincar, contato visual)\n\nComunicação (fala, compreensão, uso da linguagem verbal ou não verbal)\n\nComportamentos repetitivos ou padrões restritos de interesse\n\nSensibilidades sensoriais (hiper ou hipo sensibilidade a sons, luzes, texturas, etc.)\n\nComo deve ser a resposta:\n\nDefina a categoria como “TEA”\n\nAtribua uma pontuação de 0 a 10 (quanto maior, mais sinais foram identificados)\n\nIndique o nível de risco: Alto, Moderado ou Baixo\n\nListe os sinais observados de forma clara e acessível\n\nForneça uma lista de recomendações iniciais (ex.: procurar neuropediatra, iniciar avaliação multidisciplinar, acompanhamento de fonoaudiólogo)\n\nInclua um índice de confiança entre 0.0 e 1.0\n\nA resposta deve ser entregue em JSON válido, organizado conforme os campos especificados, para que possa ser integrado ao relatório final.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        1088
+      ],
+      "id": "25bc4fa7-f62d-4e66-8a56-880b4e6f50e1",
+      "name": "Sub-Agente TEA (IA)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        1296
+      ],
+      "id": "05da823d-dae6-4da0-850b-61ea0e499e85",
+      "name": "Groq",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        1296
+      ],
+      "id": "19c6a0c2-5a42-49b5-b683-c21d4ca4539d",
+      "name": "Groq1",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        1296
+      ],
+      "id": "d4ca63cc-6cb5-49fd-a05b-567ee2061a8a",
+      "name": "Groq2",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        1296
+      ],
+      "id": "b5d7b969-0422-4cfd-9d45-af2ccd24229d",
+      "name": "Groq3",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -832,
+        1296
+      ],
+      "id": "11ba9c2c-7b3e-434d-8231-7039c9796eb7",
+      "name": "Memória"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        1296
+      ],
+      "id": "091ae0de-83b8-4de8-8360-8bfb7c6c898d",
+      "name": "Memória2"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        1296
+      ],
+      "id": "73ecf81a-569d-45c0-8352-061d8d5160ce",
+      "name": "Memória1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        1296
+      ],
+      "id": "e513810f-93a1-475f-8191-a7da5ec69687",
+      "name": "Memória3"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1120,
+        1088
+      ],
+      "id": "522718c4-d734-42a9-9d66-669423503b9b",
+      "name": "Memória4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1248,
+        1088
+      ],
+      "id": "b85bb844-2f36-4587-bc0f-b7b21f4e9979",
+      "name": "Groq4",
+      "credentials": {
+        "groqApi": {
+          "id": "5mYavsl7URPRFfVG",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        1088
+      ],
+      "id": "1db67f3b-5943-47da-9840-3c7e61dc336b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Você é um agente orquestrador responsável por iniciar e conduzir uma entrevista de pré-diagnóstico sobre desenvolvimento infantil. \nSua função é acolher a família com empatia, explicar claramente o processo e coletar informações de forma ética e profissional. \n\n- Sempre use linguagem acessível, calma e respeitosa.  \n- Valide as respostas e encoraje os pais durante a conversa.  \n- Não antecipe diagnósticos. Sua função é apenas conduzir a coleta de informações.  \n- Utilize os sub-agentes especializados (TEA, TDAH, Linguagem, Síndromes) para formular perguntas específicas de cada etapa do questionário.  \n\n## 🔄 Fluxo da Entrevista\n1. Início → Saudação calorosa + explicação do processo.\n2. Consentimento → Perguntar se a família autoriza a coleta das informações.\n3. Idade → Registrar a idade da criança.\n4. Desenvolvimento Motor → Perguntar sobre coordenação e movimentos.\n5. Linguagem → Perguntar sobre comunicação e fala.\n6. Comportamento Social → Perguntar sobre interações sociais e brincadeiras.\n7. Comportamento Emocional → Perguntar sobre regulação emocional e rotina.\n8. Histórico Médico → Perguntar sobre informações médicas relevantes.\n9. Análise → Enviar as informações aos sub-agentes especializados.\n10. Resultado → Preparar um relatório conversacional resumido para o usuário.\n\n## 🎯 Estilo da Conversa\n- Tom empático, acolhedor e claro.\n- Emojis podem ser usados para humanizar a experiência.\n- Validação inteligente: confirmar idade numérica, garantir que houve consentimento, orientar em caso de respostas inválidas.\n- Mostrar progresso de forma clara: etapas concluídas / total.\n“Quando chamar os sub-agentes, envie apenas os dados coletados do usuário (dadosValidados) sem adicionar argumentos extras.”\n\n⚠️ Importante: Sempre lembre o usuário de que este é um **apoio inicial**, não um diagnóstico médico, e que apenas profissionais de saúde podem dar diagnósticos definitivos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -848,
+        864
+      ],
+      "id": "940d7aa7-bc21-43ee-9ff4-b3c5ed4e2d55",
+      "name": "Agente Orquestador"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Entrada": {
+      "main": [
+        [
+          {
+            "node": "Validar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Dados": {
+      "main": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consolidar Resultados IA": {
+      "main": [
+        []
+      ]
+    },
+    "Processar Respostas IA": {
+      "main": [
+        [
+          {
+            "node": "Gerar Relatório Final (IA)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Relatório Final (IA)1": {
+      "main": [
+        [
+          {
+            "node": "Resposta Final IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gerar Relatório Final (IA)1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-Agente Síndromes (IA)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-Agente Linguagem (IA)2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-Agente TDAH (IA)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sub-Agente TEA (IA)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sub-Agente Síndromes (IA)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sub-Agente Linguagem (IA)2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sub-Agente TDAH (IA)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sub-Agente TEA (IA)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória": {
+      "ai_memory": [
+        [
+          {
+            "node": "Sub-Agente Síndromes (IA)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Sub-Agente Linguagem (IA)2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Sub-Agente TDAH (IA)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Sub-Agente TEA (IA)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Orquestador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Gerar Relatório Final (IA)1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Orquestador": {
+      "main": [
+        [
+          {
+            "node": "Processar Respostas IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a57af485-3487-460e-bdca-a7493528f62a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e62c39f25f813738aa864e24e98c7fd8148c62b266853302d2f07d4bb6a289fe"
+  },
+  "id": "B5gVheqycaRYjzYu",
+  "tags": []
+}

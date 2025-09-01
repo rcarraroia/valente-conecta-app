@@ -234,11 +234,11 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add user message to state immediately
       setMessages(prev => [...prev, userMessage]);
 
-      // Prepare request for N8n
-      const request: N8nWebhookRequest = {
+      // Prepare request for N8n (format expected by workflow)
+      const request = {
+        chatInput: content.trim(),
         user_id: user.id,
         session_id: session.id,
-        message: content.trim(),
         timestamp: new Date().toISOString(),
         message_history: messages.map(msg => ({
           sender: msg.sender,

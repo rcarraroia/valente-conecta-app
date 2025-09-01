@@ -136,19 +136,17 @@ export class ChatService implements ChatServiceInterface {
   /**
    * Sends a message to the n8n webhook
    */
-  async sendMessage(request: N8nWebhookRequest): Promise<ServiceResponse<N8nWebhookResponse>> {
+  async sendMessage(request: any): Promise<ServiceResponse<N8nWebhookResponse>> {
     const startTime = Date.now();
     const currentRequestId = ++this.requestId;
 
     try {
-      // Validate request
-      try {
-        validateN8nWebhookRequest(request);
-      } catch (validationError) {
+      // Validate request (simplified for n8n format)
+      if (!request.chatInput || typeof request.chatInput !== 'string') {
         const error = createDiagnosisError(
           DiagnosisErrorType.NETWORK_ERROR,
-          `Invalid request: ${extractErrorMessage(validationError)}`,
-          validationError,
+          'Invalid request: chatInput is required',
+          request,
           false
         );
         return this.createErrorResponse(error, startTime, currentRequestId);
@@ -202,7 +200,7 @@ export class ChatService implements ChatServiceInterface {
   /**
    * Makes the actual HTTP request to n8n webhook
    */
-  private async makeHttpRequest(request: N8nWebhookRequest): Promise<N8nWebhookResponse> {
+  private async makeHttpRequest(request: any): Promise<N8nWebhookResponse> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.options.timeout);
 
@@ -283,10 +281,10 @@ export class ChatService implements ChatServiceInterface {
   /**
    * Creates initial request for starting a chat session
    */
-  createInitialRequest(userId: string, sessionId: string): N8nWebhookRequest {
+  createInitialRequest(userId: string, sessionId: string): any {
     return {
+      chatInput: DEFAULTS.INITIAL_MESSAGE,
       user_id: userId,
-      message: DEFAULTS.INITIAL_MESSAGE,
       session_id: sessionId,
       timestamp: new Date().toISOString(),
       message_history: [],
@@ -416,7 +414,7 @@ export class ChatService implements ChatServiceInterface {
   /**
    * Logs request (if debugging is enabled)
    */
-  private logRequest(request: N8nWebhookRequest, requestId: number): void {
+  private logRequest(request: any, requestId: number): void {
     if (import.meta.env.MODE === 'development') {
       console.log(`[ChatService] Request ${requestId}:`, {
         url: this.options.webhookUrl,
