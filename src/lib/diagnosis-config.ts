@@ -57,7 +57,7 @@ export interface DiagnosisConfig {
 // Default configuration
 export const diagnosisConfig: DiagnosisConfig = {
   features: {
-    chatEnabled: !!(import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico'), // Always enable with fallback
+    chatEnabled: true, // Always enable chat
     pdfGenerationEnabled: true,
     analyticsEnabled: import.meta.env.MODE === 'production',
     monitoringEnabled: import.meta.env.MODE === 'production',
@@ -65,7 +65,7 @@ export const diagnosisConfig: DiagnosisConfig = {
   },
   
   api: {
-    n8nWebhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico',
+    n8nWebhookUrl: '/api/webhook-proxy',
     timeout: 30000, // 30 seconds
     retryAttempts: 3,
     retryDelay: 2000, // 2 seconds
@@ -129,10 +129,8 @@ export const validateConfig = (): boolean => {
   if (import.meta.env.MODE === 'development') {
     const warnings: string[] = [];
     
-    // Only warn in development
-    if (!diagnosisConfig.api.n8nWebhookUrl || diagnosisConfig.api.n8nWebhookUrl === 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico') {
-      // Don't warn if using the default URL
-    }
+    // Configuration is now always using proxy
+    console.log('Diagnosis config loaded with proxy URL:', diagnosisConfig.api.n8nWebhookUrl);
     
     if (warnings.length > 0) {
       console.warn('Diagnosis configuration warnings:', warnings);

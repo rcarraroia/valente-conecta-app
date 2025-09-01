@@ -73,9 +73,7 @@ const retryWithBackoff = async <T>(
 };
 // Constants to avoid import issues
 const N8N_CONFIG = {
-  WEBHOOK_URL: import.meta.env.MODE === 'production' 
-    ? '/api/webhook-proxy' // Use proxy in production to avoid CORS
-    : (import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico'),
+  WEBHOOK_URL: '/api/webhook-proxy', // Always use proxy to avoid CORS
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 2000,
@@ -114,14 +112,19 @@ export class ChatService implements ChatServiceInterface {
   private validateConfiguration(): void {
     if (!this.options.webhookUrl) {
       console.warn('Webhook URL is missing, using fallback');
-      this.options.webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+      this.options.webhookUrl = '/api/webhook-proxy';
     }
 
-    try {
-      new URL(this.options.webhookUrl);
-    } catch (error) {
-      console.warn('Invalid webhook URL, using fallback:', error);
-      this.options.webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+    // Skip URL validation for relative paths (proxy)
+    if (!this.options.webhookUrl.startsWith('/')) {
+      try {
+        new URL(this.options.webhookUrl);
+      } catch (error) {
+        console.warn('Invalid webhook URL, using fallback:', error);
+        this.options.webhookUrl = '/api/webhook-proxy';
+      }
+    } else {
+      console.log('Using relative URL (proxy):', this.options.webhookUrl);
     }
 
     if (this.options.timeout < 1000 || this.options.timeout > 60000) {
@@ -487,9 +490,7 @@ export const createChatService = (options?: Partial<ChatServiceOptions>): ChatSe
 let chatServiceInstance: ChatService | null = null;
 
 try {
-  const webhookUrl = import.meta.env.MODE === 'production' 
-    ? '/api/webhook-proxy' // Use proxy in production
-    : (import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico');
+  const webhookUrl = '/api/webhook-proxy'; // Always use proxy
     
   console.log('Initializing ChatService with URL:', webhookUrl);
   
@@ -505,9 +506,7 @@ try {
   console.warn('ChatService initialization failed:', error);
   // Try with fallback configuration
   try {
-    const fallbackUrl = import.meta.env.MODE === 'production' 
-      ? '/api/webhook-proxy'
-      : 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+    const fallbackUrl = '/api/webhook-proxy';
       
     chatServiceInstance = new ChatService({
       webhookUrl: fallbackUrl,
