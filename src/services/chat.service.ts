@@ -172,15 +172,15 @@ export class ChatService implements ChatServiceInterface {
         return this.createErrorResponse(error, startTime, currentRequestId);
       }
 
-      response = processedResponse;
+      // Use the processed response instead of reassigning const
 
       const duration = Date.now() - startTime;
       this.updateMetrics(true, duration);
-      this.logResponse(response, currentRequestId, duration);
+      this.logResponse(processedResponse, currentRequestId, duration);
 
       return {
         success: true,
-        data: response,
+        data: processedResponse,
         metadata: {
           timestamp: new Date(),
           requestId: `req_${currentRequestId}`,
