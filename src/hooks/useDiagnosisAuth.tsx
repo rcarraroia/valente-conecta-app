@@ -61,17 +61,23 @@ export const useDiagnosisAuth = (): UseDiagnosisAuthReturn => {
    * Require authentication for diagnosis features
    */
   const requireAuth = useCallback((redirectTo?: string): boolean => {
+    // Still loading auth state, wait
     if (loading) {
-      return false; // Still loading, don't redirect yet
+      console.log('Auth still loading, waiting...');
+      return false;
     }
 
-    if (!isAuthenticated) {
+    // Not authenticated, redirect to login
+    if (!isAuthenticated || !user) {
+      console.log('User not authenticated, redirecting to login:', { isAuthenticated, user: !!user });
       const returnUrl = redirectTo || location.pathname + location.search;
       redirectToLogin(returnUrl);
       return false;
     }
 
+    // Check if user can access diagnosis features
     if (!canAccessDiagnosis()) {
+      console.log('User cannot access diagnosis features');
       toast({
         title: 'Acesso Negado',
         description: 'Você não tem permissão para acessar esta funcionalidade.',
@@ -81,8 +87,9 @@ export const useDiagnosisAuth = (): UseDiagnosisAuthReturn => {
       return false;
     }
 
+    console.log('Auth check passed for user:', user.email);
     return true;
-  }, [loading, isAuthenticated, canAccessDiagnosis, location, navigate, toast]);
+  }, [loading, isAuthenticated, user, canAccessDiagnosis, location, navigate, toast]);
 
   /**
    * Redirect to login page with return URL

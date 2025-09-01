@@ -44,7 +44,30 @@ export interface ChatActions {
   resetChat: () => void;
 }
 
+// Legacy interface for backward compatibility
 export interface UseDiagnosisChatReturn {
+  // Direct properties for backward compatibility
+  session: DiagnosisChatSession | null;
+  messages: ChatMessage[];
+  isLoading: boolean;
+  isTyping: boolean;
+  error: string | null;
+  isConnected: boolean;
+  diagnosisResult: DiagnosisData | null;
+  generatedReport: ReportGenerationResult | null;
+  isGeneratingReport: boolean;
+  sessionId: string | null;
+  
+  // Actions
+  startSession: () => Promise<void>;
+  sendMessage: (content: string) => Promise<void>;
+  endSession: () => void;
+  clearError: () => void;
+  retryLastMessage: () => Promise<void>;
+  regenerateReport: () => Promise<void>;
+  resetChat: () => void;
+  
+  // New structured interface
   state: ChatState;
   actions: ChatActions;
 }
@@ -77,14 +100,16 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
    * Starts a new diagnosis chat session
    */
   const startSession = useCallback(async () => {
+    // Wait for auth to be ready if still loading
     if (!user?.id) {
-      const errorMsg = 'Usuário não autenticado';
+      const errorMsg = 'Usuário não autenticado. Verifique se você está logado.';
       setError(errorMsg);
       toast({
         title: 'Erro de Autenticação',
         description: errorMsg,
         variant: 'destructive',
       });
+      console.error('startSession called without authenticated user:', { user });
       return;
     }
 
@@ -176,8 +201,9 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
    */
   const sendMessage = useCallback(async (content: string) => {
     if (!session || !user?.id) {
-      const errorMsg = 'Sessão não encontrada ou usuário não autenticado';
+      const errorMsg = 'Sessão não encontrada ou usuário não autenticado. Tente reiniciar a sessão.';
       setError(errorMsg);
+      console.error('sendMessage called without session or user:', { session: !!session, user: !!user });
       return;
     }
 
@@ -709,7 +735,30 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
     resetChat,
   };
 
+  // Return both legacy flat interface and new structured interface
   return {
+    // Legacy flat properties for backward compatibility
+    session,
+    messages,
+    isLoading,
+    isTyping,
+    error,
+    isConnected,
+    diagnosisResult,
+    generatedReport,
+    isGeneratingReport,
+    sessionId: session?.id || null,
+    
+    // Legacy actions for backward compatibility
+    startSession,
+    sendMessage,
+    endSession,
+    clearError,
+    retryLastMessage,
+    regenerateReport,
+    resetChat,
+    
+    // New structured interface
     state,
     actions,
   };

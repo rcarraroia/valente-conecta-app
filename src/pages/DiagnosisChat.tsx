@@ -5,6 +5,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { DiagnosisChat as DiagnosisChatComponent } from '@/components/diagnosis/DiagnosisChat';
 import { DiagnosisRouteGuard } from '@/components/auth/DiagnosisRouteGuard';
 import { SystemStatus } from '@/components/diagnosis/SystemStatus';
+import { AuthLoadingSpinner } from '@/components/ui/AuthLoadingSpinner';
 import { useDiagnosisAuth } from '@/hooks/useDiagnosisAuth';
 import { useDiagnosisChat } from '@/hooks/useDiagnosisChat';
 import { useResponsive, useMobileKeyboard } from '@/hooks/useResponsive';
@@ -18,32 +19,33 @@ import { ArrowLeft, Home } from 'lucide-react';
 const DiagnosisChatPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { actions: authActions } = useDiagnosisAuth();
+  const authContext = useDiagnosisAuth();
   const { state: chatState, actions: chatActions } = useDiagnosisChat();
   const { isMobile, isTablet, isTouchDevice } = useResponsive();
   const { isKeyboardVisible, viewportHeight } = useMobileKeyboard();
 
   const sessionId = searchParams.get('session');
 
-  // Initialize or resume session
+  // Initialize or resume session - only after auth is ready
   useEffect(() => {
-    if (!chatState.session) {
+    if (!authContext.state.isLoading && authContext.state.isAuthenticated && !chatState.session) {
+      console.log('Starting chat session for authenticated user');
       chatActions.startSession();
     }
-  }, [chatState.session, chatActions]);
+  }, [authContext.state.isLoading, authContext.state.isAuthenticated, chatState.session, chatActions]);
 
   // Update last access when chat is active
   useEffect(() => {
     if (chatState.session) {
-      authActions.updateLastAccess();
+      authContext.actions.updateLastAccess();
       
       // Store session ID for persistence
       localStorage.setItem('diagnosis_session_id', chatState.session.id);
     }
-  }, [chatState.session, authActions]);
+  }, [chatState.session, authContext.actions]);
 
   const handleBackToDashboard = () => {
-    authActions.redirectToDashboard();
+    authContext.actions.redirectToDashboard();
   };
 
   const handleGoHome = () => {
@@ -52,14 +54,19 @@ const DiagnosisChatPage: React.FC = () => {
 
   const handleSessionComplete = () => {
     // Clear session and redirect to reports
-    authActions.clearDiagnosisSession();
-    authActions.redirectToReports();
+    authContext.actions.clearDiagnosisSession();
+    authContext.actions.redirectToReports();
   };
 
   const handleError = (error: any) => {
     console.error('Diagnosis chat error:', error);
     // Error handling is already done in the chat component
   };
+
+  // Show loading while auth is being checked
+  if (authContext.state.isLoading) {
+    return <AuthLoadingSpinner message="Carregando pré-diagnóstico..." />;
+  }
 
   return (
     <DiagnosisRouteGuard requireAuth={true}>

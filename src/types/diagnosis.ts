@@ -158,15 +158,50 @@ export interface StorageServiceConfig {
   allowedMimeTypes: string[];
 }
 
-// Hook return types
+// Hook return types - Updated for consistency
 export interface UseDiagnosisChatReturn {
+  // Direct properties for backward compatibility
   session: DiagnosisChatSession | null;
   messages: ChatMessage[];
-  loading: boolean;
-  error: DiagnosisError | null;
+  isLoading: boolean;
+  isTyping: boolean;
+  error: string | null;
+  isConnected: boolean;
+  diagnosisResult: any | null;
+  generatedReport: any | null;
+  isGeneratingReport: boolean;
+  sessionId: string | null;
+  
+  // Actions
   startSession: () => Promise<void>;
-  sendMessage: (message: string) => Promise<void>;
-  resetSession: () => void;
+  sendMessage: (content: string) => Promise<void>;
+  endSession: () => void;
+  clearError: () => void;
+  retryLastMessage: () => Promise<void>;
+  regenerateReport: () => Promise<void>;
+  resetChat: () => void;
+  
+  // Structured interface
+  state: {
+    session: DiagnosisChatSession | null;
+    messages: ChatMessage[];
+    isLoading: boolean;
+    isTyping: boolean;
+    error: string | null;
+    isConnected: boolean;
+    diagnosisResult: any | null;
+    generatedReport: any | null;
+    isGeneratingReport: boolean;
+  };
+  actions: {
+    startSession: () => Promise<void>;
+    sendMessage: (content: string) => Promise<void>;
+    endSession: () => void;
+    clearError: () => void;
+    retryLastMessage: () => Promise<void>;
+    regenerateReport: () => Promise<void>;
+    resetChat: () => void;
+  };
 }
 
 export interface UseReportsReturn {

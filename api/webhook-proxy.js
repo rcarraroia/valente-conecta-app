@@ -1,7 +1,7 @@
 // Vercel serverless function to proxy webhook requests and avoid CORS
 export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
+  // Allow POST, HEAD, and OPTIONS requests
+  if (!['POST', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -12,6 +12,11 @@ export default async function handler(req, res) {
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Handle HEAD requests for health checks
+  if (req.method === 'HEAD') {
     return res.status(200).end();
   }
 
