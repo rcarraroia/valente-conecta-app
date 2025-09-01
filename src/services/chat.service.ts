@@ -137,12 +137,14 @@ export class ChatService implements ChatServiceInterface {
    * Sends a message to the n8n webhook
    */
   async sendMessage(request: any): Promise<ServiceResponse<N8nWebhookResponse>> {
+    console.log('🎯 ChatService: sendMessage called with request:', request);
     const startTime = Date.now();
     const currentRequestId = ++this.requestId;
 
     try {
       // Validate request (simplified for n8n format)
       if (!request.chatInput || typeof request.chatInput !== 'string') {
+        console.error('🎯 ChatService: Invalid request - missing chatInput:', request);
         const error = createDiagnosisError(
           DiagnosisErrorType.NETWORK_ERROR,
           'Invalid request: chatInput is required',
@@ -151,6 +153,8 @@ export class ChatService implements ChatServiceInterface {
         );
         return this.createErrorResponse(error, startTime, currentRequestId);
       }
+
+      console.log('🎯 ChatService: Request validation passed, proceeding with HTTP request');
 
       this.logRequest(request, currentRequestId);
 

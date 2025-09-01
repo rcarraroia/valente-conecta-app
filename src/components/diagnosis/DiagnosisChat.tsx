@@ -103,12 +103,15 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
     if (!inputMessage.trim() || isLoading) return;
 
     const message = inputMessage.trim();
+    console.log('🎯 DiagnosisChat: handleSendMessage called with:', message);
     setInputMessage('');
 
     try {
+      console.log('🎯 DiagnosisChat: About to call sendMessage hook');
       await sendMessage(message);
+      console.log('🎯 DiagnosisChat: sendMessage completed successfully');
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('🎯 DiagnosisChat: Failed to send message:', error);
     }
   };
 

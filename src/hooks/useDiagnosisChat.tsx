@@ -199,10 +199,18 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
    * Sends a message in the current chat session
    */
   const sendMessage = useCallback(async (content: string) => {
+    console.log('🎯 useDiagnosisChat: sendMessage called with content:', content);
+    console.log('🎯 useDiagnosisChat: Current state:', { 
+      hasSession: !!session, 
+      hasUser: !!user?.id, 
+      userId: user?.id,
+      sessionId: session?.id 
+    });
+
     if (!session || !user?.id) {
       const errorMsg = 'Sessão não encontrada ou usuário não autenticado. Tente reiniciar a sessão.';
       setError(errorMsg);
-      console.error('sendMessage called without session or user:', { session: !!session, user: !!user });
+      console.error('🎯 useDiagnosisChat: sendMessage called without session or user:', { session: !!session, user: !!user });
       return;
     }
 
@@ -245,11 +253,16 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
 
       // Check if chat service is available
       if (!chatService) {
+        console.error('🎯 useDiagnosisChat: chatService is null/undefined');
         throw new Error('O sistema de pré-diagnóstico não está configurado. Entre em contato com o suporte técnico.');
       }
 
+      console.log('🎯 useDiagnosisChat: chatService available, calling sendMessage');
+      
       // Send message to chat service
       const response = await chatService.sendMessage(request);
+      
+      console.log('🎯 useDiagnosisChat: chatService.sendMessage response:', response);
 
       if (!response.success || !response.data) {
         throw new Error(response.error?.message || 'Falha ao enviar mensagem');
