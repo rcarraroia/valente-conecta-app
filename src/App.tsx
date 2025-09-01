@@ -8,6 +8,7 @@ import LandingPage from '@/pages/LandingPage';
 import NotFound from '@/pages/NotFound';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { WebhookTestPage } from '@/pages/WebhookTestPage';
+import { SystemDiagnostic } from '@/pages/SystemDiagnostic';
 import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
 import DiagnosisChat from '@/pages/DiagnosisChat';
 import DiagnosisReports from '@/pages/DiagnosisReports';
@@ -24,6 +25,7 @@ const App = () => {
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/landing/:ref" element={<LandingPage />} />
           <Route path="/webhook-test" element={<WebhookTestPage />} />
+          <Route path="/system-diagnostic" element={<SystemDiagnostic />} />
           
           {/* Diagnosis Routes - Protected */}
           <Route path="/diagnosis" element={<DiagnosisDashboard />} />

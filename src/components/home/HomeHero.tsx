@@ -9,9 +9,8 @@ interface HomeHeroProps {
 
 const HomeHero = ({ onNavigate }: HomeHeroProps) => {
   const handleJourneyStart = () => {
-    if (onNavigate) {
-      onNavigate('ia');
-    }
+    // Redirecionar para a nova interface de diagnóstico
+    window.location.href = '/diagnosis';
   };
 
   return (

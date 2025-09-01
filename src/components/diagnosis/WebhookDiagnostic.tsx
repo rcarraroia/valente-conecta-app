@@ -1,0 +1,238 @@
+// Componente para diagnóstico de conectividade do webhook
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { chatService } from '@/services/chat.service';
+import { N8N_CONFIG } from '@/lib/diagnosis-constants';
+
+interface WebhookStatus {
+  isReachable: boolean;
+  responseTime?: number;
+  error?: string;
+  lastChecked?: Date;
+  workflowActive?: boolean;
+}
+
+export const WebhookDiagnostic: React.FC = () => {
+  const [status, setStatus] = useState<WebhookStatus | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const checkWebhookStatus = async () => {
+    setIsChecking(true);
+    
+    try {
+      // Primeiro, verificar se o serviço de chat está disponível
+      if (!chatService) {
+        setStatus({
+          isReachable: false,
+          error: 'Serviço de chat não está configurado. Verifique a variável VITE_N8N_WEBHOOK_URL.',
+          lastChecked: new Date(),
+        });
+        return;
+      }
+
+      // Fazer health check
+      const healthResult = await chatService.healthCheck();
+      
+      if (healthResult.healthy) {
+        setStatus({
+          isReachable: true,
+          responseTime: healthResult.responseTime,
+          lastChecked: new Date(),
+          workflowActive: true,
+        });
+      } else {
+        // Tentar um teste mais específico
+        const testResult = await testWebhookWithSample();
+        setStatus({
+          isReachable: true, // O webhook está acessível
+          responseTime: healthResult.responseTime,
+          error: testResult.error,
+          lastChecked: new Date(),
+          workflowActive: false,
+        });
+      }
+    } catch (error: any) {
+      setStatus({
+        isReachable: false,
+        error: error.message || 'Erro desconhecido',
+        lastChecked: new Date(),
+      });
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const testWebhookWithSample = async () => {
+    try {
+      const testRequest = {
+        user_id: 'diagnostic-test',
+        session_id: `diagnostic_${Date.now()}`,
+        message: 'Teste de conectividade',
+        timestamp: new Date().toISOString(),
+        message_history: [],
+      };
+
+      const result = await chatService?.sendMessage(testRequest);
+      
+      if (result?.success) {
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: result?.error?.message || 'Erro no teste do webhook' 
+        };
+      }
+    } catch (error: any) {
+      return { 
+        success: false, 
+        error: error.message || 'Erro ao testar webhook' 
+      };
+    }
+  };
+
+  const getStatusColor = () => {
+    if (!status) return 'secondary';
+    if (status.isReachable && status.workflowActive) return 'success';
+    if (status.isReachable && !status.workflowActive) return 'warning';
+    return 'destructive';
+  };
+
+  const getStatusIcon = () => {
+    if (isChecking) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (!status) return <AlertTriangle className="h-4 w-4" />;
+    if (status.isReachable && status.workflowActive) return <CheckCircle className="h-4 w-4" />;
+    if (status.isReachable && !status.workflowActive) return <AlertTriangle className="h-4 w-4" />;
+    return <XCircle className="h-4 w-4" />;
+  };
+
+  const getStatusText = () => {
+    if (isChecking) return 'Verificando...';
+    if (!status) return 'Não verificado';
+    if (status.isReachable && status.workflowActive) return 'Funcionando';
+    if (status.isReachable && !status.workflowActive) return 'Webhook acessível, workflow inativo';
+    return 'Inacessível';
+  };
+
+  return (
+    <Card className="w-full max-w-2xl">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <RefreshCw className="h-5 w-5" />
+          Diagnóstico do Webhook
+        </CardTitle>
+        <CardDescription>
+          Verificar conectividade com o agente de pré-diagnóstico
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Status atual */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {getStatusIcon()}
+            <span className="font-medium">Status:</span>
+          </div>
+          <Badge variant={getStatusColor() as any}>
+            {getStatusText()}
+          </Badge>
+        </div>
+
+        {/* URL do webhook */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">URL do Webhook:</span>
+          </div>
+          <code className="block p-2 bg-muted rounded text-sm break-all">
+            {N8N_CONFIG.WEBHOOK_URL || 'Não configurado'}
+          </code>
+        </div>
+
+        {/* Detalhes do status */}
+        {status && (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Última verificação:</span>
+                <div className="text-muted-foreground">
+                  {status.lastChecked?.toLocaleString('pt-BR')}
+                </div>
+              </div>
+              {status.responseTime && (
+                <div>
+                  <span className="font-medium">Tempo de resposta:</span>
+                  <div className="text-muted-foreground">
+                    {status.responseTime}ms
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Alertas e erros */}
+        {status?.error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Erro:</strong> {status.error}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {status?.isReachable && !status?.workflowActive && (
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Atenção:</strong> O webhook está acessível, mas o workflow N8N não está ativo. 
+              Verifique se o fluxo está publicado e funcionando corretamente.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!N8N_CONFIG.WEBHOOK_URL && (
+          <Alert variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Configuração necessária:</strong> A variável de ambiente VITE_N8N_WEBHOOK_URL não está configurada.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Botão de teste */}
+        <Button 
+          onClick={checkWebhookStatus} 
+          disabled={isChecking || !N8N_CONFIG.WEBHOOK_URL}
+          className="w-full"
+        >
+          {isChecking ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verificando...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Verificar Conectividade
+            </>
+          )}
+        </Button>
+
+        {/* Informações adicionais */}
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p><strong>Dica:</strong> Se o webhook estiver inacessível, verifique:</p>
+          <ul className="list-disc list-inside ml-2 space-y-1">
+            <li>Se a URL está correta no arquivo .env</li>
+            <li>Se o serviço Railway está funcionando</li>
+            <li>Se há problemas de conectividade de rede</li>
+            <li>Se o workflow N8N está publicado e ativo</li>
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

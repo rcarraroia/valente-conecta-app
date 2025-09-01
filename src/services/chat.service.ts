@@ -156,6 +156,24 @@ export class ChatService implements ChatServiceInterface {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        // Handle specific N8N workflow errors
+        if (response.status === 500) {
+          const errorText = await response.text();
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.message && errorData.message.includes('Workflow could not be started')) {
+              throw createDiagnosisError(
+                DiagnosisErrorType.WEBHOOK_TIMEOUT,
+                'O workflow de diagnóstico não está ativo. Verifique se o fluxo N8N está publicado e funcionando.',
+                { status: response.status, error: errorData },
+                true
+              );
+            }
+          } catch (parseError) {
+            // If we can't parse the error, fall back to generic error
+          }
+        }
+        
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -196,8 +214,10 @@ export class ChatService implements ChatServiceInterface {
   createInitialRequest(userId: string, sessionId: string): N8nWebhookRequest {
     return {
       user_id: userId,
-      text: DEFAULTS.INITIAL_MESSAGE,
+      message: DEFAULTS.INITIAL_MESSAGE,
       session_id: sessionId,
+      timestamp: new Date().toISOString(),
+      message_history: [],
     };
   }
 

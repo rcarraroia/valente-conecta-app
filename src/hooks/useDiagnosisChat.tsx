@@ -108,7 +108,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       
       // Check if chat service is available
       if (!chatService) {
-        throw new Error('Serviço de chat não está disponível no momento');
+        throw new Error('O sistema de pré-diagnóstico não está configurado. Entre em contato com o suporte técnico.');
       }
       
       // Create initial request
@@ -223,7 +223,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
 
       // Check if chat service is available
       if (!chatService) {
-        throw new Error('Serviço de chat não está disponível no momento');
+        throw new Error('O sistema de pré-diagnóstico não está configurado. Entre em contato com o suporte técnico.');
       }
 
       // Send message to chat service

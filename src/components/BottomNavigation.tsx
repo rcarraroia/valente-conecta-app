@@ -22,7 +22,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
       ariaLabel: 'Acessar biblioteca de conteúdos'
     },
     {
-      id: 'ia',
+      id: 'diagnosis',
       label: 'Diagnóstico',
       icon: Brain,
       ariaLabel: 'Acessar ferramenta de pré-diagnóstico'
@@ -41,6 +41,15 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
     }
   ];
 
+  const handleNavigation = (itemId: string) => {
+    if (itemId === 'diagnosis') {
+      // Redirecionar para a nova interface de diagnóstico
+      window.location.href = '/diagnosis';
+    } else {
+      onTabChange(itemId);
+    }
+  };
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 bg-white border-t border-cv-gray-light shadow-lg z-50 safe-area-bottom"
@@ -55,7 +64,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
           return (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => handleNavigation(item.id)}
               className={`flex flex-col items-center justify-center min-h-[56px] px-2 py-1 rounded-lg transition-all duration-200 relative flex-1 max-w-[20%] touch-target ${
                 isActive 
                   ? 'bg-cv-green-mint text-white shadow-md scale-105' 

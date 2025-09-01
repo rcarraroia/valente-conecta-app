@@ -27,11 +27,14 @@ const Index = () => {
     if (redirectTo) {
       const validScreens = [
         'home', 'biblioteca', 'article-detail', 'partners', 
-        'partner-profile', 'professional-dashboard', 'ia', 'ajudar', 
+        'partner-profile', 'professional-dashboard', 'ajudar', 
         'donation', 'perfil', 'ambassador', 'my-data', 
         'my-donations', 'services', 'volunteers'
       ];
-      if (validScreens.includes(redirectTo)) {
+      if (redirectTo === 'ia') {
+        // Redirecionar para a nova interface de diagnóstico
+        window.location.href = '/diagnosis';
+      } else if (validScreens.includes(redirectTo)) {
         setCurrentScreen(redirectTo);
       }
       localStorage.removeItem('redirect_to');
@@ -53,7 +56,9 @@ const Index = () => {
       case 'professional-dashboard':
         return <ProfessionalDashboard onBack={() => setCurrentScreen('perfil')} />;
       case 'ia':
-        return <AIAgentScreen onBack={() => setCurrentScreen('home')} />;
+        // Redirecionar para a nova interface de diagnóstico
+        window.location.href = '/diagnosis';
+        return null;
       case 'ajudar':
         return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
       case 'donation':
@@ -85,7 +90,7 @@ const Index = () => {
   };
 
   const screensWithNavigation = [
-    'home', 'biblioteca', 'ia', 'ajudar', 'perfil', 'services', 'partners', 
+    'home', 'biblioteca', 'ajudar', 'perfil', 'services', 'partners', 
     'donation', 'my-data', 'my-donations', 'ambassador', 'volunteers'
   ];
 

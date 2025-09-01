@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { DiagnosisChat as DiagnosisChatComponent } from '@/components/diagnosis/DiagnosisChat';
 import { DiagnosisRouteGuard } from '@/components/auth/DiagnosisRouteGuard';
+import { SystemStatus } from '@/components/diagnosis/SystemStatus';
 import { useDiagnosisAuth } from '@/hooks/useDiagnosisAuth';
 import { useDiagnosisChat } from '@/hooks/useDiagnosisChat';
 import { useResponsive, useMobileKeyboard } from '@/hooks/useResponsive';
@@ -82,15 +83,18 @@ const DiagnosisChatPage: React.FC = () => {
               </h1>
             </div>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleGoHome}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <Home className="w-4 h-4 mr-1" />
-              Início
-            </Button>
+            <div className="flex items-center gap-3">
+              <SystemStatus autoCheck={true} />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoHome}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <Home className="w-4 h-4 mr-1" />
+                Início
+              </Button>
+            </div>
           </div>
         </div>
 
