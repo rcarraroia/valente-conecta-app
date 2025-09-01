@@ -83,7 +83,10 @@ export const useDiagnosisAuth = (): UseDiagnosisAuthReturn => {
         description: 'Você não tem permissão para acessar esta funcionalidade.',
         variant: 'destructive',
       });
-      navigate('/');
+      // Only redirect if not already on home page
+      if (location.pathname !== '/') {
+        navigate('/');
+      }
       return false;
     }
 
@@ -168,13 +171,16 @@ export const useDiagnosisAuth = (): UseDiagnosisAuthReturn => {
     }
   }, []);
 
-  // Handle post-login redirect
+  // Handle post-login redirect - only from auth page
   useEffect(() => {
-    if (isAuthenticated && !loading) {
+    if (isAuthenticated && !loading && location.pathname === '/auth') {
       const returnUrl = localStorage.getItem('diagnosis_return_url');
-      if (returnUrl && location.pathname === '/auth') {
+      if (returnUrl) {
         localStorage.removeItem('diagnosis_return_url');
         navigate(returnUrl);
+      } else {
+        // Default redirect after login
+        navigate('/diagnosis');
       }
     }
   }, [isAuthenticated, loading, location.pathname, navigate]);

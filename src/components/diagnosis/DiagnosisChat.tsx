@@ -91,13 +91,11 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
     }
   }, [actualIsMobile, actualIsKeyboardVisible]);
 
-  // Handle session completion
+  // Handle session completion - removed automatic completion to avoid redirects
   useEffect(() => {
     if (currentSessionId && onSessionComplete) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage?.type === 'ai') {
-        onSessionComplete(currentSessionId);
-      }
+      // Only call onSessionComplete when explicitly needed
+      // Removed automatic completion based on AI messages to prevent unwanted redirects
     }
   }, [messages, currentSessionId, onSessionComplete]);
 

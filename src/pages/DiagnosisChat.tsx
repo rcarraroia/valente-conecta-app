@@ -52,10 +52,11 @@ const DiagnosisChatPage: React.FC = () => {
     navigate('/');
   };
 
-  const handleSessionComplete = () => {
-    // Clear session and redirect to reports
+  const handleSessionComplete = (sessionId: string) => {
+    // Clear session but don't redirect automatically
     authContext.actions.clearDiagnosisSession();
-    authContext.actions.redirectToReports();
+    console.log('Session completed:', sessionId);
+    // Don't redirect automatically - let user decide when to leave
   };
 
   const handleError = (error: any) => {

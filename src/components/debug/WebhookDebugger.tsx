@@ -23,10 +23,11 @@ export const WebhookDebugger: React.FC = () => {
   useEffect(() => {
     if (!isCapturing) return;
 
-    // Intercept fetch requests
+    // Store original fetch to avoid issues
     const originalFetch = window.fetch;
     
-    window.fetch = async (...args) => {
+    // Create a safer fetch interceptor
+    const interceptFetch = async (...args: Parameters<typeof fetch>) => {
       const [url, options] = args;
       const startTime = Date.now();
       
@@ -34,31 +35,46 @@ export const WebhookDebugger: React.FC = () => {
       if (typeof url === 'string' && url.includes('/api/webhook-proxy')) {
         const logId = `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
+        let payload = null;
+        try {
+          if (options?.body && typeof options.body === 'string') {
+            payload = JSON.parse(options.body);
+          }
+        } catch (e) {
+          payload = options?.body || null;
+        }
+        
         const requestLog: RequestLog = {
           id: logId,
           timestamp: new Date().toISOString(),
           method: options?.method || 'GET',
           url: url,
-          payload: options?.body ? JSON.parse(options.body as string) : null,
+          payload,
         };
 
-        setLogs(prev => [requestLog, ...prev.slice(0, 49)]); // Keep last 50 logs
+        // Use functional update to avoid stale closures
+        setLogs(prev => [requestLog, ...prev.slice(0, 49)]);
 
         try {
           const response = await originalFetch(...args);
           const duration = Date.now() - startTime;
           
-          // Clone response to read it without consuming the original
-          const responseClone = response.clone();
-          const responseText = await responseClone.text();
-          
-          let responseData;
+          // Safely clone and read response
+          let responseData = null;
           try {
-            responseData = JSON.parse(responseText);
-          } catch {
-            responseData = responseText;
+            const responseClone = response.clone();
+            const responseText = await responseClone.text();
+            
+            try {
+              responseData = JSON.parse(responseText);
+            } catch {
+              responseData = responseText;
+            }
+          } catch (e) {
+            responseData = 'Failed to read response';
           }
 
+          // Update log with response data
           setLogs(prev => prev.map(log => 
             log.id === logId 
               ? { 
@@ -78,7 +94,7 @@ export const WebhookDebugger: React.FC = () => {
             log.id === logId 
               ? { 
                   ...log, 
-                  error: error.message,
+                  error: error.message || 'Unknown error',
                   duration 
                 }
               : log
@@ -88,10 +104,16 @@ export const WebhookDebugger: React.FC = () => {
         }
       }
 
+      // For non-webhook requests, just pass through
       return originalFetch(...args);
     };
 
+    // Replace fetch with interceptor
+    window.fetch = interceptFetch;
+
+    // Cleanup function
     return () => {
+      // Restore original fetch
       window.fetch = originalFetch;
     };
   }, [isCapturing]);
@@ -105,6 +127,7 @@ export const WebhookDebugger: React.FC = () => {
     };
 
     try {
+      console.log('🧪 Iniciando teste do webhook...');
       const response = await fetch('/api/webhook-proxy', {
         method: 'POST',
         headers: {
@@ -113,9 +136,14 @@ export const WebhookDebugger: React.FC = () => {
         body: JSON.stringify(testPayload)
       });
 
-      console.log('Teste do webhook concluído:', response.status);
+      console.log('✅ Teste do webhook concluído:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erro na resposta:', errorText);
+      }
     } catch (error) {
-      console.error('Erro no teste do webhook:', error);
+      console.error('💥 Erro no teste do webhook:', error);
     }
   };
 
