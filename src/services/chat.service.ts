@@ -7,31 +7,13 @@ import {
   ServiceResponse 
 } from '@/types/diagnosis-services';
 import { 
-  N8nWebhookRequest, 
   N8nWebhookResponse, 
   DiagnosisError,
   DiagnosisErrorType 
 } from '@/types/diagnosis';
 // Simple validation functions to avoid schema import issues
-const validateN8nWebhookRequest = (request: any): void => {
-  if (!request.user_id || typeof request.user_id !== 'string') {
-    throw new Error('Invalid user ID');
-  }
-  if (!request.message || typeof request.message !== 'string') {
-    throw new Error('Invalid message');
-  }
-  if (!request.session_id || typeof request.session_id !== 'string') {
-    throw new Error('Invalid session ID');
-  }
-};
 
-const validateN8nWebhookResponse = (response: any): boolean => {
-  return response && 
-         typeof response.message === 'string' && 
-         response.message.length > 0 &&
-         typeof response.session_id === 'string' &&
-         response.session_id.length > 0;
-};
+// Removed validateN8nWebhookResponse - n8n returns different format (output/mensagem)
 // Simple utility functions to avoid import issues
 const extractErrorMessage = (error: any): string => {
   if (typeof error === 'string') return error;
@@ -165,8 +147,22 @@ export class ChatService implements ChatServiceInterface {
         this.options.retryDelay
       );
 
-      // Validate response
-      if (!this.validateWebhookResponse(response)) {
+      // Process n8n response format (array with output/mensagem)
+      let processedResponse;
+      if (Array.isArray(response) && response.length > 0) {
+        const firstItem = response[0];
+        processedResponse = {
+          message: firstItem.output || firstItem.mensagem || firstItem.message || 'Resposta recebida',
+          session_id: request.session_id,
+          timestamp: new Date().toISOString()
+        };
+      } else if (response && typeof response === 'object') {
+        processedResponse = {
+          message: response.output || response.mensagem || response.message || 'Resposta recebida',
+          session_id: request.session_id || response.session_id,
+          timestamp: new Date().toISOString()
+        };
+      } else {
         const error = createDiagnosisError(
           DiagnosisErrorType.NETWORK_ERROR,
           'Invalid response format from n8n webhook',
@@ -175,6 +171,8 @@ export class ChatService implements ChatServiceInterface {
         );
         return this.createErrorResponse(error, startTime, currentRequestId);
       }
+
+      response = processedResponse;
 
       const duration = Date.now() - startTime;
       this.updateMetrics(true, duration);
@@ -326,15 +324,15 @@ export class ChatService implements ChatServiceInterface {
   }
 
   /**
-   * Validates n8n webhook response
+   * Validates n8n webhook response - simplified for n8n format
    */
   validateWebhookResponse(response: any): boolean {
-    try {
-      validateN8nWebhookResponse(response);
-      return true;
-    } catch {
-      return false;
+    // N8n returns array with output/mensagem or object with those fields
+    if (Array.isArray(response) && response.length > 0) {
+      const firstItem = response[0];
+      return !!(firstItem.output || firstItem.mensagem || firstItem.message);
     }
+    return !!(response && (response.output || response.mensagem || response.message));
   }
 
   /**

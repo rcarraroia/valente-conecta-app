@@ -23,10 +23,10 @@ export default async function handler(req, res) {
   try {
     const webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
     const timestamp = new Date().toISOString();
-    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    console.log(`� [$q{requestId}] [${timestamp}] Proxying request to:`, webhookUrl);
-    console.log(`� R[${requestId}] Request method:`, req.method);
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+
+    console.log(`🚀 [${requestId}] [${timestamp}] Proxying request to:`, webhookUrl);
+    console.log(`📝 [${requestId}] Request method:`, req.method);
     console.log(`📦 [${requestId}] Request body:`, JSON.stringify(req.body, null, 2));
     console.log(`📋 [${requestId}] Request headers (filtered):`, {
       'content-type': req.headers['content-type'],
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
       'origin': req.headers['origin'],
       'referer': req.headers['referer']
     });
-    
+
     // Log the specific message content for debugging
     if (req.body && req.body.chatInput) {
       console.log(`💬 [${requestId}] Message content:`, req.body.chatInput);
@@ -64,7 +64,18 @@ export default async function handler(req, res) {
     // Forward the request to the actual webhook
     const startTime = Date.now();
     console.log(`🔄 [${requestId}] Forwarding to n8n webhook at ${startTime}`);
-    
+
+    const requestBody = JSON.stringify(req.body);
+    console.log(`📤 [${requestId}] Request body length: ${requestBody.length} chars`);
+    console.log(`📤 [${requestId}] Request body preview: ${requestBody.substring(0, 200)}...`);
+
+    // Use AbortController for timeout (Vercel compatible)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.log(`⏰ [${requestId}] Request timeout after 25s`);
+      controller.abort();
+    }, 25000); // 25 second timeout
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -73,9 +84,13 @@ export default async function handler(req, res) {
         'Accept': 'application/json',
         'X-Request-ID': requestId,
       },
-      body: JSON.stringify(req.body),
-      timeout: 30000, // 30 second timeout
+      body: requestBody,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
+
+    console.log(`📥 [${requestId}] Got response from n8n after ${Date.now() - startTime}ms`);
 
     const responseTime = Date.now() - startTime;
 
@@ -85,23 +100,33 @@ export default async function handler(req, res) {
       responseTime: `${responseTime}ms`,
       headers: {
         'content-type': response.headers.get('content-type'),
-        'content-length': response.headers.get('content-length')
+        'content-length': response.headers.get('content-length'),
+        'x-n8n-execution-id': response.headers.get('x-n8n-execution-id'),
+        'x-n8n-workflow-id': response.headers.get('x-n8n-workflow-id')
       }
     });
-    
+
     // Always try to get response as text first
     const responseText = await response.text();
     console.log(`📄 [${requestId}] Webhook response text (first 500 chars):`, responseText.substring(0, 500));
     console.log(`📊 [${requestId}] Full response length:`, responseText.length);
-    
+
     // If response is empty, return a default message to prevent frontend errors
     if (!responseText || responseText.trim() === '') {
-      console.log(`⚠️ [${requestId}] N8N returned empty response, using fallback`);
+      console.log(`⚠️ [${requestId}] N8N returned empty response`);
+      console.log(`🔍 [${requestId}] Response headers:`, Object.fromEntries(response.headers.entries()));
+      console.log(`🔍 [${requestId}] Response status:`, response.status, response.statusText);
+
       const fallbackResponse = {
-        message: "Desculpe, o sistema de IA está temporariamente indisponível. Tente novamente em alguns minutos.",
+        message: "O workflow do n8n executou mas não retornou dados. Verifique a configuração do nó 'Respond to Webhook'.",
         session_id: req.body.session_id || 'unknown',
         error: 'empty_response_from_n8n',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        debug_info: {
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          execution_time: responseTime
+        }
       };
       return res.status(200).json(fallbackResponse);
     }
@@ -118,7 +143,7 @@ export default async function handler(req, res) {
     // Handle n8n specific errors - check data first, then response status
     if ((data && data.message && data.message.includes('Workflow could not be started')) || !response.ok) {
       console.error('N8N Workflow error:', response.status, data);
-      
+
       // Return a user-friendly error for workflow issues
       if (data && data.message && data.message.includes('Workflow could not be started')) {
         return res.status(200).json({
@@ -127,7 +152,7 @@ export default async function handler(req, res) {
           user_message: 'Tente novamente em alguns minutos. Se o problema persistir, entre em contato conosco.',
         });
       }
-      
+
       return res.status(400).json({
         error: 'webhook_error',
         status: response.status,
@@ -148,16 +173,24 @@ export default async function handler(req, res) {
       message: error.message,
       name: error.name,
       stack: error.stack,
+      cause: error.cause,
       requestBody: req.body ? JSON.stringify(req.body) : 'undefined',
-      url: webhookUrl
+      url: webhookUrl || 'undefined',
+      errorType: typeof error,
+      errorConstructor: error.constructor.name
     });
-    
+
     // Handle specific error types
-    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+    if (error.name === 'AbortError' || error.message.includes('timeout') || error.message.includes('aborted')) {
+      console.log(`⏰ [${requestId || 'unknown'}] Request was aborted/timed out`);
       return res.status(408).json({
         error: 'request_timeout',
-        message: 'Request to n8n webhook timed out',
-        user_message: 'O sistema está demorando para responder. Tente novamente em alguns segundos.'
+        message: 'Request to n8n webhook timed out after 25 seconds',
+        user_message: 'O sistema está demorando para responder. Tente novamente em alguns segundos.',
+        debug_info: {
+          timeout_duration: '25s',
+          webhook_url: webhookUrl
+        }
       });
     }
 
@@ -168,7 +201,7 @@ export default async function handler(req, res) {
         user_message: 'O serviço de pré-diagnóstico está temporariamente indisponível.'
       });
     }
-    
+
     return res.status(500).json({
       error: 'proxy_error',
       message: error.message,
