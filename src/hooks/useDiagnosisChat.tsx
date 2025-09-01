@@ -233,18 +233,15 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add user message to state immediately
       setMessages(prev => [...prev, userMessage]);
 
-      // Prepare request for N8n (format expected by workflow)
+      // Prepare request for N8n (format expected by workflow) - simplified for testing
       const request = {
         chatInput: content.trim(),
         user_id: user.id,
         session_id: session.id,
         timestamp: new Date().toISOString(),
-        message_history: messages.map(msg => ({
-          sender: msg.type,
-          content: msg.content,
-          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : new Date(msg.timestamp).toISOString(),
-        })),
       };
+      
+      console.log('🚀 Sending to n8n:', request);
 
       // Check if chat service is available
       if (!chatService) {

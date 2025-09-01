@@ -23,9 +23,10 @@ export default async function handler(req, res) {
   try {
     const webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
     
-    console.log('Proxying request to:', webhookUrl);
-    console.log('Request method:', req.method);
-    console.log('Request body:', req.body);
+    console.log('🚀 Proxying request to:', webhookUrl);
+    console.log('📝 Request method:', req.method);
+    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
+    console.log('📋 Request headers:', req.headers);
 
     // Forward the request to the actual webhook
     const response = await fetch(webhookUrl, {
