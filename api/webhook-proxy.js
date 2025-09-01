@@ -93,6 +93,18 @@ export default async function handler(req, res) {
     const responseText = await response.text();
     console.log(`📄 [${requestId}] Webhook response text (first 500 chars):`, responseText.substring(0, 500));
     console.log(`📊 [${requestId}] Full response length:`, responseText.length);
+    
+    // If response is empty, return a default message to prevent frontend errors
+    if (!responseText || responseText.trim() === '') {
+      console.log(`⚠️ [${requestId}] N8N returned empty response, using fallback`);
+      const fallbackResponse = {
+        message: "Desculpe, o sistema de IA está temporariamente indisponível. Tente novamente em alguns minutos.",
+        session_id: req.body.session_id || 'unknown',
+        error: 'empty_response_from_n8n',
+        timestamp: new Date().toISOString()
+      };
+      return res.status(200).json(fallbackResponse);
+    }
 
     // Try to parse as JSON
     let data;

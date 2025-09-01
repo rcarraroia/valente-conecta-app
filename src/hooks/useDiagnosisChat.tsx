@@ -241,7 +241,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add user message to state immediately
       setMessages(prev => [...prev, userMessage]);
 
-      // Prepare request for N8n (format expected by workflow) - simplified for testing
+      // Prepare request for N8n (exact format as shown in webhook config)
       const request = {
         chatInput: content.trim(),
         user_id: user.id,

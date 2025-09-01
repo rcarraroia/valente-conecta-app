@@ -270,6 +270,16 @@ export class ChatService implements ChatServiceInterface {
         );
       }
 
+      // Check for empty response (n8n workflow not returning data)
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0) || data === '') {
+        throw createDiagnosisError(
+          DiagnosisErrorType.WEBHOOK_TIMEOUT,
+          'O workflow do n8n não está retornando resposta. Verifique se há um nó "Respond to Webhook" configurado.',
+          { emptyResponse: true, responseText },
+          true
+        );
+      }
+
       if (!response.ok) {
         // Handle specific N8N workflow errors
         if (response.status === 500) {
