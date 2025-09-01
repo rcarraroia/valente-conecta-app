@@ -1,6 +1,6 @@
 // Diagnosis report service - integrates PDF generation with chat completion
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { pdfService } from './pdf.service';
 import { storageService } from './storage.service';
 import { useToast } from '@/components/ui/use-toast';
@@ -51,10 +51,7 @@ export class DiagnosisReportService implements DiagnosisReportServiceInterface {
   private requestId = 0;
 
   constructor() {
-    this.supabase = createClient(
-      diagnosisConfig.supabase.url,
-      diagnosisConfig.supabase.anonKey
-    );
+    this.supabase = supabase;
   }
 
   /**
@@ -570,5 +567,12 @@ export const createDiagnosisReportService = (): DiagnosisReportService => {
   return new DiagnosisReportService();
 };
 
-// Default DiagnosisReportService instance
-export const diagnosisReportService = createDiagnosisReportService();
+// Default DiagnosisReportService instance with error handling
+export const diagnosisReportService = (() => {
+  try {
+    return createDiagnosisReportService();
+  } catch (error) {
+    console.warn('DiagnosisReportService initialization failed:', error);
+    return null;
+  }
+})();

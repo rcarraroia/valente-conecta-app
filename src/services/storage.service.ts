@@ -1,6 +1,7 @@
 // Supabase storage service for diagnosis reports
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   StorageServiceInterface, 
   StorageServiceOptions, 
@@ -65,10 +66,7 @@ export class StorageService implements StorageServiceInterface {
       retryDelay: options?.retryDelay || 1000,
     };
 
-    this.supabase = createClient(
-      diagnosisConfig.supabase.url,
-      diagnosisConfig.supabase.anonKey
-    );
+    this.supabase = supabase;
 
     this.validateConfiguration();
   }
@@ -480,13 +478,8 @@ export class StorageService implements StorageServiceInterface {
       console.warn('StorageService: Storage bucket name not configured - service will be limited');
     }
 
-    if (!diagnosisConfig.supabase?.url) {
-      console.warn('StorageService: Supabase URL not configured - service will be disabled');
-      return;
-    }
-
-    if (!diagnosisConfig.supabase?.anonKey) {
-      console.warn('StorageService: Supabase anonymous key not configured - service will be disabled');
+    if (!this.supabase) {
+      console.warn('StorageService: Supabase client not available - service will be disabled');
       return;
     }
   }
