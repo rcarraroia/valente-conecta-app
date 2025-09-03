@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { validateWalletId, logWalletValidation, getWalletErrorMessage } from '@/utils/walletValidation';
 import { Wallet, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface AmbassadorWalletFormProps {
@@ -20,7 +21,7 @@ const AmbassadorWalletForm = ({ currentWalletId, onWalletUpdated }: AmbassadorWa
   const [isValid, setIsValid] = useState(false);
   const { toast } = useToast();
 
-  const validateWalletId = async (id: string) => {
+  const validateWallet = async (id: string) => {
     if (!id || id.length < 10) {
       setIsValid(false);
       return false;
@@ -28,24 +29,36 @@ const AmbassadorWalletForm = ({ currentWalletId, onWalletUpdated }: AmbassadorWa
 
     setIsValidating(true);
     try {
-      // Validar formato UUID
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const isValidFormat = uuidRegex.test(id);
+      // Obter usuário atual
+      const { data: currentUser } = await supabase.auth.getUser();
+      const userId = currentUser.user?.id;
+
+      const result = await validateWalletId(id, userId);
       
-      if (!isValidFormat) {
-        setIsValid(false);
+      setIsValid(result.isValid);
+      
+      if (!result.isValid) {
         toast({
-          title: "Formato inválido",
-          description: "O Wallet ID deve estar no formato UUID (ex: f9c7d1dd-9e52-4e81-8194-8b666f276405)",
+          title: result.errorType === 'format' ? "Formato inválido" : 
+                 result.errorType === 'system' ? "Wallet reservada" :
+                 result.errorType === 'duplicate' ? "Wallet em uso" : "Erro de validação",
+          description: getWalletErrorMessage(result),
           variant: "destructive"
         });
-        return false;
       }
-
-      setIsValid(true);
-      return true;
+      
+      // Log para auditoria
+      logWalletValidation(id, result, userId);
+      
+      return result.isValid;
     } catch (error) {
+      console.error('Erro na validação de wallet:', error);
       setIsValid(false);
+      toast({
+        title: "Erro de validação",
+        description: "Ocorreu um erro ao validar a Wallet ID",
+        variant: "destructive"
+      });
       return false;
     } finally {
       setIsValidating(false);
@@ -55,7 +68,7 @@ const AmbassadorWalletForm = ({ currentWalletId, onWalletUpdated }: AmbassadorWa
   const handleWalletIdChange = async (value: string) => {
     setWalletId(value);
     if (value) {
-      await validateWalletId(value);
+      await validateWallet(value);
     } else {
       setIsValid(false);
     }

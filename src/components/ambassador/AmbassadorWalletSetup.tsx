@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { validateWalletId, logWalletValidation } from '@/utils/walletValidation';
 import { Wallet, AlertCircle, CheckCircle, Info } from 'lucide-react';
 
 interface AmbassadorWalletSetupProps {
@@ -26,35 +27,26 @@ const AmbassadorWalletSetup = ({ userId, currentWalletId, onWalletUpdated }: Amb
     setWalletId(currentWalletId || '');
   }, [currentWalletId]);
 
-  const validateWalletId = async (id: string) => {
+  const validateWallet = async (id: string) => {
     if (!id) {
       setIsValid(false);
       setValidationMessage('');
       return false;
     }
 
-    if (id.length < 10) {
-      setIsValid(false);
-      setValidationMessage('Wallet ID muito curto');
-      return false;
-    }
-
     setIsValidating(true);
     try {
-      // Validar formato UUID
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const isValidFormat = uuidRegex.test(id);
+      const result = await validateWalletId(id, userId);
       
-      if (!isValidFormat) {
-        setIsValid(false);
-        setValidationMessage('Formato inválido. Use formato UUID.');
-        return false;
-      }
-
-      setIsValid(true);
-      setValidationMessage('Formato válido');
-      return true;
+      setIsValid(result.isValid);
+      setValidationMessage(result.message);
+      
+      // Log para auditoria
+      logWalletValidation(id, result, userId);
+      
+      return result.isValid;
     } catch (error) {
+      console.error('Erro na validação de wallet:', error);
       setIsValid(false);
       setValidationMessage('Erro na validação');
       return false;
@@ -66,7 +58,7 @@ const AmbassadorWalletSetup = ({ userId, currentWalletId, onWalletUpdated }: Amb
   const handleWalletIdChange = async (value: string) => {
     setWalletId(value);
     if (value) {
-      await validateWalletId(value);
+      await validateWallet(value);
     } else {
       setIsValid(false);
       setValidationMessage('');
