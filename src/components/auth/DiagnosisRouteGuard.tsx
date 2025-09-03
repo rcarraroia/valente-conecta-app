@@ -24,9 +24,9 @@ export const DiagnosisRouteGuard: React.FC<DiagnosisRouteGuardProps> = ({
   const { state, actions } = useDiagnosisAuth();
 
   useEffect(() => {
-    if (requireAuth && !state.isLoading && state.user) {
+    if (requireAuth && !state.isLoading) {
       const hasAccess = actions.requireAuth(redirectTo);
-      if (hasAccess) {
+      if (hasAccess && state.user) {
         // Update last access when user successfully accesses diagnosis features
         actions.updateLastAccess();
       }
