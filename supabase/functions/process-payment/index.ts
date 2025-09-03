@@ -149,11 +149,12 @@ const handler = async (req: Request): Promise<Response> => {
     const customer = await customerResponse.json();
     console.log('Cliente criado:', customer.id);
 
-    // 4. Configurar split se necessário
+    // 4. Configurar split se necessário - TEMPORARIAMENTE DESABILITADO
     const splits: AsaasSplit[] = [];
-    const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
-    const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum
-    const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador
+    // PROBLEMA: Uma das wallet IDs é a mesma da conta principal
+    // const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
+    // const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum
+    // const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador
     const totalAmountInReais = paymentData.amount / 100;
     
     console.log('Valor total em reais:', totalAmountInReais);
@@ -164,6 +165,10 @@ const handler = async (req: Request): Promise<Response> => {
     let specialShare = 0;
     let instituteShare = 0;
 
+    // SPLIT TEMPORARIAMENTE DESABILITADO - PROBLEMA COM WALLET IDs
+    console.log('⚠️ Split desabilitado temporariamente - problema com wallet IDs');
+    
+    /*
     if (ambassadorData?.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
       // Cenário COM embaixador: Instituto 70%, Embaixador 20%, Renum 10%
       const ambassadorCommissionPercent = 20;
@@ -231,26 +236,10 @@ const handler = async (req: Request): Promise<Response> => {
 
       console.log('Split configurado SEM embaixador:', { renumShare, specialShare, instituteShare, totalSplits: splits.length });
     }
+    */
 
-    // Validação final do split
-    if (splits.length > 0) {
-      const totalSplitValue = splits.reduce((sum, split) => sum + (split.fixedValue || 0), 0);
-      console.log('Validação do split:', { 
-        totalAmountInReais, 
-        totalSplitValue, 
-        difference: Math.abs(totalAmountInReais - totalSplitValue),
-        splitsCount: splits.length 
-      });
-
-      // Verificar se a diferença é aceitável (até 0.02 por causa de arredondamento)
-      const difference = Math.abs(totalAmountInReais - totalSplitValue);
-      if (difference > 0.02) {
-        console.error('Diferença muito grande no split:', difference);
-        // Limpar splits em caso de erro grave
-        splits.length = 0;
-        console.warn('Split removido devido a erro de cálculo');
-      }
-    }
+    // Validação final do split - DESABILITADA
+    console.log('Split desabilitado - todos os valores vão para a conta principal');
 
     // 5. Criar pagamento/assinatura na Asaas
     const externalReference = `${paymentData.type.toUpperCase()}_${Date.now()}`;
