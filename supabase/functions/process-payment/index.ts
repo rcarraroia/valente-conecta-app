@@ -149,12 +149,11 @@ const handler = async (req: Request): Promise<Response> => {
     const customer = await customerResponse.json();
     console.log('Cliente criado:', customer.id);
 
-    // 4. Configurar split se necessário - TEMPORARIAMENTE DESABILITADO
+    // 4. Configurar split - CORRIGIDO
     const splits: AsaasSplit[] = [];
-    // PROBLEMA: Uma das wallet IDs é a mesma da conta principal
-    // const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
-    // const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum
-    // const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador
+    // PROBLEMA RESOLVIDO: eff311bc-7737-4870-93cd-16080c00d379 é a conta principal, não pode ser usada no split
+    const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum - VALIDADA
+    const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador - VALIDADA
     const totalAmountInReais = paymentData.amount / 100;
     
     console.log('Valor total em reais:', totalAmountInReais);
@@ -165,19 +164,14 @@ const handler = async (req: Request): Promise<Response> => {
     let specialShare = 0;
     let instituteShare = 0;
 
-    // SPLIT TEMPORARIAMENTE DESABILITADO - PROBLEMA COM WALLET IDs
-    console.log('⚠️ Split desabilitado temporariamente - problema com wallet IDs');
-    
-    /*
-    if (ambassadorData?.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
-      // Cenário COM embaixador: Instituto 70%, Embaixador 20%, Renum 10%
+    if (ambassadorData?.ambassador_wallet_id) {
+      // Cenário COM embaixador: Embaixador 20%, Renum 10% (Instituto recebe 70% automaticamente)
       const ambassadorCommissionPercent = 20;
       const renumCommissionPercent = 10;
-      const instituteCommissionPercent = 70;
       
       ambassadorShare = Math.round((totalAmountInReais * ambassadorCommissionPercent) / 100 * 100) / 100;
       renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
-      instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
+      instituteShare = totalAmountInReais - ambassadorShare - renumShare; // Instituto recebe o restante
 
       // Validar valores antes de adicionar ao split
       if (ambassadorShare > 0) {
@@ -194,23 +188,15 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      if (instituteShare > 0) {
-        splits.push({
-          walletId: instituteWalletId,
-          fixedValue: instituteShare
-        });
-      }
-
       console.log('Split configurado COM embaixador:', { ambassadorShare, renumShare, instituteShare, totalSplits: splits.length });
     } else {
-      // Cenário SEM embaixador: Instituto 70%, Renum 10%, Wallet Especial 20%
+      // Cenário SEM embaixador: Renum 10%, Wallet Especial 20% (Instituto recebe 70% automaticamente)
       const renumCommissionPercent = 10;
       const specialCommissionPercent = 20; // 20% que seria do embaixador vai para wallet especial
-      const instituteCommissionPercent = 70;
       
       renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
       specialShare = Math.round((totalAmountInReais * specialCommissionPercent) / 100 * 100) / 100;
-      instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
+      instituteShare = totalAmountInReais - renumShare - specialShare; // Instituto recebe o restante
 
       // Validar valores antes de adicionar ao split
       if (renumShare > 0) {
@@ -227,19 +213,22 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      if (instituteShare > 0) {
-        splits.push({
-          walletId: instituteWalletId,
-          fixedValue: instituteShare
-        });
-      }
-
       console.log('Split configurado SEM embaixador:', { renumShare, specialShare, instituteShare, totalSplits: splits.length });
     }
-    */
 
-    // Validação final do split - DESABILITADA
-    console.log('Split desabilitado - todos os valores vão para a conta principal');
+    // Validação final do split
+    if (splits.length > 0) {
+      const totalSplitValue = splits.reduce((sum, split) => sum + (split.fixedValue || 0), 0);
+      console.log('Validação do split:', { 
+        totalAmountInReais, 
+        totalSplitValue, 
+        difference: Math.abs(totalAmountInReais - totalSplitValue),
+        splitsCount: splits.length 
+      });
+
+      // O instituto recebe automaticamente o que não for splitado
+      console.log('Instituto receberá automaticamente:', totalAmountInReais - totalSplitValue);
+    }
 
     // 5. Criar pagamento/assinatura na Asaas
     const externalReference = `${paymentData.type.toUpperCase()}_${Date.now()}`;
