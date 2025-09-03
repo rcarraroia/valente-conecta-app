@@ -130,10 +130,12 @@ const handler = async (req: Request): Promise<Response> => {
     const splits: AsaasSplit[] = [];
     const instituteWalletId = 'eff311bc-7737-4870-93cd-16080c00d379'; // Nova Wallet ID do instituto
     const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum
+    const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador
     const totalAmountInReais = paymentData.amount / 100;
     
     let ambassadorShare = 0;
     let renumShare = 0;
+    let specialShare = 0;
     let instituteShare = 0;
 
     if (ambassadorData?.ambassador_wallet_id && ambassadorData.ambassador_wallet_id !== instituteWalletId) {
@@ -163,11 +165,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       console.log('Split configurado COM embaixador:', { ambassadorShare, renumShare, instituteShare });
     } else {
-      // Cenário SEM embaixador: Instituto 70%, Renum 30%
-      const renumCommissionPercent = 30;
+      // Cenário SEM embaixador: Instituto 70%, Renum 10%, Wallet Especial 20%
+      const renumCommissionPercent = 10;
+      const specialCommissionPercent = 20; // 20% que seria do embaixador vai para wallet especial
       const instituteCommissionPercent = 70;
       
       renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
+      specialShare = Math.round((totalAmountInReais * specialCommissionPercent) / 100 * 100) / 100;
       instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
 
       splits.push({
@@ -176,11 +180,16 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       splits.push({
+        walletId: specialWalletId,
+        fixedValue: specialShare
+      });
+
+      splits.push({
         walletId: instituteWalletId,
         fixedValue: instituteShare
       });
 
-      console.log('Split configurado SEM embaixador:', { renumShare, instituteShare });
+      console.log('Split configurado SEM embaixador:', { renumShare, specialShare, instituteShare });
     }
 
     // 5. Criar pagamento/assinatura na Asaas
@@ -303,6 +312,7 @@ const handler = async (req: Request): Promise<Response> => {
         total: totalAmountInReais,
         instituto: instituteShare,
         renum: renumShare,
+        special: specialShare,
         embaixador: ambassadorShare,
         ambassador: ambassadorData ? {
           name: ambassadorData.full_name,

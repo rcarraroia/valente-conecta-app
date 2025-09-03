@@ -270,16 +270,18 @@ enum PaymentMethod {
 ```typescript
 const splitConfiguration = {
   institutePercentage: 70,    // 70% para o instituto (sempre)
-  adminPercentage: 10,        // 10% para Renum com embaixador, 30% sem embaixador
-  ambassadorPercentage: 20    // 20% para embaixador (quando houver)
+  adminPercentage: 10,        // 10% para Renum (sempre fixo)
+  ambassadorPercentage: 20,   // 20% para embaixador (quando houver)
+  specialPercentage: 20       // 20% para wallet especial (quando não há embaixador)
 };
 ```
 
 **Regras**:
 - Split automático em todas doações
 - Instituto sempre recebe 70%
-- Renum recebe 10% com embaixador, 30% sem embaixador
+- Renum sempre recebe 10% fixo
 - Embaixador recebe 20% quando aplicável
+- Wallet especial recebe 20% quando não há embaixador
 - Split processado pelo Asaas
 
 ## 6. Sistema de Embaixadores

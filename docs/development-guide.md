@@ -697,7 +697,8 @@ const calculateAmbassadorCommission = (amount: number, rate: number) => {
 // Evite magic numbers
 const COMMISSION_RATES = {
   AMBASSADOR: 0.2,  // 20% para embaixadores
-  ADMIN: 0.1,       // 10% para Renum (com embaixador) ou 30% (sem embaixador)
+  ADMIN: 0.1,       // 10% para Renum (sempre fixo)
+  SPECIAL: 0.2,     // 20% para wallet especial (quando não há embaixador)
   INSTITUTE: 0.8
 } as const;
 

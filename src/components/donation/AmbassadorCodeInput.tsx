@@ -68,7 +68,10 @@ const AmbassadorCodeInput = ({
                 </div>
               )}
               <div className="text-xs text-gray-500 mt-2 pt-2 border-t">
-                * {splitPreview.ambassadorShare > 0 ? '10%' : '30%'} destinado à manutenção da plataforma
+                * 10% destinado à manutenção da plataforma
+                {splitPreview.ambassadorShare === 0 && (
+                  <br />* 20% destinado à wallet especial (sem embaixador)
+                )}
               </div>
             </div>
           </div>
