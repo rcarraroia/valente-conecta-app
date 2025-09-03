@@ -152,8 +152,8 @@ const handler = async (req: Request): Promise<Response> => {
     // 4. Configurar split - CORRIGIDO
     const splits: AsaasSplit[] = [];
     // PROBLEMA RESOLVIDO: eff311bc-7737-4870-93cd-16080c00d379 é a conta principal, não pode ser usada no split
-    const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Wallet ID da Renum - VALIDADA
-    const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador - VALIDADA
+    const renumWalletId = 'f9c7d1dd-9e52-4e81-8194-8b666f276405'; // Renum - Dona do sistema (10% sempre)
+    const noAmbassadorWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Para doações sem embaixador (20%)
     const totalAmountInReais = paymentData.amount / 100;
     
     console.log('Valor total em reais:', totalAmountInReais);
@@ -208,7 +208,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (specialShare > 0) {
         splits.push({
-          walletId: specialWalletId,
+          walletId: noAmbassadorWalletId,
           fixedValue: specialShare
         });
       }

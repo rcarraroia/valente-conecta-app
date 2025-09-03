@@ -238,11 +238,11 @@ async function createAsaasCustomer(apiKey: string, donor: PaymentRequest['donor'
 async function configureSplit(ambassadorData: any, amount: number): Promise<AsaasSplit[]> {
   const splits: AsaasSplit[] = [];
   
-  // WALLET IDs VALIDADAS - A conta principal recebe automaticamente o que não for splitado
+  // WALLET IDs FIXAS - Confirmadas pelo cliente
   const WALLET_IDS = {
-    // instituto: NÃO USAR - é a mesma da conta principal (eff311bc-7737-4870-93cd-16080c00d379)
-    renum: 'f9c7d1dd-9e52-4e81-8194-8b666f276405',     // Wallet Renum - VALIDADA
-    special: 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'    // Wallet Especial - VALIDADA
+    // instituto: Recebe automaticamente via API Key (conta principal)
+    renum: 'f9c7d1dd-9e52-4e81-8194-8b666f276405',     // Renum - Dona do sistema (10% sempre)
+    noAmbassador: 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f' // Para doações sem embaixador (20%)
   };
   
   const totalAmountInReais = amount / 100;
@@ -264,7 +264,7 @@ async function configureSplit(ambassadorData: any, amount: number): Promise<Asaa
 
     splits.push(
       { walletId: WALLET_IDS.renum, fixedValue: renumShare },
-      { walletId: WALLET_IDS.special, fixedValue: specialShare }
+      { walletId: WALLET_IDS.noAmbassador, fixedValue: specialShare }
       // Instituto recebe automaticamente o restante (70%)
     );
   }
