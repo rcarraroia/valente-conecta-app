@@ -218,7 +218,6 @@ const AmbassadorWalletSetup = ({ userId, currentWalletId, onWalletUpdated }: Amb
           </div>
           <ul className="text-sm text-cv-gray-light space-y-1 ml-6">
             <li>• Você receberá 20% de comissão em todas as doações através do seu link</li>
-            <li>• O Instituto recebe 70% do valor total</li>
             <li>• Os valores são depositados automaticamente nas respectivas contas Asaas</li>
             <li>• A comissão é calculada e distribuída no momento da doação</li>
           </ul>
