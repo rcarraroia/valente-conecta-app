@@ -86,30 +86,39 @@ const handler = async (req: Request): Promise<Response> => {
     if (paymentData.ambassadorCode) {
       console.log('Buscando embaixador:', paymentData.ambassadorCode);
       
-      const { data: ambassadorProfile, error: ambassadorError } = await supabase
-        .from('profiles')
-        .select('id, full_name, ambassador_wallet_id, is_volunteer')
-        .eq('ambassador_code', paymentData.ambassadorCode)
-        .eq('is_volunteer', true)
-        .maybeSingle();
-
-      if (ambassadorError) {
-        console.warn('Erro ao buscar embaixador:', ambassadorError.message);
-      } else if (ambassadorProfile) {
-        ambassadorData = ambassadorProfile;
-        console.log('Embaixador encontrado:', ambassadorData.full_name);
-
-        // Buscar link ativo do embaixador
-        const { data: linkData } = await supabase
-          .from('ambassador_links')
-          .select('id')
-          .eq('ambassador_user_id', ambassadorData.id)
-          .eq('status', 'active')
+      try {
+        const { data: ambassadorProfile, error: ambassadorError } = await supabase
+          .from('profiles')
+          .select('id, full_name, ambassador_wallet_id, is_volunteer')
+          .eq('ambassador_code', paymentData.ambassadorCode)
+          .eq('is_volunteer', true)
           .maybeSingle();
 
-        if (linkData) {
-          ambassadorLinkId = linkData.id;
+        if (ambassadorError) {
+          console.warn('Erro ao buscar embaixador:', ambassadorError.message);
+        } else if (ambassadorProfile) {
+          ambassadorData = ambassadorProfile;
+          console.log('Embaixador encontrado:', ambassadorData.full_name);
+
+          // Buscar link ativo do embaixador
+          try {
+            const { data: linkData } = await supabase
+              .from('ambassador_links')
+              .select('id')
+              .eq('ambassador_user_id', ambassadorData.id)
+              .eq('status', 'active')
+              .maybeSingle();
+
+            if (linkData) {
+              ambassadorLinkId = linkData.id;
+            }
+          } catch (linkError) {
+            console.warn('Erro ao buscar link do embaixador:', linkError);
+          }
         }
+      } catch (error) {
+        console.error('Erro crítico ao buscar embaixador:', error);
+        // Continuar sem embaixador em caso de erro
       }
     }
 
@@ -224,22 +233,22 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Validação final do split
-    const totalSplitValue = splits.reduce((sum, split) => sum + (split.fixedValue || 0), 0);
-    console.log('Validação do split:', { 
-      totalAmountInReais, 
-      totalSplitValue, 
-      difference: Math.abs(totalAmountInReais - totalSplitValue),
-      splitsCount: splits.length 
-    });
+    if (splits.length > 0) {
+      const totalSplitValue = splits.reduce((sum, split) => sum + (split.fixedValue || 0), 0);
+      console.log('Validação do split:', { 
+        totalAmountInReais, 
+        totalSplitValue, 
+        difference: Math.abs(totalAmountInReais - totalSplitValue),
+        splitsCount: splits.length 
+      });
 
-    // Se a diferença for maior que 0.01, ajustar o valor do instituto
-    if (Math.abs(totalAmountInReais - totalSplitValue) > 0.01) {
-      console.warn('Ajustando split devido a diferença de arredondamento');
-      const instituteIndex = splits.findIndex(s => s.walletId === instituteWalletId);
-      if (instituteIndex >= 0) {
-        const adjustment = totalAmountInReais - totalSplitValue;
-        splits[instituteIndex].fixedValue = (splits[instituteIndex].fixedValue || 0) + adjustment;
-        console.log('Split ajustado:', splits[instituteIndex]);
+      // Verificar se a diferença é aceitável (até 0.02 por causa de arredondamento)
+      const difference = Math.abs(totalAmountInReais - totalSplitValue);
+      if (difference > 0.02) {
+        console.error('Diferença muito grande no split:', difference);
+        // Limpar splits em caso de erro grave
+        splits.length = 0;
+        console.warn('Split removido devido a erro de cálculo');
       }
     }
 
@@ -257,7 +266,7 @@ const handler = async (req: Request): Promise<Response> => {
         dueDate: new Date().toISOString().split('T')[0],
         description: `Doação - Instituto Coração Valente`,
         externalReference,
-        split: splits.length > 0 ? splits : undefined,
+        split: (splits.length > 0 && splits.every(s => s.fixedValue && s.fixedValue > 0)) ? splits : undefined,
       };
 
       console.log('Criando cobrança:', JSON.stringify(paymentPayload, null, 2));
@@ -293,7 +302,7 @@ const handler = async (req: Request): Promise<Response> => {
         description: `Apoio ${paymentData.frequency === 'monthly' ? 'Mensal' : 'Anual'} - Instituto Coração Valente`,
         nextDueDate: new Date().toISOString().split('T')[0],
         externalReference,
-        split: splits.length > 0 ? splits : undefined,
+        split: (splits.length > 0 && splits.every(s => s.fixedValue && s.fixedValue > 0)) ? splits : undefined,
       };
 
       console.log('Criando assinatura:', subscriptionPayload);
