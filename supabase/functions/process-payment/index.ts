@@ -58,12 +58,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     // 1. Validações básicas - valor mínimo R$ 5,00 (500 centavos)
     if (!paymentData.amount || paymentData.amount < 500) {
+      console.error('Valor inválido:', paymentData.amount);
       throw new Error('Valor mínimo para doação é R$ 5,00');
     }
 
     if (!paymentData.donor.name || !paymentData.donor.email) {
+      console.error('Dados do doador incompletos:', paymentData.donor);
       throw new Error('Nome e email são obrigatórios');
     }
+
+    if (!paymentData.paymentMethod) {
+      console.error('Método de pagamento não informado');
+      throw new Error('Método de pagamento é obrigatório');
+    }
+
+    console.log('Validações básicas aprovadas:', {
+      amount: paymentData.amount,
+      paymentMethod: paymentData.paymentMethod,
+      donorName: paymentData.donor.name,
+      donorEmail: paymentData.donor.email
+    });
 
     // 2. Buscar dados do embaixador se código fornecido
     let ambassadorData = null;
@@ -133,6 +147,9 @@ const handler = async (req: Request): Promise<Response> => {
     const specialWalletId = 'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'; // Wallet especial para 20% sem embaixador
     const totalAmountInReais = paymentData.amount / 100;
     
+    console.log('Valor total em reais:', totalAmountInReais);
+    console.log('Dados do embaixador:', ambassadorData);
+    
     let ambassadorShare = 0;
     let renumShare = 0;
     let specialShare = 0;
@@ -148,22 +165,29 @@ const handler = async (req: Request): Promise<Response> => {
       renumShare = Math.round((totalAmountInReais * renumCommissionPercent) / 100 * 100) / 100;
       instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
 
-      splits.push({
-        walletId: ambassadorData.ambassador_wallet_id,
-        fixedValue: ambassadorShare
-      });
+      // Validar valores antes de adicionar ao split
+      if (ambassadorShare > 0) {
+        splits.push({
+          walletId: ambassadorData.ambassador_wallet_id,
+          fixedValue: ambassadorShare
+        });
+      }
 
-      splits.push({
-        walletId: renumWalletId,
-        fixedValue: renumShare
-      });
+      if (renumShare > 0) {
+        splits.push({
+          walletId: renumWalletId,
+          fixedValue: renumShare
+        });
+      }
 
-      splits.push({
-        walletId: instituteWalletId,
-        fixedValue: instituteShare
-      });
+      if (instituteShare > 0) {
+        splits.push({
+          walletId: instituteWalletId,
+          fixedValue: instituteShare
+        });
+      }
 
-      console.log('Split configurado COM embaixador:', { ambassadorShare, renumShare, instituteShare });
+      console.log('Split configurado COM embaixador:', { ambassadorShare, renumShare, instituteShare, totalSplits: splits.length });
     } else {
       // Cenário SEM embaixador: Instituto 70%, Renum 10%, Wallet Especial 20%
       const renumCommissionPercent = 10;
@@ -174,22 +198,49 @@ const handler = async (req: Request): Promise<Response> => {
       specialShare = Math.round((totalAmountInReais * specialCommissionPercent) / 100 * 100) / 100;
       instituteShare = Math.round((totalAmountInReais * instituteCommissionPercent) / 100 * 100) / 100;
 
-      splits.push({
-        walletId: renumWalletId,
-        fixedValue: renumShare
-      });
+      // Validar valores antes de adicionar ao split
+      if (renumShare > 0) {
+        splits.push({
+          walletId: renumWalletId,
+          fixedValue: renumShare
+        });
+      }
 
-      splits.push({
-        walletId: specialWalletId,
-        fixedValue: specialShare
-      });
+      if (specialShare > 0) {
+        splits.push({
+          walletId: specialWalletId,
+          fixedValue: specialShare
+        });
+      }
 
-      splits.push({
-        walletId: instituteWalletId,
-        fixedValue: instituteShare
-      });
+      if (instituteShare > 0) {
+        splits.push({
+          walletId: instituteWalletId,
+          fixedValue: instituteShare
+        });
+      }
 
-      console.log('Split configurado SEM embaixador:', { renumShare, specialShare, instituteShare });
+      console.log('Split configurado SEM embaixador:', { renumShare, specialShare, instituteShare, totalSplits: splits.length });
+    }
+
+    // Validação final do split
+    const totalSplitValue = splits.reduce((sum, split) => sum + (split.fixedValue || 0), 0);
+    console.log('Validação do split:', { 
+      totalAmountInReais, 
+      totalSplitValue, 
+      difference: Math.abs(totalAmountInReais - totalSplitValue),
+      splitsCount: splits.length 
+    });
+
+    // Se a diferença for maior que 0.01, ajustar o valor do instituto
+    if (Math.abs(totalAmountInReais - totalSplitValue) > 0.01) {
+      console.warn('Ajustando split devido a diferença de arredondamento');
+      const instituteIndex = splits.findIndex(s => s.walletId === instituteWalletId);
+      if (instituteIndex >= 0) {
+        const adjustment = totalAmountInReais - totalSplitValue;
+        splits[instituteIndex].fixedValue = (splits[instituteIndex].fixedValue || 0) + adjustment;
+        console.log('Split ajustado:', splits[instituteIndex]);
+      }
     }
 
     // 5. Criar pagamento/assinatura na Asaas
@@ -209,7 +260,7 @@ const handler = async (req: Request): Promise<Response> => {
         split: splits.length > 0 ? splits : undefined,
       };
 
-      console.log('Criando cobrança:', paymentPayload);
+      console.log('Criando cobrança:', JSON.stringify(paymentPayload, null, 2));
 
       asaasResponse = await fetch('https://www.asaas.com/api/v3/payments', {
         method: 'POST',
@@ -222,8 +273,12 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (!asaasResponse.ok) {
         const errorData = await asaasResponse.text();
-        console.error('Erro da Asaas (doação):', errorData);
-        throw new Error('Erro ao processar doação');
+        console.error('Erro da Asaas (doação):', {
+          status: asaasResponse.status,
+          statusText: asaasResponse.statusText,
+          errorData: errorData
+        });
+        throw new Error(`Erro ao processar doação: ${asaasResponse.status} - ${errorData}`);
       }
 
       asaasResult = await asaasResponse.json();
