@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AmountSelector from './AmountSelector';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import DonorInformationForm from './DonorInformationForm';
+import CreditCardForm from './CreditCardForm';
 
 interface DonationFormProps {
   onBack: () => void;
@@ -19,6 +20,13 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     email: '',
     phone: '',
     document: ''
+  });
+  const [creditCardData, setCreditCardData] = useState({
+    holderName: '',
+    number: '',
+    expiryMonth: '',
+    expiryYear: '',
+    ccv: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -70,6 +78,20 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         return;
       }
 
+      // Validar dados do cartão se método for CREDIT_CARD
+      if (paymentMethod === 'CREDIT_CARD') {
+        if (!creditCardData.holderName.trim() || !creditCardData.number.trim() || 
+            !creditCardData.expiryMonth.trim() || !creditCardData.expiryYear.trim() || 
+            !creditCardData.ccv.trim()) {
+          toast({
+            title: "Dados do cartão obrigatórios",
+            description: "Preencha todos os dados do cartão de crédito.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       // Obter código do embaixador automaticamente
       const ambassadorCode = getAmbassadorCode();
 
@@ -84,6 +106,13 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           document: donorData.document.trim() || undefined,
         },
         ambassadorCode: ambassadorCode,
+        creditCard: paymentMethod === 'CREDIT_CARD' ? {
+          holderName: creditCardData.holderName.trim(),
+          number: creditCardData.number.replace(/\s/g, ''), // Remove espaços
+          expiryMonth: creditCardData.expiryMonth,
+          expiryYear: creditCardData.expiryYear,
+          ccv: creditCardData.ccv
+        } : undefined
       };
 
       console.log('=== INICIANDO DOAÇÃO ===');
@@ -182,6 +211,14 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             donorData={donorData}
             onDonorDataChange={setDonorData}
           />
+
+          {/* Campos do Cartão de Crédito */}
+          {paymentMethod === 'CREDIT_CARD' && (
+            <CreditCardForm
+              creditCardData={creditCardData}
+              onCreditCardDataChange={setCreditCardData}
+            />
+          )}
 
           {/* Informação sobre embaixador se aplicável */}
           {getAmbassadorCode() && (

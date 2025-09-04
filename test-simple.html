@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Edge Functions - Instituto Coração Valente</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; white-space: pre-wrap; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste das Edge Functions</h1>
+    
+    <div class="test-section">
+        <h3>Configuração</h3>
+        <input type="text" id="anonKey" placeholder="Cole sua chave anônima do Supabase aqui" style="width: 100%; padding: 8px;">
+        <small>Encontre em: Supabase Dashboard → Settings → API → anon/public key</small>
+    </div>
+
+    <div class="test-section">
+        <h3>Teste 1: Doação BOLETO (process-payment)</h3>
+        <button onclick="testProcessPayment()">Testar Doação BOLETO</button>
+        <div id="result1" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Teste 2: Doação com Embaixador (process-payment-v2)</h3>
+        <button onclick="testProcessPaymentV2()">Testar com Embaixador</button>
+        <div id="result2" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Teste 3: Verificar Logs no Supabase</h3>
+        <button onclick="window.open('https://corrklfwxfuqusfzwbls.supabase.co/project/corrklfwxfuqusfzwbls/functions', '_blank')">Ver Logs das Functions</button>
+        <small>Clique para abrir os logs no Supabase e ver detalhes dos erros</small>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://corrklfwxfuqusfzwbls.supabase.co';
+
+        function getAnonKey() {
+            const key = document.getElementById('anonKey').value.trim();
+            if (!key) {
+                alert('Por favor, insira a chave anônima do Supabase!');
+                return null;
+            }
+            return key;
+        } 
+       async function testProcessPayment() {
+            const anonKey = getAnonKey();
+            if (!anonKey) return;
+
+            const resultDiv = document.getElementById('result1');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Testando...';
+            resultDiv.className = 'result';
+
+            const testData = {
+                amount: 1000, // R$ 10,00
+                type: 'donation',
+                paymentMethod: 'BOLETO', // Mudando para BOLETO que sempre funciona
+                donor: {
+                    name: 'João Teste',
+                    email: 'joao@teste.com',
+                    phone: '11999999999',
+                    document: '12345678901' // CPF obrigatório
+                }
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/process-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${anonKey}`
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCESSO!\n\nPagamento ID: ${result.payment?.id}\nStatus: ${result.payment?.status}\nValor: R$ ${result.split?.total}\nSplit configurado: ${result.split ? 'Sim' : 'Não'}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERRO!\n\nStatus: ${response.status}\nMensagem: ${result.error || 'Erro desconhecido'}\n\nResposta completa:\n${JSON.stringify(result, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERRO DE CONEXÃO!\n\n${error.message}`;
+            }
+        }
+
+        async function testProcessPaymentV2() {
+            const anonKey = getAnonKey();
+            if (!anonKey) return;
+
+            const resultDiv = document.getElementById('result2');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '⏳ Testando...';
+            resultDiv.className = 'result';
+
+            const testData = {
+                amount: 1500, // R$ 15,00
+                type: 'donation',
+                paymentMethod: 'BOLETO', // Mudando para BOLETO
+                donor: {
+                    name: 'Maria Teste',
+                    email: 'maria@teste.com',
+                    phone: '11888888888',
+                    document: '98765432100' // CPF obrigatório
+                },
+                ambassadorCode: 'AMB123' // Código de teste
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/process-payment-v2`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${anonKey}`
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCESSO!\n\nPagamento ID: ${result.payment?.id}\nStatus: ${result.payment?.status}\nValor: R$ ${result.split?.total}\nEmbaixador: ${result.split?.ambassador?.name || 'Não encontrado'}\nSplits: ${result.split?.splits?.length || 0}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERRO!\n\nStatus: ${response.status}\nMensagem: ${result.error || 'Erro desconhecido'}\n\nResposta completa:\n${JSON.stringify(result, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERRO DE CONEXÃO!\n\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
