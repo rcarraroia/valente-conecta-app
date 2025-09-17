@@ -5,7 +5,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DiagnosisChat } from '@/pages/DiagnosisChat';
+import DiagnosisChat from '@/pages/DiagnosisChat';
 
 // Mock all the hooks and services
 vi.mock('@/hooks/useResponsive', () => ({

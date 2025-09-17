@@ -145,7 +145,7 @@ export const DiagnosisDashboard: React.FC<DiagnosisDashboardProps> = ({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Pendentes</span>
                 <span className="font-semibold">
-                  {reportsState.reports.filter(r => r.status === 'pending').length}
+                  {reportsState.reports.filter(r => r.status === 'processing').length}
                 </span>
               </div>
             </div>

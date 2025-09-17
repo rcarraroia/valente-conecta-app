@@ -185,7 +185,7 @@ export const WebhookDiagnostic: React.FC = () => {
         )}
 
         {status?.isReachable && !status?.workflowActive && (
-          <Alert variant="warning">
+          <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <strong>Atenção:</strong> O webhook está acessível, mas o workflow N8N não está ativo. 
