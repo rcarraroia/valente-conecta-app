@@ -90,8 +90,8 @@ export const diagnosisConfig: DiagnosisConfig = {
   },
   
   supabase: {
-    url: process.env.VITE_SUPABASE_URL || '',
-    anonKey: process.env.VITE_SUPABASE_ANON_KEY || '',
+    url: import.meta.env.VITE_SUPABASE_URL || '',
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
     storageBucket: 'diagnosis-reports',
   },
   
@@ -154,6 +154,6 @@ export const validateConfig = (): boolean => {
 };
 
 // Initialize configuration validation
-if (process.env.NODE_ENV !== 'test') {
+if (import.meta.env.MODE !== 'test') {
   validateConfig();
 }
