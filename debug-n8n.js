@@ -10,7 +10,7 @@ const testN8nDirect = () => {
   });
 
   const options = {
-    hostname: 'primary-production-b7fe.up.railway.app',
+    hostname: 'slimquality-n8n.wpjtfd.easypanel.host',
     port: 443,
     path: '/webhook/multiagente-ia-diagnostico',
     method: 'POST',
