@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const webhookUrl = 'https://primary-production-b7fe.up.railway.app/webhook/multiagente-ia-diagnostico';
+    const webhookUrl = 'https://slimquality-n8n.wpjtfd.easypanel.host/webhook/multiagente-ia-diagnostico';
     const timestamp = new Date().toISOString();
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
