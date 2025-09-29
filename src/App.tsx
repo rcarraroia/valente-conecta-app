@@ -8,12 +8,9 @@ import Auth from '@/pages/Auth';
 import LandingPage from '@/pages/LandingPage';
 import NotFound from '@/pages/NotFound';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { WebhookTestPage } from '@/pages/WebhookTestPage';
-import { SystemDiagnostic } from '@/pages/SystemDiagnostic';
-import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
-import DiagnosisChat from '@/pages/DiagnosisChat';
-import DiagnosisReports from '@/pages/DiagnosisReports';
-import '@/services/chat-service-test'; // Import test for development
+// Disabled WebhookTestPage import
+// Disabled diagnosis system imports
+// Disabled chat service test import
 import './App.css';
 
 const App = () => {
@@ -27,13 +24,8 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/landing/:ref" element={<LandingPage />} />
-            <Route path="/webhook-test" element={<WebhookTestPage />} />
-            <Route path="/system-diagnostic" element={<SystemDiagnostic />} />
-            
-            {/* Diagnosis Routes - Protected */}
-            <Route path="/diagnosis" element={<DiagnosisDashboard />} />
-            <Route path="/diagnosis/chat" element={<DiagnosisChat />} />
-            <Route path="/diagnosis/reports" element={<DiagnosisReports />} />
+            {/* Webhook test route disabled */}
+            {/* Diagnosis routes disabled due to missing components */}
             
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -26,6 +26,17 @@ export const DiagnosisNavigation: React.FC<DiagnosisNavigationProps> = ({
   const navigate = useNavigate();
   const { state, actions } = useDiagnosisAuth();
 
+  const getButtonSize = (size: 'sm' | 'md' | 'lg') => {
+    switch (size) {
+      case 'sm': return 'sm';
+      case 'md': return 'default' as const;
+      case 'lg': return 'lg';
+      default: return 'default' as const;
+    }
+  };
+
+  const buttonSize = getButtonSize(size);
+
   const handleStartDiagnosis = () => {
     if (state.isAuthenticated) {
       actions.redirectToDashboard();
@@ -67,7 +78,7 @@ export const DiagnosisNavigation: React.FC<DiagnosisNavigationProps> = ({
           <Button
             onClick={handleStartDiagnosis}
             className="w-full bg-cv-blue hover:bg-cv-blue/90 text-white"
-            size={size}
+            size={buttonSize}
           >
             {showIcon && <Brain className="w-4 h-4 mr-2" />}
             {state.hasActiveSession ? 'Continuar Diagnóstico' : 'Iniciar Pré-Diagnóstico'}
@@ -135,7 +146,7 @@ export const DiagnosisNavigation: React.FC<DiagnosisNavigationProps> = ({
     <Button
       onClick={handleStartDiagnosis}
       className={`bg-cv-blue hover:bg-cv-blue/90 text-white ${className}`}
-      size={size}
+      size={buttonSize}
     >
       {showIcon && <Brain className="w-4 h-4 mr-2" />}
       {state.hasActiveSession ? 'Continuar Diagnóstico' : 'Pré-Diagnóstico'}
