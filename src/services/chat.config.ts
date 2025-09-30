@@ -38,10 +38,10 @@ export const PROD_CHAT_CONFIG: ChatServiceOptions = {
  */
 export const CHAT_TEMPLATES = {
   INITIAL_MESSAGE: DEFAULTS.INITIAL_MESSAGE,
-  GREETING: 'Olá! Sou seu assistente de pré-diagnóstico. Como posso ajudá-lo hoje?',
+  GREETING: 'Olá! Sou seu assistente de triagem comportamental. Como posso ajudá-lo hoje?',
   ERROR_RETRY: 'Desculpe, ocorreu um erro. Vou tentar novamente.',
   SESSION_EXPIRED: 'Sua sessão expirou. Vamos começar uma nova conversa.',
-  FINAL_MESSAGE: 'Obrigado por usar nosso serviço de pré-diagnóstico!',
+  FINAL_MESSAGE: 'Obrigado por usar nosso serviço de triagem comportamental!',
 } as const;
 
 /**

@@ -126,8 +126,8 @@ export class PDFService implements PDFServiceInterface {
 
     // Set document properties
     pdf.setProperties({
-      title: 'Relatório de Pré-Diagnóstico - Instituto Coração Valente',
-      subject: 'Pré-Diagnóstico Médico',
+      title: 'Relatório de Triagem Comportamental - Instituto Coração Valente',
+      subject: 'Triagem Comportamental',
       author: 'Instituto Coração Valente',
       creator: 'Valente Conecta App',
       producer: 'jsPDF',
@@ -164,7 +164,7 @@ export class PDFService implements PDFServiceInterface {
     
     yPosition += 10;
     pdf.setFontSize(16);
-    pdf.text('Relatório de Pré-Diagnóstico', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('Relatório de Triagem Comportamental', pageWidth / 2, yPosition, { align: 'center' });
     
     yPosition += 15;
     pdf.setFontSize(10);
@@ -399,7 +399,7 @@ export class PDFService implements PDFServiceInterface {
     
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'italic');
-    pdf.text('Este relatório é apenas um pré-diagnóstico e não substitui consulta médica profissional.', 
+    pdf.text('Este relatório é apenas uma triagem comportamental e não substitui consulta médica profissional.', 
       pdf.internal.pageSize.getWidth() / 2, footerY, { align: 'center' });
     
     pdf.text('Instituto Coração Valente - Valente Conecta App', 

@@ -177,7 +177,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       
       toast({
         title: 'Sessão Iniciada',
-        description: 'Sua sessão de pré-diagnóstico foi iniciada com sucesso.',
+        description: 'Sua sessão de triagem comportamental foi iniciada com sucesso.',
       });
       
     } catch (error: any) {
@@ -191,7 +191,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
         variant: 'destructive',
       });
       
-      console.error('Erro ao iniciar sessão de diagnóstico:', error);
+      console.error('Erro ao iniciar sessão de triagem comportamental:', error);
     } finally {
       setIsLoading(false);
     }
@@ -694,7 +694,7 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
 
       toast({
         title: 'Sessão Finalizada',
-        description: 'Sua sessão de pré-diagnóstico foi finalizada.',
+        description: 'Sua sessão de triagem comportamental foi finalizada.',
       });
     }
   }, [session, toast]);

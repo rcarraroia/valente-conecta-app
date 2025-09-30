@@ -25,7 +25,7 @@ const AIAgentScreen = ({ onBack }: AIAgentScreenProps) => {
     } catch (error: any) {
       console.error('Erro ao iniciar sessão:', error);
       setSystemError({
-        message: 'Não foi possível iniciar o pré-diagnóstico',
+        message: 'Não foi possível iniciar a triagem comportamental',
         details: error.message || 'Erro desconhecido',
         hint: 'O sistema ainda está sendo configurado. Tente novamente mais tarde.'
       });

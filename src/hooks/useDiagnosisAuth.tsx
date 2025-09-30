@@ -107,7 +107,7 @@ export const useDiagnosisAuth = (): UseDiagnosisAuthReturn => {
 
     toast({
       title: 'Autenticação Necessária',
-      description: 'Faça login para acessar o pré-diagnóstico.',
+      description: 'Faça login para acessar a triagem comportamental.',
     });
 
     navigate('/auth');

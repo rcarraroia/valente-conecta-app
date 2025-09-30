@@ -154,7 +154,7 @@ describe('PDF Generation and Storage Integration', () => {
           select: vi.fn().mockResolvedValue({
             data: [{
               id: 'report-123',
-              title: 'Relatório de Pré-Diagnóstico',
+              title: 'Relatório de Triagem Comportamental',
               pdf_url: 'https://example.com/signed-url',
               file_size: mockPdfBlob.size,
               status: 'completed',

@@ -216,10 +216,10 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
         <div className={`mx-auto ${actualIsMobile ? 'max-w-sm' : 'max-w-md'}`}>
           <Bot className={`text-blue-600 mx-auto mb-4 ${actualIsMobile ? 'w-10 h-10' : 'w-12 h-12'}`} />
           <h3 className={`font-semibold mb-2 ${actualIsMobile ? 'text-base' : 'text-lg'}`}>
-            Iniciar Pré-Diagnóstico
+            Iniciar Triagem Comportamental
           </h3>
           <p className={`text-gray-600 mb-4 ${actualIsMobile ? 'text-sm' : ''}`}>
-            Converse com nossa IA especializada para obter uma análise inicial dos sintomas.
+            Converse com nossa IA especializada para obter uma triagem comportamental inicial.
           </p>
           {actualIsMobile && actualIsTouchDevice && (
             <div className="flex items-center justify-center gap-2 mb-4 text-xs text-gray-500">
@@ -266,7 +266,7 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
         <div className="flex items-center gap-2 overflow-hidden">
           <Bot className={`text-blue-600 flex-shrink-0 ${actualIsMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
           <h3 className={`font-semibold truncate ${actualIsMobile ? 'text-sm' : 'text-base'}`}>
-            {actualIsMobile ? 'Assistente IA' : 'Assistente de Pré-Diagnóstico'}
+            {actualIsMobile ? 'Assistente IA' : 'Assistente de Triagem Comportamental'}
           </h3>
         </div>
         <div className="flex items-center gap-2">
@@ -295,7 +295,7 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
           <div className={`text-center text-gray-500 ${actualIsMobile ? 'py-6' : 'py-8'}`}>
             <Bot className={`mx-auto mb-2 text-gray-400 ${actualIsMobile ? 'w-6 h-6' : 'w-8 h-8'}`} />
             <p className={actualIsMobile ? 'text-sm' : ''}>
-              Olá! Sou seu assistente de pré-diagnóstico.
+              Olá! Sou seu assistente de triagem comportamental.
             </p>
             <p className={`mt-1 ${actualIsMobile ? 'text-xs' : 'text-sm'}`}>
               Como posso ajudá-lo hoje?

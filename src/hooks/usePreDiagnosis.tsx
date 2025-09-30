@@ -35,7 +35,7 @@ export const usePreDiagnosis = () => {
   const startSession = async () => {
     setLoading(true);
     try {
-      console.log('Iniciando sessão de pré-diagnóstico...');
+      console.log('Iniciando sessão de triagem comportamental...');
       
       const { data, error } = await supabase.functions.invoke('diagnostico-iniciar');
       
@@ -53,12 +53,12 @@ export const usePreDiagnosis = () => {
       setSession(data);
       return data;
     } catch (error: any) {
-      console.error('Erro ao iniciar pré-diagnóstico:', error);
+      console.error('Erro ao iniciar triagem comportamental:', error);
       
       // Mostrar toast de erro mais específico
       const errorMessage = error.message || 'Erro desconhecido';
       toast({
-        title: 'Erro ao iniciar diagnóstico',
+        title: 'Erro ao iniciar triagem comportamental',
         description: errorMessage,
         variant: 'destructive',
       });

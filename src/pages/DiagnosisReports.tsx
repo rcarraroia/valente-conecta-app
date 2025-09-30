@@ -177,14 +177,14 @@ const DiagnosisReportsPage: React.FC = () => {
                 Nenhum relatório encontrado
               </h3>
               <p className="text-gray-600 mb-6">
-                Você ainda não possui relatórios de pré-diagnóstico. Comece seu primeiro diagnóstico agora!
+                Você ainda não possui relatórios de triagem comportamental. Comece sua primeira triagem agora!
               </p>
               <Button
                 onClick={handleStartNewDiagnosis}
                 className="bg-cv-blue hover:bg-cv-blue/90 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Iniciar Pré-Diagnóstico
+                Iniciar Triagem Comportamental
               </Button>
             </div>
           </div>

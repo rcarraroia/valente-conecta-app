@@ -110,7 +110,7 @@ const AIIntroScreen = ({ onStart, onCancel, loading = false }: AIIntroScreenProp
                     Iniciando...
                   </>
                 ) : (
-                  'Iniciar Pré-Diagnóstico'
+                  'Iniciar Triagem Comportamental'
                 )}
               </Button>
               

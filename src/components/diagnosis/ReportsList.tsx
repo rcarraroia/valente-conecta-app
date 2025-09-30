@@ -247,7 +247,7 @@ export const ReportsList: React.FC<ReportsListProps> = ({
             </p>
             <Button variant="outline">
               <Calendar className="w-4 h-4 mr-2" />
-              Iniciar Novo Diagnóstico
+              Iniciar Nova Triagem
             </Button>
           </div>
         )}

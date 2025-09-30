@@ -12,8 +12,8 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
   const actions = [
     {
       icon: Brain,
-      title: 'Pré-Diagnóstico',
-      description: 'Faça uma avaliação inicial da sua saúde mental',
+      title: 'Triagem Comportamental',
+      description: 'Faça uma triagem comportamental inicial',
       onClick: () => window.location.href = '/diagnosis',
       color: 'bg-cv-blue-heart hover:bg-cv-blue-heart/90'
     },

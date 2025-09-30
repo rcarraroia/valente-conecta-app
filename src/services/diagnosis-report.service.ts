@@ -407,7 +407,7 @@ export class DiagnosisReportService implements DiagnosisReportServiceInterface {
     const date = formatDate(new Date(), 'dd/MM/yyyy');
     const severityText = this.getSeverityText(diagnosisData.severity_level);
     
-    return `Pré-Diagnóstico - ${severityText} - ${date}`;
+    return `Triagem Comportamental - ${severityText} - ${date}`;
   }
 
   /**

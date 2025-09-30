@@ -62,7 +62,7 @@ const N8N_CONFIG = {
 };
 
 const DEFAULTS = {
-  INITIAL_MESSAGE: 'Olá! Vou te ajudar com um pré-diagnóstico. Vamos começar?',
+  INITIAL_MESSAGE: 'Olá! Vou te ajudar com uma triagem comportamental. Vamos começar?',
 };
 
 export class ChatService implements ChatServiceInterface {
@@ -262,7 +262,7 @@ export class ChatService implements ChatServiceInterface {
       if (data && data.error === 'service_unavailable') {
         throw createDiagnosisError(
           DiagnosisErrorType.WEBHOOK_TIMEOUT,
-          data.user_message || 'O assistente de pré-diagnóstico está temporariamente indisponível.',
+          data.user_message || 'O assistente de triagem comportamental está temporariamente indisponível.',
           { error: data },
           true
         );
