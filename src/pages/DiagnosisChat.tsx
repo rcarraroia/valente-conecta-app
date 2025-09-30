@@ -66,7 +66,7 @@ const DiagnosisChatPage: React.FC = () => {
 
   // Show loading while auth is being checked
   if (authContext.state.isLoading) {
-    return <AuthLoadingSpinner message="Carregando pré-diagnóstico..." />;
+    return <AuthLoadingSpinner message="Carregando Sistema de Triagem Comportamental..." />;
   }
 
   return (
@@ -87,7 +87,7 @@ const DiagnosisChatPage: React.FC = () => {
               </Button>
               <div className="h-6 w-px bg-gray-300" />
               <h1 className="text-lg font-semibold text-gray-900">
-                Pré-Diagnóstico
+                Sistema de Triagem Comportamental
               </h1>
             </div>
 

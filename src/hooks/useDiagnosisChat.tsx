@@ -1,8 +1,9 @@
-// Hook for managing diagnosis chat state and communication
+// Hook for managing Sistema de Triagem Comportamental (STC) chat state and communication
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { chatService } from '@/services/chat.service';
 import { diagnosisReportService } from '@/services/diagnosis-report.service';
+import { screeningPersistence, extractSubAgentData, extractRiskIndicators } from '@/services/screening.persistence.service';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useDiagnosisErrorHandler } from '@/hooks/useDiagnosisErrorHandler';
@@ -72,7 +73,8 @@ export interface UseDiagnosisChatReturn {
 }
 
 /**
- * Hook for managing diagnosis chat functionality
+ * Hook for managing Sistema de Triagem Comportamental (STC) chat functionality
+ * Mantém nomenclatura "diagnosis" no código por compatibilidade
  */
 export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
   const { user } = useAuth();
@@ -241,6 +243,19 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add user message to state immediately
       setMessages(prev => [...prev, userMessage]);
 
+      // 🔒 STC: Registrar consentimento (apenas primeira mensagem)
+      if (messages.length === 0) {
+        try {
+          console.log('🔒 STC: Registrando consentimento para primeira mensagem');
+          await screeningPersistence.recordConsent(user.id);
+          await screeningPersistence.markConsentRecorded(session.id);
+          console.log('✅ STC: Consentimento registrado com sucesso');
+        } catch (error) {
+          console.error('❌ STC: Erro ao registrar consentimento (não bloqueia chat):', error);
+          // Não bloquear o chat por falha de persistência
+        }
+      }
+
       // Prepare request for N8n (exact format as shown in webhook config)
       const request = {
         chatInput: content.trim(),
@@ -299,6 +314,21 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
       // Add AI message to state
       setMessages(prev => [...prev, aiMessage]);
 
+      // 💾 STC: Persistir mensagens no banco (não bloqueia em caso de erro)
+      try {
+        console.log('💾 STC: Persistindo sessão no banco');
+        await screeningPersistence.upsertChatSession({
+          session_id: session.id,
+          user_id: user.id,
+          status: session.status,
+          messages: [...messages, userMessage, aiMessage]
+        });
+        console.log('✅ STC: Sessão persistida com sucesso');
+      } catch (error) {
+        console.error('❌ STC: Erro ao persistir sessão (não bloqueia chat):', error);
+        // Não bloquear o chat por falha de persistência
+      }
+
       // Track message exchange with improved error handling
       try {
         if (analyticsService) {
@@ -351,12 +381,41 @@ export const useDiagnosisChat = (): UseDiagnosisChatReturn => {
 
         setMessages(prev => [...prev, completionMessage]);
 
+        // 🧠 STC: Salvar resultado final da triagem
+        try {
+          console.log('🧠 STC: Salvando resultado final da triagem');
+          const subAgentData = extractSubAgentData(responseData.diagnosis_data);
+          const riskIndicators = extractRiskIndicators(responseData.diagnosis_data);
+          
+          await screeningPersistence.saveDiagnosticResult({
+            user_id: user.id,
+            session_id: session.id,
+            behavioral_score: screeningPersistence.calculateBehavioralScore(responseData.diagnosis_data),
+            severity_level: responseData.diagnosis_data.nivel_urgencia === 'Alta' ? 3 :
+                           responseData.diagnosis_data.nivel_urgencia === 'Moderada' ? 2 : 1,
+            recommendations: responseData.diagnosis_data.orientacoes_personalizadas?.join('\n') || 
+                           responseData.diagnosis_data.recomendacoes || '',
+            sub_agent_tea: subAgentData.tea_analysis,
+            sub_agent_tdah: subAgentData.tdah_analysis,
+            sub_agent_linguagem: subAgentData.linguagem_analysis,
+            sub_agent_sindromes: subAgentData.sindromes_analysis,
+            interview_duration_minutes: Math.floor((Date.now() - new Date(session.started_at).getTime()) / 60000),
+            completed_steps: responseData.diagnosis_data.completed_steps || 
+                           responseData.diagnosis_data.etapas_concluidas || [],
+            risk_indicators: riskIndicators
+          });
+          console.log('✅ STC: Resultado da triagem salvo com sucesso');
+        } catch (error) {
+          console.error('❌ STC: Erro ao salvar resultado final (não bloqueia geração de PDF):', error);
+          // Não bloquear a geração do PDF por falha de persistência
+        }
+
         // Generate PDF report automatically
         await generatePDFReport(responseData.diagnosis_data);
 
         toast({
-          title: 'Diagnóstico Concluído',
-          description: 'Seu pré-diagnóstico foi finalizado. O relatório está sendo gerado.',
+          title: 'Triagem Comportamental Concluída',
+          description: 'Sua triagem foi finalizada. O relatório está sendo gerado.',
         });
       }
 

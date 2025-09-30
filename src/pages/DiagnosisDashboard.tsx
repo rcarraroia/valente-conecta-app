@@ -23,17 +23,17 @@ const DiagnosisDashboardPage: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>Pré-Diagnóstico</CardTitle>
+              <CardTitle>Sistema de Triagem Comportamental (STC)</CardTitle>
               <CardDescription>
-                Bem-vindo ao sistema de pré-diagnóstico do Instituto Coração Valente
+                Bem-vindo ao Sistema de Triagem Comportamental do Instituto Coração Valente
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <p>Olá, {authState.user?.email}!</p>
-                <p>Clique no botão abaixo para iniciar uma nova sessão de pré-diagnóstico.</p>
+                <p>Clique no botão abaixo para iniciar uma nova sessão de triagem comportamental.</p>
                 <Button onClick={handleStartDiagnosis} size="lg">
-                  Iniciar Pré-Diagnóstico
+                  Iniciar Triagem Comportamental
                 </Button>
               </div>
             </CardContent>
