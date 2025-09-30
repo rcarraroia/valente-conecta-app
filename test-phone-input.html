@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Campo Telefone</title>
+</head>
+<body>
+    <h1>Teste do Campo de Telefone</h1>
+    
+    <form>
+        <label for="phone1">Telefone (type="tel"):</label>
+        <input type="tel" id="phone1" placeholder="(11) 99999-9999" />
+        <br><br>
+        
+        <label for="phone2">Telefone (type="text"):</label>
+        <input type="text" id="phone2" placeholder="(11) 99999-9999" />
+        <br><br>
+        
+        <button type="button" onclick="testInputs()">Testar Valores</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        function testInputs() {
+            const phone1 = document.getElementById('phone1').value;
+            const phone2 = document.getElementById('phone2').value;
+            
+            document.getElementById('result').innerHTML = `
+                <p>Tel input: "${phone1}"</p>
+                <p>Text input: "${phone2}"</p>
+            `;
+        }
+        
+        // Log quando o usuário digita
+        document.getElementById('phone1').addEventListener('input', function(e) {
+            console.log('Tel input:', e.target.value);
+        });
+        
+        document.getElementById('phone2').addEventListener('input', function(e) {
+            console.log('Text input:', e.target.value);
+        });
+    </script>
+</body>
+</html>
