@@ -73,7 +73,10 @@ const CommonFormFields = ({
             placeholder="(11) 99999-9999"
             className="pl-10"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => {
+              console.log('Phone input change:', e.target.value);
+              setPhone(e.target.value);
+            }}
           />
         </div>
       </div>

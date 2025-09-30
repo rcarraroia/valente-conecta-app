@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Lock } from 'lucide-react';
+import { Lock, Phone } from 'lucide-react';
 import ProfessionalFields from './ProfessionalFields';
 
 interface ProfessionalData {
@@ -77,12 +77,17 @@ const ProfessionalFormFields = ({
       <div className="space-y-2">
         <Label htmlFor="phone">Telefone</Label>
         <div className="relative">
+          <Phone className="absolute left-3 top-3 h-4 w-4 text-cv-gray-light" />
           <Input
             id="phone"
             type="tel"
             placeholder="(11) 99999-9999"
+            className="pl-10"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => {
+              console.log('Professional phone input change:', e.target.value);
+              setPhone(e.target.value);
+            }}
           />
         </div>
       </div>
