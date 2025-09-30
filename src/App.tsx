@@ -8,9 +8,8 @@ import Auth from '@/pages/Auth';
 import LandingPage from '@/pages/LandingPage';
 import NotFound from '@/pages/NotFound';
 import ErrorBoundary from '@/components/ErrorBoundary';
-// Disabled WebhookTestPage import
-// Disabled diagnosis system imports
-// Disabled chat service test import
+import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
+import DiagnosisChat from '@/pages/DiagnosisChat';
 import './App.css';
 
 const App = () => {
@@ -24,8 +23,10 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/landing/:ref" element={<LandingPage />} />
-            {/* Webhook test route disabled */}
-            {/* Diagnosis routes disabled due to missing components */}
+            
+            {/* Diagnosis Routes - Protected */}
+            <Route path="/diagnosis" element={<DiagnosisDashboard />} />
+            <Route path="/diagnosis/chat" element={<DiagnosisChat />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
