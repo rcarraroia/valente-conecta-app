@@ -19,7 +19,12 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const webhookData = await req.json();
-    console.log('Webhook recebido:', webhookData);
+    console.log('🔔 Webhook Asaas recebido:', {
+      event: webhookData.event,
+      paymentId: webhookData.payment?.id,
+      timestamp: new Date().toISOString()
+    });
+    console.log('📋 Payload completo:', JSON.stringify(webhookData, null, 2));
 
     const { event, payment } = webhookData;
 
@@ -47,13 +52,25 @@ const handler = async (req: Request): Promise<Response> => {
         .eq('transaction_id', payment.id);
 
       if (error) {
-        console.error('Erro ao atualizar status:', error);
+        console.error('❌ Erro ao atualizar status no banco:', error);
+        return new Response(JSON.stringify({
+          error: 'Database update failed',
+          details: error.message
+        }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
       } else {
-        console.log(`Status atualizado para ${newStatus} no pagamento ${payment.id}`);
+        console.log(`✅ Status atualizado: ${payment.id} → ${newStatus}`);
       }
     }
 
-    return new Response(JSON.stringify({ received: true }), {
+    return new Response(JSON.stringify({ 
+      received: true,
+      processed: !!payment?.id,
+      event: event,
+      timestamp: new Date().toISOString()
+    }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

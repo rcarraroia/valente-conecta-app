@@ -111,24 +111,30 @@ export default async function handler(req, res) {
     console.log(`📄 [${requestId}] Webhook response text (first 500 chars):`, responseText.substring(0, 500));
     console.log(`📊 [${requestId}] Full response length:`, responseText.length);
 
-    // If response is empty, return a default message to prevent frontend errors
+    // If response is empty but status is OK, only log for debugging (don't show error to user)
     if (!responseText || responseText.trim() === '') {
       console.log(`⚠️ [${requestId}] N8N returned empty response`);
       console.log(`🔍 [${requestId}] Response headers:`, Object.fromEntries(response.headers.entries()));
       console.log(`🔍 [${requestId}] Response status:`, response.status, response.statusText);
 
-      const fallbackResponse = {
-        message: "O workflow do n8n executou mas não retornou dados. Verifique a configuração do nó 'Respond to Webhook'.",
+      // Only return error if the HTTP status indicates failure
+      if (!response.ok) {
+        const fallbackResponse = {
+          message: "Erro na comunicação com o sistema de triagem. Tente novamente.",
+          session_id: req.body.session_id || 'unknown',
+          error: 'empty_response_from_n8n',
+          timestamp: new Date().toISOString()
+        };
+        return res.status(200).json(fallbackResponse);
+      }
+
+      // If status is OK but empty response, return a generic success message
+      console.log(`✅ [${requestId}] Empty response but status OK - treating as success`);
+      return res.status(200).json({
+        message: "Mensagem processada com sucesso.",
         session_id: req.body.session_id || 'unknown',
-        error: 'empty_response_from_n8n',
-        timestamp: new Date().toISOString(),
-        debug_info: {
-          status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
-          execution_time: responseTime
-        }
-      };
-      return res.status(200).json(fallbackResponse);
+        timestamp: new Date().toISOString()
+      });
     }
 
     // Try to parse as JSON

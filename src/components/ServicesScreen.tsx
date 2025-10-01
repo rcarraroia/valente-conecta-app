@@ -12,7 +12,7 @@ const ServicesScreen = ({ onBack }: ServicesScreenProps) => {
   const services = [
     {
       title: "Acolhimento Familiar",
-      description: "Suporte integral para famílias no processo de diagnóstico e desenvolvimento",
+      description: "Suporte integral para famílias no processo de triagem comportamental e desenvolvimento",
       icon: Heart,
       color: "bg-cv-green-mint"
     },
@@ -23,7 +23,7 @@ const ServicesScreen = ({ onBack }: ServicesScreenProps) => {
       color: "bg-cv-blue-heart"
     },
     {
-      title: "Pré-Diagnóstico Inteligente",
+      title: "Triagem Comportamental Inteligente",
       description: "Ferramenta de IA para identificação precoce de sinais de desenvolvimento",
       icon: Brain,
       color: "bg-cv-coral"
@@ -61,7 +61,7 @@ const ServicesScreen = ({ onBack }: ServicesScreenProps) => {
             <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
             <h2 className="text-xl font-bold mb-2">Instituto Coração Valente</h2>
             <p className="opacity-90">
-              Oferecemos apoio integral para famílias no processo de diagnóstico e desenvolvimento, 
+              Oferecemos apoio integral para famílias no processo de triagem comportamental e desenvolvimento, 
               com foco em acolhimento humanizado e orientação especializada.
             </p>
           </CardContent>

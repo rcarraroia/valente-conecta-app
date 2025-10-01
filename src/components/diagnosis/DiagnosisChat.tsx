@@ -103,15 +103,23 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
     if (!inputMessage.trim() || isLoading) return;
 
     const message = inputMessage.trim();
-    console.log('🎯 DiagnosisChat: handleSendMessage called with:', message);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎯 DiagnosisChat: handleSendMessage called with:', message);
+    }
     setInputMessage('');
 
     try {
-      console.log('🎯 DiagnosisChat: About to call sendMessage hook');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎯 DiagnosisChat: About to call sendMessage hook');
+      }
       await sendMessage(message);
-      console.log('🎯 DiagnosisChat: sendMessage completed successfully');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎯 DiagnosisChat: sendMessage completed successfully');
+      }
     } catch (error) {
-      console.error('🎯 DiagnosisChat: Failed to send message:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('🎯 DiagnosisChat: Failed to send message:', error);
+      }
     }
   };
 
@@ -270,18 +278,18 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
           </h3>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDebugger(!showDebugger)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <Bug className="w-4 h-4" />
-            {!actualIsMobile && <span className="ml-1 text-xs">Debug</span>}
-          </Button>
-          <div className={`text-gray-500 flex-shrink-0 ${actualIsMobile ? 'text-xs' : 'text-xs'}`}>
-            {actualIsMobile ? currentSessionId?.slice(-6) : `Sessão: ${currentSessionId?.slice(-8)}`}
-          </div>
+          {/* Debug button removed for production - only visible in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDebugger(!showDebugger)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <Bug className="w-4 h-4" />
+              {!actualIsMobile && <span className="ml-1 text-xs">Debug</span>}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -388,8 +396,8 @@ export const DiagnosisChat: React.FC<DiagnosisChatProps> = ({
         )}
       </div>
 
-      {/* Debug Panel */}
-      {showDebugger && (
+      {/* Debug Panel - Only in development */}
+      {process.env.NODE_ENV === 'development' && showDebugger && (
         <div className="border-t">
           <WebhookDebugger />
         </div>

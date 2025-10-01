@@ -25,7 +25,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
       id: 'diagnosis',
       label: 'Triagem Comportamental',
       icon: Brain,
-      ariaLabel: 'Acessar ferramenta de triagem comportamental'
+      ariaLabel: 'Acessar Sistema de Triagem Comportamental'
     },
     {
       id: 'ajudar',

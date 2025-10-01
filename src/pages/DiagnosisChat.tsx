@@ -11,6 +11,7 @@ import { useDiagnosisChat } from '@/hooks/useDiagnosisChat';
 import { useResponsive, useMobileKeyboard } from '@/hooks/useResponsive';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Home } from 'lucide-react';
+import BottomNavigation from '@/components/BottomNavigation';
 
 /**
  * Diagnosis Chat Page
@@ -52,6 +53,16 @@ const DiagnosisChatPage: React.FC = () => {
     navigate('/');
   };
 
+  const handleNavigate = (screen: string) => {
+    if (screen === 'diagnosis') {
+      // Já estamos na página de diagnóstico
+      return;
+    }
+    // Redirecionar para a página principal com o screen desejado
+    localStorage.setItem('redirect_to', screen);
+    window.location.href = '/';
+  };
+
   const handleSessionComplete = (sessionId: string) => {
     // Clear session but don't redirect automatically
     authContext.actions.clearDiagnosisSession();
@@ -71,7 +82,7 @@ const DiagnosisChatPage: React.FC = () => {
 
   return (
     <DiagnosisRouteGuard requireAuth={true}>
-      <div className="min-h-screen bg-cv-off-white flex flex-col">
+      <div className="min-h-screen bg-cv-off-white flex flex-col relative">
         {/* Header */}
         <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -107,7 +118,7 @@ const DiagnosisChatPage: React.FC = () => {
         </div>
 
         {/* Chat Interface */}
-        <div className="flex-1 max-w-4xl mx-auto w-full">
+        <div className="flex-1 max-w-4xl mx-auto w-full pb-16">
           <DiagnosisChatComponent
             sessionId={sessionId || undefined}
             onSessionComplete={handleSessionComplete}
@@ -116,31 +127,22 @@ const DiagnosisChatPage: React.FC = () => {
           />
         </div>
 
-        {/* Session Info Footer */}
-        {chatState.session && (
-          <div className="bg-gray-50 border-t border-gray-200 px-4 py-2">
+        {/* Session Status - Only show report generation */}
+        {chatState.session && chatState.isGeneratingReport && (
+          <div className="bg-blue-50 border-t border-blue-200 px-4 py-3 mb-16">
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <div className="flex items-center gap-4">
-                  <span>Sessão: {chatState.session.id.slice(-8)}</span>
-                  <span>Status: {chatState.session.status}</span>
-                  {chatState.session.started_at && (
-                    <span>
-                      Iniciada: {new Date(chatState.session.started_at).toLocaleTimeString('pt-BR')}
-                    </span>
-                  )}
-                </div>
-
-                {chatState.isGeneratingReport && (
-                  <div className="flex items-center gap-2 text-blue-600">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                    <span>Gerando relatório...</span>
-                  </div>
-                )}
+              <div className="flex items-center justify-center gap-2 text-blue-600">
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                <span className="text-sm font-medium">Gerando relatório...</span>
               </div>
             </div>
           </div>
         )}
+
+        <BottomNavigation 
+          currentTab="diagnosis" 
+          onTabChange={handleNavigate}
+        />
       </div>
     </DiagnosisRouteGuard>
   );
