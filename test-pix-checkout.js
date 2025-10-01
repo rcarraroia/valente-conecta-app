@@ -21,9 +21,8 @@ async function testPixCheckout() {
     paymentMethod: 'PIX',
     donor: {
       name: 'Teste Checkout Transparente',
-      email: 'teste.checkout@exemplo.com',
-      phone: '11999999999'
-      // document removido para evitar erro de CPF inválido
+      email: 'teste.checkout@exemplo.com'
+      // phone e document removidos para evitar erros de validação
     }
   };
 

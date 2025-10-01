@@ -60,7 +60,12 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
         type: 'subscription' as const,
         frequency: 'monthly' as const, // Always monthly now
         paymentMethod: 'CREDIT_CARD' as const, // Assinaturas geralmente são por cartão
-        donor: supporterData,
+        donor: {
+          name: supporterData.name.trim(),
+          email: supporterData.email.trim(),
+          phone: supporterData.phone.trim() || undefined, // Só envia se preenchido
+          document: supporterData.document.trim() || undefined, // Só envia se preenchido
+        },
         ambassadorCode: ambassadorCode,
       };
 
@@ -181,7 +186,7 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
           <Button
             type="submit"
             size="lg"
-            disabled={!amount || !supporterData.name || !supporterData.email || !supporterData.phone || !supporterData.document || isProcessing}
+            disabled={!amount || !supporterData.name || !supporterData.email || isProcessing}
             className="w-full h-12 bg-cv-blue-heart hover:bg-cv-blue-heart/90"
           >
             {isProcessing ? 'Processando...' : 

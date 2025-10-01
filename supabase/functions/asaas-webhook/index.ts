@@ -26,9 +26,52 @@ const handler = async (req: Request): Promise<Response> => {
     });
     console.log('📋 Payload completo:', JSON.stringify(webhookData, null, 2));
 
-    const { event, payment } = webhookData;
+    const { event, payment, subscription } = webhookData;
 
-    // Atualizar status do pagamento no banco
+    // 🔔 PROCESSAR EVENTOS DE ASSINATURA
+    if (subscription && subscription.id) {
+      console.log('📋 Processando evento de assinatura:', {
+        event,
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        value: subscription.value
+      });
+
+      let subscriptionStatus = 'active';
+      
+      switch (event) {
+        case 'SUBSCRIPTION_CREATED':
+          subscriptionStatus = 'active';
+          console.log('✅ Nova assinatura criada:', subscription.id);
+          break;
+        case 'SUBSCRIPTION_UPDATED':
+          subscriptionStatus = 'active';
+          console.log('📝 Assinatura atualizada:', subscription.id);
+          break;
+        case 'SUBSCRIPTION_INACTIVATED':
+          subscriptionStatus = 'inactive';
+          console.log('⏸️ Assinatura inativada:', subscription.id);
+          break;
+        case 'SUBSCRIPTION_DELETED':
+          subscriptionStatus = 'deleted';
+          console.log('🗑️ Assinatura removida:', subscription.id);
+          break;
+        default:
+          console.log('📋 Evento de assinatura não tratado:', event);
+      }
+
+      // TODO: Salvar/atualizar na tabela subscriptions quando ela existir
+      console.log('💾 Dados da assinatura para salvar:', {
+        subscription_id: subscription.id,
+        customer: subscription.customer,
+        value: subscription.value,
+        cycle: subscription.cycle,
+        status: subscriptionStatus,
+        next_due_date: subscription.nextDueDate
+      });
+    }
+
+    // 💳 PROCESSAR EVENTOS DE PAGAMENTO (código existente)
     if (payment && payment.id) {
       let newStatus = 'pending';
       
@@ -36,6 +79,15 @@ const handler = async (req: Request): Promise<Response> => {
         case 'PAYMENT_CONFIRMED':
         case 'PAYMENT_RECEIVED':
           newStatus = 'completed';
+          
+          // 🔔 Se pagamento pertence a uma assinatura, logar
+          if (payment.subscription) {
+            console.log('💰 Pagamento mensal de assinatura recebido:', {
+              paymentId: payment.id,
+              subscriptionId: payment.subscription,
+              value: payment.value
+            });
+          }
           break;
         case 'PAYMENT_OVERDUE':
           newStatus = 'overdue';
