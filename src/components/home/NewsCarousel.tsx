@@ -30,7 +30,7 @@ const NewsCarousel = ({ onNavigate }: NewsCarouselProps) => {
     {
       id: 1,
       title: "Nova Metodologia de Acolhimento Familiar",
-      description: "Desenvolvemos uma abordagem inovadora para apoiar famílias no processo de diagnóstico.",
+      description: "Desenvolvemos uma abordagem inovadora para apoiar famílias no processo de triagem comportamental.",
       date: "05 Jun 2025",
       image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
       category: "Metodologia"

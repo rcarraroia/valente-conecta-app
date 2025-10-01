@@ -24,7 +24,7 @@ const HomeHero = ({ onNavigate }: HomeHeroProps) => {
           Descubra o Poder do Acolhimento
         </h2>
         <p className="text-sm sm:text-base opacity-95 leading-relaxed">
-          Oferecemos orientação especializada e apoio integral para famílias no processo de diagnóstico e desenvolvimento.
+          Oferecemos orientação especializada e apoio integral para famílias no processo de triagem comportamental e desenvolvimento.
         </p>
         <Button 
           onClick={handleJourneyStart}
