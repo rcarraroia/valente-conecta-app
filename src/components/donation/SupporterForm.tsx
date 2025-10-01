@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import SupporterAmountSelector from './SupporterAmountSelector';
 import SupporterInformationForm from './SupporterInformationForm';
 import SupporterBenefits from './SupporterBenefits';
+import PaymentMethodSelector from './PaymentMethodSelector';
+import CreditCardForm from './CreditCardForm';
 
 interface SupporterFormProps {
   onBack: () => void;
@@ -15,11 +17,19 @@ interface SupporterFormProps {
 
 const SupporterForm = ({ onBack }: SupporterFormProps) => {
   const [amount, setAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'CREDIT_CARD'>('CREDIT_CARD'); // Padrão cartão para assinaturas
   const [supporterData, setSupporterData] = useState({
     name: '',
     email: '',
     phone: '',
     document: ''
+  });
+  const [creditCardData, setCreditCardData] = useState({
+    holderName: '',
+    number: '',
+    expiryMonth: '',
+    expiryYear: '',
+    ccv: ''
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -52,21 +62,61 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
+      // Valor mínimo para assinaturas
+      if (amountInCents < 500) {
+        toast({
+          title: "Valor mínimo",
+          description: "O valor mínimo para assinatura é R$ 5,00.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!supporterData.name.trim() || !supporterData.email.trim()) {
+        toast({
+          title: "Dados obrigatórios",
+          description: "Nome e email são obrigatórios.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validar dados do cartão se método for CREDIT_CARD
+      if (paymentMethod === 'CREDIT_CARD') {
+        if (!creditCardData.holderName.trim() || !creditCardData.number.trim() || 
+            !creditCardData.expiryMonth.trim() || !creditCardData.expiryYear.trim() || 
+            !creditCardData.ccv.trim()) {
+          toast({
+            title: "Dados do cartão obrigatórios",
+            description: "Preencha todos os dados do cartão de crédito.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
       // Obter código do embaixador automaticamente
       const ambassadorCode = getAmbassadorCode();
       
       const subscriptionData = {
         amount: amountInCents,
         type: 'subscription' as const,
-        frequency: 'monthly' as const, // Always monthly now
-        paymentMethod: 'CREDIT_CARD' as const, // Assinaturas geralmente são por cartão
+        frequency: 'monthly' as const,
+        paymentMethod,
         donor: {
           name: supporterData.name.trim(),
           email: supporterData.email.trim(),
-          phone: supporterData.phone.trim() || undefined, // Só envia se preenchido
-          document: supporterData.document.trim() || undefined, // Só envia se preenchido
+          phone: supporterData.phone.trim() || undefined,
+          document: supporterData.document.trim() || undefined,
         },
         ambassadorCode: ambassadorCode,
+        creditCard: paymentMethod === 'CREDIT_CARD' ? {
+          holderName: creditCardData.holderName.trim(),
+          number: creditCardData.number.replace(/\s/g, ''), // Remove espaços
+          expiryMonth: creditCardData.expiryMonth,
+          expiryYear: creditCardData.expiryYear,
+          ccv: creditCardData.ccv
+        } : undefined
       };
 
       console.log('Enviando dados de assinatura:', subscriptionData);
@@ -163,6 +213,19 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
             onAmountChange={setAmount}
           />
 
+          <PaymentMethodSelector 
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+            showPix={false} // Assinaturas só por cartão
+          />
+
+          {paymentMethod === 'CREDIT_CARD' && (
+            <CreditCardForm 
+              creditCardData={creditCardData}
+              onCreditCardDataChange={setCreditCardData}
+            />
+          )}
+
           <SupporterInformationForm 
             supporterData={supporterData}
             onSupporterDataChange={setSupporterData}
@@ -186,7 +249,19 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
           <Button
             type="submit"
             size="lg"
-            disabled={!amount || !supporterData.name || !supporterData.email || isProcessing}
+            disabled={
+              !amount || 
+              !supporterData.name || 
+              !supporterData.email || 
+              (paymentMethod === 'CREDIT_CARD' && (
+                !creditCardData.holderName || 
+                !creditCardData.number || 
+                !creditCardData.expiryMonth || 
+                !creditCardData.expiryYear || 
+                !creditCardData.ccv
+              )) ||
+              isProcessing
+            }
             className="w-full h-12 bg-cv-blue-heart hover:bg-cv-blue-heart/90"
           >
             {isProcessing ? 'Processando...' : 

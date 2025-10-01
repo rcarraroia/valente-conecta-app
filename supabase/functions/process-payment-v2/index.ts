@@ -87,9 +87,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Nome e email são obrigatórios');
     }
 
-    // Para cartão de crédito, validar se tem dados do cartão
-    if (paymentData.paymentMethod === 'CREDIT_CARD' && !paymentData.creditCard) {
-      throw new Error('Dados do cartão de crédito são obrigatórios');
+    // Para cartão de crédito, validar se tem dados do cartão (apenas para doações únicas)
+    if (paymentData.paymentMethod === 'CREDIT_CARD' && !paymentData.creditCard && paymentData.type === 'donation') {
+      throw new Error('Dados do cartão de crédito são obrigatórios para doações');
+    }
+
+    // Para assinaturas, permitir CREDIT_CARD sem dados (será coletado no checkout)
+    if (paymentData.type === 'subscription' && paymentData.paymentMethod === 'CREDIT_CARD') {
+      console.log('⚠️ Assinatura com cartão: dados serão coletados no checkout do Asaas');
     }
 
     console.log('2. Validações básicas OK');
@@ -339,7 +344,7 @@ async function createSubscription(apiKey: string, customer: AsaasCustomer, payme
     subscriptionPayload.split = splits;
   }
 
-  // Para cartão de crédito, adicionar dados do cartão
+  // Para cartão de crédito, adicionar dados do cartão (se fornecidos)
   if (paymentData.paymentMethod === 'CREDIT_CARD' && paymentData.creditCard) {
     subscriptionPayload.creditCard = {
       holderName: paymentData.creditCard.holderName,
@@ -354,6 +359,9 @@ async function createSubscription(apiKey: string, customer: AsaasCustomer, payme
       cpfCnpj: customer.cpfCnpj,
       phone: customer.phone
     };
+  } else if (paymentData.paymentMethod === 'CREDIT_CARD') {
+    // Para assinaturas sem dados do cartão, o Asaas criará um checkout
+    console.log('💳 Assinatura será criada com checkout do Asaas para coleta do cartão');
   }
 
   const response = await fetch('https://www.asaas.com/api/v3/subscriptions', {

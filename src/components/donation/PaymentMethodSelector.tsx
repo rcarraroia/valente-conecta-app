@@ -6,13 +6,17 @@ import { CreditCard, QrCode } from 'lucide-react';
 interface PaymentMethodSelectorProps {
   paymentMethod: 'PIX' | 'CREDIT_CARD';
   onPaymentMethodChange: (method: 'PIX' | 'CREDIT_CARD') => void;
+  showPix?: boolean; // Prop opcional para mostrar/ocultar PIX
 }
 
-const PaymentMethodSelector = ({ paymentMethod, onPaymentMethodChange }: PaymentMethodSelectorProps) => {
-  const paymentMethods = [
+const PaymentMethodSelector = ({ paymentMethod, onPaymentMethodChange, showPix = true }: PaymentMethodSelectorProps) => {
+  const allPaymentMethods = [
     { value: 'PIX', label: 'PIX', icon: QrCode, description: 'Instantâneo' },
     { value: 'CREDIT_CARD', label: 'Cartão de Crédito', icon: CreditCard, description: 'À vista' }
   ];
+  
+  // Filtrar métodos baseado na prop showPix
+  const paymentMethods = showPix ? allPaymentMethods : allPaymentMethods.filter(method => method.value !== 'PIX');
 
   return (
     <Card>

@@ -198,9 +198,30 @@ const AmbassadorWalletSetup = ({ userId, currentWalletId, onWalletUpdated }: Amb
               {validationMessage}
             </p>
           )}
-          <p className="text-sm text-cv-gray-light">
-            Encontre seu Wallet ID no painel do Asaas em: Minha Conta → Split de Pagamento → Carteiras
-          </p>
+          <div className="text-sm text-cv-gray-light space-y-2">
+            <p>
+              Você precisa de uma conta no Asaas para receber suas comissões:{' '}
+              <a 
+                href="https://www.asaas.com/r/51a27e42-08b8-495b-acfd-5f1369c2e104" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-cv-blue-heart hover:text-cv-blue-heart/80 underline font-medium"
+              >
+                CLIQUE AQUI
+              </a>
+            </p>
+            <p>
+              Depois de abrir sua conta no Asaas você precisa configurar sua Wallet ID, para encontrá-la{' '}
+              <a 
+                href="https://www.asaas.com/customerConfigIntegrations/index" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-cv-blue-heart hover:text-cv-blue-heart/80 underline font-medium"
+              >
+                CLIQUE AQUI
+              </a>
+            </p>
+          </div>
         </div>
 
         <div className="bg-cv-blue-heart/10 p-4 rounded-lg">
