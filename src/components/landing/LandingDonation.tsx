@@ -81,12 +81,24 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
 
       console.log('Processando doação na landing:', paymentData);
 
-      const { data, error } = await supabase.functions.invoke('process-payment', {
+      const { data, error } = await supabase.functions.invoke('process-payment-v2', {
         body: paymentData
       });
 
+      console.log('Resposta da Edge Function v2 (landing):', { data, error });
+
       if (error) {
-        throw error;
+        console.error('Erro da Edge Function v2 (landing):', error);
+        // Tratamento específico para diferentes tipos de erro
+        if (error.message?.includes('ASAAS_API_KEY')) {
+          throw new Error('Configuração de pagamento não encontrada. Entre em contato com o suporte.');
+        } else if (error.message?.includes('Valor mínimo')) {
+          throw new Error('Valor mínimo para doação é R$ 5,00');
+        } else if (error.message?.includes('obrigatórios')) {
+          throw new Error('Preencha todos os campos obrigatórios');
+        } else {
+          throw new Error(error.message || 'Erro na comunicação com o servidor de pagamentos');
+        }
       }
 
       console.log('Resposta do pagamento:', data);
