@@ -7,6 +7,8 @@ import AmountSelector from './AmountSelector';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import DonorInformationForm from './DonorInformationForm';
 import CreditCardForm from './CreditCardForm';
+import { PixCheckout } from './PixCheckout';
+import { usePixCheckout } from '@/hooks/usePixCheckout';
 
 interface DonationFormProps {
   onBack: () => void;
@@ -30,6 +32,32 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+
+  // 🚀 FEATURE FLAG - PIX Checkout Transparente
+  const ENABLE_PIX_CHECKOUT = true; // Alterar para false para desabilitar
+
+  // Hook do PIX Checkout Transparente
+  const {
+    isOpen: isPixCheckoutOpen,
+    openPixCheckout,
+    closePixCheckout,
+    checkoutProps
+  } = usePixCheckout({
+    onSuccess: (paymentId) => {
+      console.log('✅ Doação PIX confirmada:', paymentId);
+      toast({
+        title: "🎉 Doação confirmada!",
+        description: "Sua doação foi recebida com sucesso. Muito obrigado!",
+      });
+      // Opcional: redirecionar para página de agradecimento
+    },
+    onError: (error) => {
+      console.error('❌ Erro na doação PIX:', error);
+    },
+    onClose: () => {
+      console.log('🔒 Checkout PIX fechado pelo usuário');
+    }
+  });
 
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
@@ -144,13 +172,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
       }
 
       if (data.success) {
-        toast({
-          title: "Pagamento criado com sucesso!",
-          description: paymentMethod === 'PIX' 
-            ? "Use o QR Code ou cole o código PIX para pagar."
-            : "Você será redirecionado para completar o pagamento.",
-        });
-
         // Log do split para debug
         if (data.split?.ambassador) {
           console.log('Split aplicado:', data.split);
@@ -160,9 +181,49 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           });
         }
 
-        // Redirecionar para pagamento
-        if (data.paymentUrl) {
-          window.open(data.paymentUrl, '_blank');
+        // 🚀 CHECKOUT TRANSPARENTE PIX (com feature flag)
+        if (paymentMethod === 'PIX' && ENABLE_PIX_CHECKOUT && data.pixQrCode) {
+          console.log('🎯 Iniciando checkout PIX transparente');
+          
+          // Extrair código PIX copia-e-cola se disponível
+          let pixCopyPaste = '';
+          try {
+            // Tentar extrair do objeto payment se existir
+            if (data.payment?.pixQrCodeId) {
+              pixCopyPaste = data.payment.pixQrCodeId;
+            }
+          } catch (e) {
+            console.warn('Não foi possível extrair código PIX copia-e-cola');
+          }
+
+          // Abrir checkout transparente
+          openPixCheckout({
+            id: data.payment?.id || `pix_${Date.now()}`,
+            value: amountInCents,
+            pixQrCode: data.pixQrCode,
+            pixCopyPaste: pixCopyPaste,
+            invoiceUrl: data.paymentUrl,
+            externalReference: paymentData.ambassadorCode
+          });
+
+          toast({
+            title: "Pagamento PIX criado!",
+            description: "Use o QR Code ou código PIX para finalizar sua doação.",
+          });
+
+        } else {
+          // 📱 FLUXO TRADICIONAL (Cartão de Crédito ou PIX sem checkout transparente)
+          toast({
+            title: "Pagamento criado com sucesso!",
+            description: paymentMethod === 'PIX' 
+              ? "Use o QR Code ou cole o código PIX para pagar."
+              : "Você será redirecionado para completar o pagamento.",
+          });
+
+          // Redirecionar para pagamento externo
+          if (data.paymentUrl) {
+            window.open(data.paymentUrl, '_blank');
+          }
         }
       } else {
         throw new Error(data.error || 'Erro desconhecido no processamento');
@@ -252,6 +313,11 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           </Button>
         </form>
       </div>
+
+      {/* 🚀 PIX Checkout Transparente */}
+      {isPixCheckoutOpen && checkoutProps && (
+        <PixCheckout {...checkoutProps} />
+      )}
     </div>
   );
 };
