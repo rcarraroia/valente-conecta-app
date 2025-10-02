@@ -14,7 +14,7 @@ const QuickActions = ({ onNavigate }: QuickActionsProps) => {
       icon: Brain,
       title: 'Triagem Comportamental',
       description: 'Faça uma triagem comportamental inicial',
-      onClick: () => window.location.href = '/diagnosis',
+      onClick: () => window.location.href = '/diagnosis/chat',
       color: 'bg-cv-blue-heart hover:bg-cv-blue-heart/90'
     },
     {

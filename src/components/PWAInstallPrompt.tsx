@@ -93,7 +93,7 @@ const PWAInstallPrompt = () => {
   // Prompt para iOS (manual)
   if (isIOS && showPrompt) {
     return (
-      <Card className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm border-cv-blue-heart shadow-lg">
+      <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999] mx-4 max-w-sm border-cv-blue-heart shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Smartphone className="w-6 h-6 text-cv-blue-heart mt-1 flex-shrink-0" />
@@ -145,7 +145,7 @@ const PWAInstallPrompt = () => {
   // Prompt para Chrome/Edge (automático)
   if (deferredPrompt && showPrompt) {
     return (
-      <Card className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-sm border-cv-blue-heart shadow-lg">
+      <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999] mx-4 max-w-sm border-cv-blue-heart shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Monitor className="w-6 h-6 text-cv-blue-heart mt-1 flex-shrink-0" />

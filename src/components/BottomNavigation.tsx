@@ -43,8 +43,8 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onTabCh
 
   const handleNavigation = (itemId: string) => {
     if (itemId === 'diagnosis') {
-      // Redirecionar para a nova interface de diagnóstico
-      window.location.href = '/diagnosis';
+      // Redirecionar diretamente para o chat de diagnóstico
+      window.location.href = '/diagnosis/chat';
     } else {
       onTabChange(itemId);
     }

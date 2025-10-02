@@ -9,8 +9,8 @@ interface HomeHeroProps {
 
 const HomeHero = ({ onNavigate }: HomeHeroProps) => {
   const handleJourneyStart = () => {
-    // Redirecionar para a nova interface de diagnóstico
-    window.location.href = '/diagnosis';
+    // Redirecionar diretamente para o chat de diagnóstico
+    window.location.href = '/diagnosis/chat';
   };
 
   return (

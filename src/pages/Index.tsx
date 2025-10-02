@@ -32,8 +32,8 @@ const Index = () => {
         'my-donations', 'services', 'volunteers'
       ];
       if (redirectTo === 'ia') {
-        // Redirecionar para a nova interface de diagnóstico
-        window.location.href = '/diagnosis';
+        // Redirecionar diretamente para o chat de diagnóstico
+        window.location.href = '/diagnosis/chat';
       } else if (validScreens.includes(redirectTo)) {
         setCurrentScreen(redirectTo);
       }
@@ -56,8 +56,8 @@ const Index = () => {
       case 'professional-dashboard':
         return <ProfessionalDashboard onBack={() => setCurrentScreen('perfil')} />;
       case 'ia':
-        // Redirecionar para a nova interface de diagnóstico
-        window.location.href = '/diagnosis';
+        // Redirecionar diretamente para o chat de diagnóstico
+        window.location.href = '/diagnosis/chat';
         return null;
       case 'ajudar':
         return <HelpScreen onBack={() => setCurrentScreen('home')} onNavigate={handleNavigate} />;
