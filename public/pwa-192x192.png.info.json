@@ -1,0 +1,11 @@
+{
+  "size": 192,
+  "format": "SVG (converter para PNG em produção)",
+  "content": "\n<svg width=\"192\" height=\"192\" viewBox=\"0 0 192 192\" xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n      <stop offset=\"0%\" style=\"stop-color:#2563eb;stop-opacity:1\" />\n      <stop offset=\"100%\" style=\"stop-color:#7c3aed;stop-opacity:1\" />\n    </linearGradient>\n  </defs>\n  <rect width=\"192\" height=\"192\" rx=\"38.400000000000006\" fill=\"url(#grad)\"/>\n  <g transform=\"translate(38.400000000000006, 38.400000000000006)\">\n    <!-- Coração -->\n    <path d=\"M57.599999999999994 28.799999999999997 \n             C48 19.200000000000003 28.799999999999997 19.200000000000003 28.799999999999997 38.400000000000006\n             C28.799999999999997 19.200000000000003 9.600000000000001 19.200000000000003 0 28.799999999999997\n             C0 48 28.799999999999997 76.80000000000001 57.599999999999994 96\n             C86.4 76.80000000000001 115.19999999999999 48 115.19999999999999 28.799999999999997\n             C105.60000000000001 19.200000000000003 86.4 19.200000000000003 86.4 38.400000000000006\n             C86.4 19.200000000000003 67.19999999999999 19.200000000000003 57.599999999999994 28.799999999999997 Z\" \n          fill=\"white\" opacity=\"0.9\"/>\n    <!-- Texto CV -->\n    <text x=\"57.599999999999994\" y=\"76.80000000000001\" \n          font-family=\"Arial, sans-serif\" \n          font-size=\"15.36\" \n          font-weight=\"bold\" \n          fill=\"white\" \n          text-anchor=\"middle\">CV</text>\n  </g>\n</svg>",
+  "instructions": [
+    "1. Usar este SVG como base",
+    "2. Converter para PNG usando ferramenta online ou sharp",
+    "3. Salvar como pwa-192x192.png",
+    "4. Ou usar logo oficial do Instituto Coração Valente"
+  ]
+}

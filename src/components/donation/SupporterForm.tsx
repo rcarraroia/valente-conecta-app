@@ -219,17 +219,17 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
             showPix={false} // Assinaturas só por cartão
           />
 
+          <SupporterInformationForm 
+            supporterData={supporterData}
+            onSupporterDataChange={setSupporterData}
+          />
+
           {paymentMethod === 'CREDIT_CARD' && (
             <CreditCardForm 
               creditCardData={creditCardData}
               onCreditCardDataChange={setCreditCardData}
             />
           )}
-
-          <SupporterInformationForm 
-            supporterData={supporterData}
-            onSupporterDataChange={setSupporterData}
-          />
 
           {/* Informação sobre embaixador se aplicável */}
           {getAmbassadorCode() && (

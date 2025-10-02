@@ -11,6 +11,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
 import DiagnosisChat from '@/pages/DiagnosisChat';
 import DiagnosisReports from '@/pages/DiagnosisReports';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import PWAUpdateNotification from '@/components/PWAUpdateNotification';
 import './App.css';
 
 const App = () => {
@@ -18,6 +20,8 @@ const App = () => {
     <ErrorBoundary>
       <AuthProvider>
         <Toaster />
+        <PWAUpdateNotification />
+        <PWAInstallPrompt />
         <Router>
           <Routes>
             <Route path="/" element={<Index />} />
