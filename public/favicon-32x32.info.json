@@ -1,0 +1,17 @@
+{
+  "size": "32x32",
+  "format": "SVG (pronto para conversão)",
+  "purpose": "Favicon",
+  "instructions": [
+    "1. Este SVG está otimizado para conversão",
+    "2. Usar ferramenta online: https://convertio.co/svg-png/",
+    "3. Ou instalar sharp: npm install sharp",
+    "4. Converter para PNG mantendo qualidade",
+    "5. Substituir arquivo existente"
+  ],
+  "colors": {
+    "primary": "#2563eb",
+    "secondary": "#7c3aed",
+    "accent": "white"
+  }
+}
