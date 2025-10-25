@@ -105,7 +105,7 @@ User-Agent: Asaas-Webhook/1.0
 
 ### **1. Fazer Doação Teste:**
 1. Acesse o sistema: `/diagnosis` → `Ajudar` → `Fazer Doação`
-2. Faça uma doação de **R$ 5,00** (valor mínimo)
+2. Faça uma doação de **R$ 15,00** (valor mínimo)
 3. Use dados de teste do Asaas
 
 ### **2. Dados de Teste Asaas:**

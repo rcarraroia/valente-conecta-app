@@ -78,9 +78,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('ASAAS_API_KEY não configurada');
     }
 
-    // Validações básicas
-    if (!paymentData.amount || paymentData.amount < 500) {
-      throw new Error('Valor mínimo para doação é R$ 5,00');
+    // Validações básicas - Valor mínimo R$ 15,00 (1500 centavos)
+    if (!paymentData.amount || paymentData.amount < 1500) {
+      throw new Error('Valor mínimo para doação é R$ 15,00');
     }
 
     if (!paymentData.donor.name || !paymentData.donor.email) {

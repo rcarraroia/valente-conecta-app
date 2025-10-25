@@ -9,6 +9,7 @@ import DonorInformationForm from './DonorInformationForm';
 import CreditCardForm from './CreditCardForm';
 import { PixCheckout } from './PixCheckout';
 import { usePixCheckout } from '@/hooks/usePixCheckout';
+import { PAYMENT_CONSTANTS } from '@/constants/payment';
 
 interface DonationFormProps {
   onBack: () => void;
@@ -87,11 +88,11 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
-      // Valor mínimo aumentado para R$ 5,00 (500 centavos) conforme exigido pela Asaas
-      if (amountInCents < 500) {
+      // Validação de valor mínimo
+      if (amountInCents < PAYMENT_CONSTANTS.MIN_DONATION_CENTS) {
         toast({
           title: "Valor mínimo",
-          description: "O valor mínimo para doação é R$ 5,00.",
+          description: PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE,
           variant: "destructive"
         });
         return;
@@ -100,7 +101,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
       if (!donorData.name.trim() || !donorData.email.trim()) {
         toast({
           title: "Dados obrigatórios",
-          description: "Nome e email são obrigatórios.",
+          description: PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS,
           variant: "destructive"
         });
         return;
@@ -113,7 +114,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
             !creditCardData.ccv.trim()) {
           toast({
             title: "Dados do cartão obrigatórios",
-            description: "Preencha todos os dados do cartão de crédito.",
+            description: PAYMENT_CONSTANTS.ERROR_MESSAGES.CREDIT_CARD_REQUIRED,
             variant: "destructive"
           });
           return;
@@ -163,9 +164,9 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
         if (error.message?.includes('ASAAS_API_KEY')) {
           throw new Error('Configuração de pagamento não encontrada. Entre em contato com o suporte.');
         } else if (error.message?.includes('Valor mínimo')) {
-          throw new Error('Valor mínimo para doação é R$ 5,00');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE);
         } else if (error.message?.includes('obrigatórios')) {
-          throw new Error('Preencha todos os campos obrigatórios');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS);
         } else {
           throw new Error(error.message || 'Erro na comunicação com o servidor de pagamentos');
         }
@@ -306,7 +307,7 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
           <Button
             type="submit"
             size="lg"
-            disabled={!amount || parseInt(amount) < 500 || !donorData.name || !donorData.email || isProcessing}
+            disabled={!amount || parseInt(amount) < PAYMENT_CONSTANTS.MIN_DONATION_CENTS || !donorData.name || !donorData.email || isProcessing}
             className="w-full h-12 bg-cv-coral hover:bg-cv-coral/90"
           >
             {isProcessing ? 'Processando...' : 'Doar Agora'}

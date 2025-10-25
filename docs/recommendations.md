@@ -287,7 +287,7 @@ const medicalDataSchema = z.object({
 const paymentSchema = z.object({
   amount: z.number()
     .int('Valor deve ser em centavos')
-    .min(500, 'Valor mínimo R$ 5,00')
+    .min(1500, 'Valor mínimo R$ 15,00')
     .max(100000000, 'Valor máximo R$ 1.000.000,00'),
     
   donor_email: z.string()

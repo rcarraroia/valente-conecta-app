@@ -236,17 +236,17 @@ enum SeverityLevel {
 ### 5.1 Valores e Validações
 ```typescript
 const donationRules = {
-  minAmount: 500, // R$ 5,00 em centavos
+  minAmount: 1500, // R$ 15,00 em centavos
   maxAmount: 100000000, // R$ 1.000.000,00
-  defaultAmounts: [2500, 5000, 10000], // R$ 25, 50, 100
+  defaultAmounts: [2500, 5000, 10000, 20000], // R$ 25, 50, 100, 200
   currency: 'BRL'
 };
 ```
 
 **Regras**:
-- Valor mínimo R$ 5,00
+- Valor mínimo R$ 15,00
 - Valor máximo R$ 1.000.000,00
-- Valores sugeridos: R$ 25, R$ 50, R$ 100
+- Valores sugeridos: R$ 25, R$ 50, R$ 100, R$ 200
 - Apenas moeda brasileira (BRL)
 - Valores armazenados em centavos
 

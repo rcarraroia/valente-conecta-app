@@ -10,6 +10,7 @@ import SupporterInformationForm from './SupporterInformationForm';
 import SupporterBenefits from './SupporterBenefits';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import CreditCardForm from './CreditCardForm';
+import { PAYMENT_CONSTANTS } from '@/constants/payment';
 
 interface SupporterFormProps {
   onBack: () => void;
@@ -62,11 +63,11 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
     try {
       const amountInCents = parseInt(amount);
       
-      // Valor mínimo para assinaturas
-      if (amountInCents < 500) {
+      // Validação de valor mínimo
+      if (amountInCents < PAYMENT_CONSTANTS.MIN_DONATION_CENTS) {
         toast({
           title: "Valor mínimo",
-          description: "O valor mínimo para assinatura é R$ 5,00.",
+          description: PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE_SUBSCRIPTION,
           variant: "destructive"
         });
         return;
@@ -75,7 +76,7 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
       if (!supporterData.name.trim() || !supporterData.email.trim()) {
         toast({
           title: "Dados obrigatórios",
-          description: "Nome e email são obrigatórios.",
+          description: PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS,
           variant: "destructive"
         });
         return;
@@ -88,7 +89,7 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
             !creditCardData.ccv.trim()) {
           toast({
             title: "Dados do cartão obrigatórios",
-            description: "Preencha todos os dados do cartão de crédito.",
+            description: PAYMENT_CONSTANTS.ERROR_MESSAGES.CREDIT_CARD_REQUIRED,
             variant: "destructive"
           });
           return;
@@ -133,9 +134,9 @@ const SupporterForm = ({ onBack }: SupporterFormProps) => {
         if (error.message?.includes('ASAAS_API_KEY')) {
           throw new Error('Configuração de pagamento não encontrada. Entre em contato com o suporte.');
         } else if (error.message?.includes('Valor mínimo')) {
-          throw new Error('Valor mínimo para assinatura é R$ 5,00');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE_SUBSCRIPTION);
         } else if (error.message?.includes('obrigatórios')) {
-          throw new Error('Preencha todos os campos obrigatórios');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS);
         } else {
           throw new Error(error.message || 'Erro na comunicação com o servidor de pagamentos');
         }

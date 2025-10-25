@@ -182,7 +182,7 @@ CENÁRIO SEM EMBAIXADOR:
 - Boleto Bancário
 
 #### 2. **Validações Robustas**
-- Valor mínimo R$ 5,00
+- Valor mínimo R$ 15,00
 - Validação de CPF/CNPJ
 - Verificação de dados do cartão
 - Tratamento de erros específicos

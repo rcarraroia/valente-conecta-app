@@ -39,7 +39,7 @@ Formato: JSON
 
 #### **Faça doação teste:**
 1. Acesse: `/diagnosis` → `Ajudar` → `Fazer Doação`
-2. Valor: R$ 5,00 (mínimo)
+2. Valor: R$ 15,00 (mínimo)
 3. Use dados de teste do Asaas:
    ```
    Cartão: 5162306219378829

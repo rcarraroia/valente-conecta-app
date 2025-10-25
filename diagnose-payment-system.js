@@ -9,7 +9,7 @@ const SUPABASE_URL = 'https://corrklfwxfuqusfzwbls.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvcnJrbGZ3eGZ1cXVzZnp3YmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MzU0MTUsImV4cCI6MjA2NTMxMTQxNX0.r4nWkV2bnniYUl1wdyNO0dXrATVaRMHjCr4Qaq5Plmw';
 
 const testPayload = {
-  amount: 500, // R$ 5,00 em centavos (valor mínimo)
+  amount: 1500, // R$ 15,00 em centavos (valor mínimo)
   type: 'donation',
   paymentMethod: 'PIX',
   donor: {

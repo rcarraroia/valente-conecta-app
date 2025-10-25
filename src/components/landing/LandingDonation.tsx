@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Heart, CreditCard, QrCode, FileText } from 'lucide-react';
+import { PAYMENT_CONSTANTS } from '@/constants/payment';
 
 interface LandingDonationProps {
   ambassadorCode?: string;
@@ -22,7 +23,7 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  const predefinedAmounts = [50, 100, 250, 500];
+  const predefinedAmounts = PAYMENT_CONSTANTS.SUGGESTED_AMOUNTS;
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -50,10 +51,10 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
   const handleDonation = async () => {
     const amount = getCurrentAmount();
     
-    if (amount < 5) {
+    if (amount < PAYMENT_CONSTANTS.MIN_DONATION_REAIS) {
       toast({
         title: 'Valor mínimo',
-        description: 'O valor mínimo para doação é R$ 5,00.',
+        description: PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE,
         variant: 'destructive',
       });
       return;
@@ -62,7 +63,7 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
     if (!donorData.name || !donorData.email) {
       toast({
         title: 'Dados obrigatórios',
-        description: 'Por favor, preencha seu nome e email.',
+        description: PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS,
         variant: 'destructive',
       });
       return;
@@ -93,9 +94,9 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
         if (error.message?.includes('ASAAS_API_KEY')) {
           throw new Error('Configuração de pagamento não encontrada. Entre em contato com o suporte.');
         } else if (error.message?.includes('Valor mínimo')) {
-          throw new Error('Valor mínimo para doação é R$ 5,00');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.MIN_VALUE);
         } else if (error.message?.includes('obrigatórios')) {
-          throw new Error('Preencha todos os campos obrigatórios');
+          throw new Error(PAYMENT_CONSTANTS.ERROR_MESSAGES.REQUIRED_FIELDS);
         } else {
           throw new Error(error.message || 'Erro na comunicação com o servidor de pagamentos');
         }
@@ -269,7 +270,7 @@ const LandingDonation = ({ ambassadorCode }: LandingDonationProps) => {
           {/* Botão de doação */}
           <Button
             onClick={handleDonation}
-            disabled={getCurrentAmount() < 5 || !donorData.name || !donorData.email || isProcessing}
+            disabled={getCurrentAmount() < PAYMENT_CONSTANTS.MIN_DONATION_REAIS || !donorData.name || !donorData.email || isProcessing}
             className="w-full h-14 bg-cv-coral hover:bg-cv-coral/90 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           >
             <Heart className="w-5 h-5 mr-2" />

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PAYMENT_CONSTANTS } from '@/constants/payment';
 
 interface SupporterAmountSelectorProps {
   amount: string;
@@ -12,12 +13,7 @@ interface SupporterAmountSelectorProps {
 }
 
 const SupporterAmountSelector = ({ amount, selectedPlan, onAmountChange }: SupporterAmountSelectorProps) => {
-  const monthlyPlans = [
-    { value: 2500, label: 'R$ 25/mês', description: 'Apoiador Bronze' },
-    { value: 5000, label: 'R$ 50/mês', description: 'Apoiador Prata' },
-    { value: 10000, label: 'R$ 100/mês', description: 'Apoiador Ouro' },
-    { value: 20000, label: 'R$ 200/mês', description: 'Apoiador Diamante' }
-  ];
+  const monthlyPlans = PAYMENT_CONSTANTS.SUBSCRIPTION_PLANS;
 
   const formatCurrency = (value: string) => {
     const numericValue = value.replace(/\D/g, '');

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PAYMENT_CONSTANTS } from '@/constants/payment';
 
 interface AmountSelectorProps {
   amount: string;
@@ -11,8 +12,8 @@ interface AmountSelectorProps {
 }
 
 const AmountSelector = ({ amount, onAmountChange }: AmountSelectorProps) => {
-  // Valores predefinidos sem R$ 5 e R$ 10
-  const predefinedAmounts = [25, 50, 100];
+  // Valores predefinidos unificados
+  const predefinedAmounts = PAYMENT_CONSTANTS.SUGGESTED_AMOUNTS;
 
   const handleAmountSelect = (value: number) => {
     onAmountChange((value * 100).toString());
