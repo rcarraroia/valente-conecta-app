@@ -101,36 +101,41 @@ const handler = async (req: Request): Promise<Response> => {
       console.warn('⚠️ Doação não encontrada para transaction_id:', payment.id);
     }
 
-    // 3. 🔔 SISTEMA DE NOTIFICAÇÕES (Futuro)
+    // 3. 🧾 GERAR RECIBO AUTOMATICAMENTE
     if (shouldNotify && updatedDonation) {
-      console.log('🔔 Preparando notificação de pagamento confirmado');
-      
-      // TODO: Implementar sistema de notificações push
-      // Opções futuras:
-      // - Web Push API
-      // - WebSocket para clientes conectados
-      // - Email de confirmação
-      // - SMS (se configurado)
+      console.log('🧾 Gerando recibo automaticamente para doação:', updatedDonation.id);
       
       try {
-        // Placeholder para futuro sistema de notificações
-        const notificationData = {
-          type: 'payment_received',
-          paymentId: payment.id,
-          amount: payment.value,
-          donorEmail: updatedDonation.donor_email,
-          donorName: updatedDonation.donor_name,
-          timestamp: new Date().toISOString()
-        };
+        // Chamar função de geração de recibo
+        const receiptResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-receipt`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              donationId: updatedDonation.id,
+              sendEmail: true
+            })
+          }
+        );
         
-        console.log('📱 Dados para notificação:', notificationData);
+        if (receiptResponse.ok) {
+          const receiptData = await receiptResponse.json();
+          console.log('✅ Recibo gerado com sucesso:', {
+            receiptNumber: receiptData.receipt?.receipt_number,
+            emailSent: receiptData.receipt?.email_sent
+          });
+        } else {
+          const errorData = await receiptResponse.text();
+          console.error('❌ Erro ao gerar recibo:', errorData);
+        }
         
-        // Aqui seria implementado o envio real da notificação
-        // Por enquanto, apenas log para debug
-        
-      } catch (notificationError) {
-        console.error('❌ Erro ao processar notificação:', notificationError);
-        // Não falhar o webhook por causa de erro de notificação
+      } catch (receiptError: any) {
+        console.error('❌ Erro ao chamar função de recibo:', receiptError.message);
+        // Não falhar o webhook por causa de erro no recibo
       }
     }
 

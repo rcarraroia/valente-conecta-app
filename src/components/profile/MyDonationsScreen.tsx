@@ -127,6 +127,45 @@ const MyDonationsScreen = ({ onBack, onNavigate }: MyDonationsScreenProps) => {
     }
   };
 
+  const handleDownloadReceipt = async (donationId: string) => {
+    try {
+      toast({
+        title: "Gerando recibo...",
+        description: "Por favor, aguarde.",
+      });
+
+      // Chamar função para gerar/buscar recibo
+      const { data, error } = await supabase.functions.invoke('generate-receipt', {
+        body: { 
+          donationId: donationId,
+          sendEmail: false 
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.receipt) {
+        toast({
+          title: "Recibo gerado!",
+          description: `Número: ${data.receipt.receipt_number}`,
+        });
+
+        // TODO: Abrir PDF quando estiver implementado
+        // Por enquanto, mostrar informações do recibo
+        console.log('Recibo:', data.receipt);
+      }
+    } catch (error: any) {
+      console.error('Erro ao gerar recibo:', error);
+      toast({
+        title: "Erro ao gerar recibo",
+        description: error.message || "Não foi possível gerar o recibo. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cv-off-white p-6 flex items-center justify-center">
@@ -247,6 +286,16 @@ const MyDonationsScreen = ({ onBack, onNavigate }: MyDonationsScreenProps) => {
                           <p className="text-sm text-cv-gray-light mt-1">
                             Método: {donation.payment_method}
                           </p>
+                        )}
+                        {(donation.status === 'confirmed' || donation.status === 'received') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadReceipt(donation.id)}
+                            className="mt-2 text-xs"
+                          >
+                            📄 Baixar Recibo
+                          </Button>
                         )}
                       </div>
                       {donation.transaction_id && (

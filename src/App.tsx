@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import DiagnosisDashboard from '@/pages/DiagnosisDashboard';
 import DiagnosisChat from '@/pages/DiagnosisChat';
 import DiagnosisReports from '@/pages/DiagnosisReports';
+import VerifyReceipt from '@/pages/VerifyReceipt';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import PWAUpdateNotification from '@/components/PWAUpdateNotification';
 import './App.css';
@@ -33,6 +34,9 @@ const App = () => {
             <Route path="/diagnosis" element={<DiagnosisDashboard />} />
             <Route path="/diagnosis/chat" element={<DiagnosisChat />} />
             <Route path="/diagnosis/reports" element={<DiagnosisReports />} />
+            
+            {/* Receipt Verification - Public */}
+            <Route path="/verificar/:hash" element={<VerifyReceipt />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
