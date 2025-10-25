@@ -93,10 +93,10 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => document.getElementById('pre-diagnosis-section')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => document.getElementById('triagem-comportamental-section')?.scrollIntoView({ behavior: 'smooth' })}
             className="border-cv-purple-soft text-cv-purple-soft hover:bg-cv-purple-soft hover:text-white px-8 py-4 text-lg rounded-full transition-all duration-300"
           >
-            Conheça Nosso Pré-Diagnóstico
+            Conheça Nossa Triagem Comportamental
           </Button>
         </div>
 

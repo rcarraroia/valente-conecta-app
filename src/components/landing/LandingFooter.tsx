@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Mail, Phone, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react';
+import { Heart, Phone, MapPin, Instagram } from 'lucide-react';
 
 const LandingFooter = () => {
   return (
@@ -21,14 +21,14 @@ const LandingFooter = () => {
               oferecendo suporte especializado e humanizado para toda a família.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-cv-coral/20 rounded-full flex items-center justify-center hover:bg-cv-coral/30 transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-cv-coral/20 rounded-full flex items-center justify-center hover:bg-cv-coral/30 transition-colors">
+              <a 
+                href="https://www.instagram.com/coracaovalente.ong/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-10 h-10 bg-cv-coral/20 rounded-full flex items-center justify-center hover:bg-cv-coral/30 transition-colors"
+                aria-label="Instagram do Instituto Coração Valente"
+              >
                 <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-cv-coral/20 rounded-full flex items-center justify-center hover:bg-cv-coral/30 transition-colors">
-                <Linkedin className="w-5 h-5" />
               </a>
             </div>
           </div>
@@ -40,20 +40,16 @@ const LandingFooter = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-cv-coral flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-gray-300">Rua Exemplo, 123</p>
-                  <p className="text-gray-300">São Paulo - SP</p>
-                  <p className="text-gray-300">CEP: 01234-567</p>
+                  <p className="text-gray-300">Ipatinga - MG</p>
+                  <p className="text-gray-300">CEP: 35162-820</p>
                 </div>
               </div>
               
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-cv-coral" />
-                <span className="text-gray-300">(11) 99999-9999</span>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-cv-coral" />
-                <span className="text-gray-300">contato@coracaovalente.com.br</span>
+                <a href="tel:+5531988036923" className="text-gray-300 hover:text-cv-coral transition-colors">
+                  +55 31 98803-6923
+                </a>
               </div>
             </div>
           </div>
@@ -62,11 +58,35 @@ const LandingFooter = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Links Úteis</h4>
             <div className="space-y-3">
-              <a href="#" className="block text-gray-300 hover:text-cv-coral transition-colors">Sobre Nós</a>
-              <a href="#" className="block text-gray-300 hover:text-cv-coral transition-colors">Nossos Serviços</a>
-              <a href="#" className="block text-gray-300 hover:text-cv-coral transition-colors">Como Ajudar</a>
-              <a href="#" className="block text-gray-300 hover:text-cv-coral transition-colors">Seja um Parceiro</a>
-              <a href="#" className="block text-gray-300 hover:text-cv-coral transition-colors">Transparência</a>
+              <a 
+                href="#about-section" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  const section = document.getElementById('about-section');
+                  if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="block text-gray-300 hover:text-cv-coral transition-colors cursor-pointer"
+              >
+                Sobre Nós
+              </a>
+              <a 
+                href="#triagem-comportamental-section"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const section = document.getElementById('triagem-comportamental-section');
+                  if (section) {
+                    section.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="block text-gray-300 hover:text-cv-coral transition-colors cursor-pointer"
+              >
+                Triagem Comportamental
+              </a>
+              <a href="/auth" className="block text-gray-300 hover:text-cv-coral transition-colors">Como Ajudar</a>
+              <a href="/auth" className="block text-gray-300 hover:text-cv-coral transition-colors">Seja um Parceiro</a>
+              <a href="/diagnosis/chat" className="block text-gray-300 hover:text-cv-coral transition-colors">Fazer Triagem</a>
             </div>
           </div>
         </div>

@@ -1,25 +1,21 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Brain, MessageSquare, Heart, Clock, Users, CheckCircle } from 'lucide-react';
 
 const LandingPreDiagnosis = () => {
-  const scrollToTestimonials = () => {
-    const testimonialsSection = document.getElementById('testimonials-section');
-    if (testimonialsSection) {
-      testimonialsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const navigate = useNavigate();
 
   return (
-    <section id="pre-diagnosis-section" className="py-20 bg-gradient-to-br from-cv-coral/5 to-cv-green/5">
+    <section id="triagem-comportamental-section" className="py-20 bg-gradient-to-br from-cv-coral/5 to-cv-green/5">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-heading font-bold text-cv-gray-dark mb-6">
-            Pré-Diagnóstico Inteligente
+            Triagem Comportamental Inteligente
           </h2>
           <p className="text-xl text-cv-gray-light max-w-3xl mx-auto leading-relaxed">
-            Nossa ferramenta de pré-diagnóstico utiliza inteligência artificial para identificar possíveis sinais de TEA, TDAH, Dislexia e outras condições do neurodesenvolvimento.
+            Nossa ferramenta de triagem comportamental utiliza inteligência artificial para identificar possíveis sinais de TEA, TDAH, Dislexia e outras condições do neurodesenvolvimento.
           </p>
         </div>
 
@@ -86,10 +82,10 @@ const LandingPreDiagnosis = () => {
             </div>
             
             <Button
-              onClick={scrollToTestimonials}
+              onClick={() => navigate('/diagnosis/chat')}
               className="w-full bg-cv-coral hover:bg-cv-coral/90 text-white py-3 rounded-full font-semibold"
             >
-              Saiba Mais Sobre Nossos Resultados
+              Faça Sua Triagem Grátis
             </Button>
           </div>
         </div>
@@ -97,7 +93,7 @@ const LandingPreDiagnosis = () => {
         {/* Benefícios da ferramenta */}
         <div className="bg-white rounded-2xl p-8 shadow-lg">
           <h3 className="text-2xl font-heading font-semibold text-cv-gray-dark mb-8 text-center">
-            Por que Nosso Pré-Diagnóstico é Diferente
+            Por que Nossa Triagem Comportamental é Diferente
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
