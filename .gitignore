@@ -12,6 +12,23 @@ dist
 dist-ssr
 *.local
 
+# Environment variables - CRÍTICO: NÃO COMMITAR!
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.audit
+
+# Secrets e Credenciais
+*.pem
+*.key
+secrets/
+credentials/
+
+# Supabase
+.supabase/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
