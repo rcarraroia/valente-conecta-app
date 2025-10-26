@@ -12,6 +12,9 @@ const LandingTestimonials = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
     
+    // Definir para redirecionar para a tela de ajudar
+    localStorage.setItem('redirect_to', 'ajudar');
+    
     if (ref) {
       navigate(`/?ref=${ref}`);
     } else {
