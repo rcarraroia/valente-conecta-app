@@ -106,7 +106,7 @@ const LandingFooter = () => {
 
         {/* Certificações */}
         <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm mb-4">ONG Coração Valente - CNPJ: 00.000.000/0001-00</p>
+          <p className="text-gray-400 text-sm mb-4">ONG Coração Valente - CNPJ: 42.044.102/0001-59</p>
           <div className="flex justify-center items-center space-x-6">
             <div className="bg-gray-600/50 px-4 py-2 rounded text-xs">
               🏆 Certificado de Utilidade Pública

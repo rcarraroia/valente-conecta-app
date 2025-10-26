@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Index from '@/pages/Index';
@@ -19,29 +20,31 @@ import './App.css';
 const App = () => {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Toaster />
-        <PWAUpdateNotification />
-        <PWAInstallPrompt />
-        <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/landing" element={<LandingPage />} />
-            <Route path="/landing/:ref" element={<LandingPage />} />
-            
-            {/* Diagnosis Routes - Protected */}
-            <Route path="/diagnosis" element={<DiagnosisDashboard />} />
-            <Route path="/diagnosis/chat" element={<DiagnosisChat />} />
-            <Route path="/diagnosis/reports" element={<DiagnosisReports />} />
-            
-            {/* Receipt Verification - Public */}
-            <Route path="/verificar/:hash" element={<VerifyReceipt />} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
+      <HelmetProvider>
+        <AuthProvider>
+          <Toaster />
+          <PWAUpdateNotification />
+          <PWAInstallPrompt />
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/landing/:ref" element={<LandingPage />} />
+              
+              {/* Diagnosis Routes - Protected */}
+              <Route path="/diagnosis" element={<DiagnosisDashboard />} />
+              <Route path="/diagnosis/chat" element={<DiagnosisChat />} />
+              <Route path="/diagnosis/reports" element={<DiagnosisReports />} />
+              
+              {/* Receipt Verification - Public */}
+              <Route path="/verificar/:hash" element={<VerifyReceipt />} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 };

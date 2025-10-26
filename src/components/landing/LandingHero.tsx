@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface AmbassadorData {
   id: string;
@@ -51,7 +52,11 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
       <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
         {/* Personalização do Embaixador */}
         {ambassadorData && (
-          <div className="mb-8 p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg mx-auto max-w-2xl border border-cv-blue-heart/20">
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-12 p-8 bg-white/90 backdrop-blur-md rounded-3xl shadow-lg mx-auto max-w-2xl border border-cv-blue-heart/20">
             <div className="flex items-center justify-center gap-4 mb-4">
               {ambassadorData.professional_photo_url ? (
                 <img
@@ -71,27 +76,36 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
                 <p className="text-cv-gray-light text-sm">Embaixador(a) da ONG Coração Valente</p>
               </div>
             </div>
-            <p className="text-cv-gray-dark">
-              Conheça o trabalho transformador da ONG Coração Valente e descubra como ajudamos crianças e famílias.
-            </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Logomarca circular do Instituto */}
-        <div className="mb-8">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mb-8">
           <img
             src="/lovable-uploads/9343bd02-f7b0-4bb6-81a4-b8e8ee1af9e9.png"
             alt="ONG Coração Valente"
             className="mx-auto h-40 md:h-48 w-auto"
           />
-        </div>
+        </motion.div>
         
-        <h2 className="text-xl md:text-2xl text-cv-gray-light mb-8 max-w-3xl mx-auto leading-relaxed">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="text-xl md:text-2xl text-cv-gray-light mb-8 max-w-3xl mx-auto leading-relaxed">
           Promovendo o desenvolvimento integral de crianças com TEA, TDAH, Dislexia e outras condições do neurodesenvolvimento
-        </h2>
+        </motion.h2>
 
         {/* CTA Principal */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
           <Button
             onClick={handleAjudeNossaCausa}
             size="lg"
@@ -109,10 +123,14 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
           >
             Conheça Nossa Triagem Comportamental
           </Button>
-        </div>
+        </motion.div>
 
         {/* Indicadores de Impacto */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-cv-blue-heart/10">
             <div className="text-3xl font-bold text-cv-blue-heart mb-2">500+</div>
             <div className="text-cv-gray-dark">Crianças Atendidas</div>
@@ -125,7 +143,7 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
             <div className="text-3xl font-bold text-cv-blue-heart mb-2">10</div>
             <div className="text-cv-gray-dark">Anos de Experiência</div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
