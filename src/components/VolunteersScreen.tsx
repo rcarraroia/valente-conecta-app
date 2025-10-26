@@ -34,12 +34,12 @@ const VolunteersScreen = ({ onBack, onNavigate }: VolunteersScreenProps) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-cv-gray-dark">
               <Heart className="w-5 h-5 text-cv-coral" />
-              Sobre o Instituto Coração Valente
+              Sobre a ONG Coração Valente
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-cv-gray-light leading-relaxed">
-              O Instituto Coração Valente é uma organização sem fins lucrativos dedicada a promover o bem-estar 
+              A ONG Coração Valente é uma organização sem fins lucrativos dedicada a promover o bem-estar 
               e a saúde mental da população. Oferecemos suporte psicológico gratuito, recursos educacionais 
               e uma rede de apoio para pessoas que enfrentam desafios emocionais e psicológicos.
             </p>
@@ -150,7 +150,7 @@ const VolunteersScreen = ({ onBack, onNavigate }: VolunteersScreenProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-cv-gray-light leading-relaxed">
-              Como embaixador do Instituto Coração Valente, você será fundamental para divulgar nossa causa 
+              Como embaixador da ONG Coração Valente, você será fundamental para divulgar nossa causa 
               e alcançar mais pessoas que precisam de nosso apoio. É uma forma simples e poderosa de fazer a diferença!
             </p>
             <div className="bg-cv-off-white p-4 rounded-lg">
@@ -211,7 +211,7 @@ const VolunteersScreen = ({ onBack, onNavigate }: VolunteersScreenProps) => {
               <div className="text-cv-gray-light">
                 <p className="font-medium">Com gratidão,</p>
                 <p className="text-cv-coral font-medium">Adriane Carraro</p>
-                <p className="text-sm">Presidente do Instituto Coração Valente</p>
+                <p className="text-sm">Presidente da ONG Coração Valente</p>
               </div>
             </div>
           </CardContent>

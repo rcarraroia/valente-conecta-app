@@ -12,7 +12,7 @@ const LandingFooter = () => {
             <div className="flex items-center gap-3 mb-6">
               <img
                 src="/lovable-uploads/96de9681-7a55-45c7-8b32-f405f2bc4e19.png"
-                alt="Instituto Coração Valente"
+                alt="ONG Coração Valente"
                 className="h-12 w-auto"
               />
             </div>
@@ -26,7 +26,7 @@ const LandingFooter = () => {
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-cv-coral/20 rounded-full flex items-center justify-center hover:bg-cv-coral/30 transition-colors"
-                aria-label="Instagram do Instituto Coração Valente"
+                aria-label="Instagram da ONG Coração Valente"
               >
                 <Instagram className="w-5 h-5" />
               </a>
@@ -95,7 +95,7 @@ const LandingFooter = () => {
         <div className="border-t border-gray-600 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © 2024 Instituto Coração Valente. Todos os direitos reservados.
+              © 2024 ONG Coração Valente. Todos os direitos reservados.
             </div>
             <div className="flex space-x-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-cv-coral transition-colors">Política de Privacidade</a>
@@ -106,7 +106,7 @@ const LandingFooter = () => {
 
         {/* Certificações */}
         <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm mb-4">Instituto Coração Valente - CNPJ: 00.000.000/0001-00</p>
+          <p className="text-gray-400 text-sm mb-4">ONG Coração Valente - CNPJ: 00.000.000/0001-00</p>
           <div className="flex justify-center items-center space-x-6">
             <div className="bg-gray-600/50 px-4 py-2 rounded text-xs">
               🏆 Certificado de Utilidade Pública

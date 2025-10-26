@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Wallets reservadas do sistema
 export const SYSTEM_WALLETS = [
-  'eff311bc-7737-4870-93cd-16080c00d379', // Instituto Coração Valente
+  'eff311bc-7737-4870-93cd-16080c00d379', // ONG Coração Valente
   'f9c7d1dd-9e52-4e81-8194-8b666f276405', // Renum (Administrador)
   'c0c31b6a-2481-4e3f-a6de-91c3ff834d1f'  // Wallet Especial (sem embaixador)
 ];

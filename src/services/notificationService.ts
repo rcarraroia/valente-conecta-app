@@ -135,7 +135,7 @@ class NotificationService {
         });
 
         await this.sendNotification({
-            title: '🎉 Instituto Coração Valente',
+            title: '🎉 ONG Coração Valente',
             body: `Sua doação de ${formattedAmount} acabou de chegar! Muito obrigado por fazer diferença na vida de milhares de pessoas ❤️`,
             icon: '/favicon.ico',
             tag: 'payment-received',

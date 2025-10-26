@@ -15,7 +15,15 @@ const LandingImpact = () => {
   };
 
   const handleAjudeNossaCausa = () => {
-    navigate('/auth');
+    // Preservar código do embaixador se existir
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    
+    if (ref) {
+      navigate(`/?ref=${ref}`);
+    } else {
+      navigate('/');
+    }
   };
 
   return (

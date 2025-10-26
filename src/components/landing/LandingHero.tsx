@@ -25,7 +25,15 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
   };
 
   const handleAjudeNossaCausa = () => {
-    navigate('/auth');
+    // Preservar código do embaixador se existir
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    
+    if (ref) {
+      navigate(`/?ref=${ref}`);
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -57,11 +65,11 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
                 <p className="text-cv-gray-dark font-medium">
                   Olá! Meu nome é <span className="text-cv-blue-heart font-bold">{ambassadorData.full_name}</span>
                 </p>
-                <p className="text-cv-gray-light text-sm">Embaixador(a) do Instituto Coração Valente</p>
+                <p className="text-cv-gray-light text-sm">Embaixador(a) da ONG Coração Valente</p>
               </div>
             </div>
             <p className="text-cv-gray-dark">
-              Conheça o trabalho transformador do Instituto Coração Valente e descubra como ajudamos crianças e famílias.
+              Conheça o trabalho transformador da ONG Coração Valente e descubra como ajudamos crianças e famílias.
             </p>
           </div>
         )}
@@ -70,7 +78,7 @@ const LandingHero = ({ ambassadorData }: LandingHeroProps) => {
         <div className="mb-8">
           <img
             src="/lovable-uploads/9343bd02-f7b0-4bb6-81a4-b8e8ee1af9e9.png"
-            alt="Instituto Coração Valente"
+            alt="ONG Coração Valente"
             className="mx-auto h-40 md:h-48 w-auto"
           />
         </div>

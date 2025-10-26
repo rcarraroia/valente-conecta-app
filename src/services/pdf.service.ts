@@ -126,9 +126,9 @@ export class PDFService implements PDFServiceInterface {
 
     // Set document properties
     pdf.setProperties({
-      title: 'Relatório de Triagem Comportamental - Instituto Coração Valente',
+      title: 'Relatório de Triagem Comportamental - ONG Coração Valente',
       subject: 'Triagem Comportamental',
-      author: 'Instituto Coração Valente',
+      author: 'ONG Coração Valente',
       creator: 'Valente Conecta App',
       producer: 'jsPDF',
     });
@@ -160,7 +160,7 @@ export class PDFService implements PDFServiceInterface {
     // Header
     pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Instituto Coração Valente', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.text('ONG Coração Valente', pageWidth / 2, yPosition, { align: 'center' });
     
     yPosition += 10;
     pdf.setFontSize(16);
@@ -402,7 +402,7 @@ export class PDFService implements PDFServiceInterface {
     pdf.text('Este relatório é apenas uma triagem comportamental e não substitui consulta médica profissional.', 
       pdf.internal.pageSize.getWidth() / 2, footerY, { align: 'center' });
     
-    pdf.text('Instituto Coração Valente - Valente Conecta App', 
+    pdf.text('ONG Coração Valente - Valente Conecta App', 
       pdf.internal.pageSize.getWidth() / 2, footerY + 5, { align: 'center' });
   }
 

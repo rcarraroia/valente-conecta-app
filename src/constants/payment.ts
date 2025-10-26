@@ -1,5 +1,5 @@
 /**
- * Constantes de Pagamento - Instituto Coração Valente
+ * Constantes de Pagamento - ONG Coração Valente
  * 
  * Centralização de valores e configurações relacionadas a pagamentos,
  * doações e assinaturas para garantir consistência em todo o sistema.

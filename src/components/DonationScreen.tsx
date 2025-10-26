@@ -62,7 +62,7 @@ const DonationScreen: React.FC<DonationScreenProps> = ({ onBack }) => {
             <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
             <h2 className="text-xl font-bold mb-2">Sua Doação Faz a Diferença</h2>
             <p className="opacity-90">
-              Ajude o Instituto Coração Valente a continuar acolhendo famílias em momentos difíceis.
+              Ajude a ONG Coração Valente a continuar acolhendo famílias em momentos difíceis.
             </p>
           </CardContent>
         </Card>

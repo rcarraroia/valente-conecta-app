@@ -12,7 +12,7 @@ const HomeHeader = () => {
           <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
             <OptimizedImage 
               src="/lovable-uploads/1df1dc10-fe00-4ce7-8731-1e01e428d28e.png"
-              alt="Logotipo do Instituto Coração Valente"
+              alt="Logotipo da ONG Coração Valente"
               className="w-8 h-8 object-contain"
               width={32}
               height={32}

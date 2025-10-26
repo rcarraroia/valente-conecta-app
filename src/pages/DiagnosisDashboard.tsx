@@ -37,7 +37,7 @@ const DiagnosisDashboardPage: React.FC = () => {
               <CardHeader>
                 <CardTitle>Sistema de Triagem Comportamental (STC)</CardTitle>
                 <CardDescription>
-                  Bem-vindo ao Sistema de Triagem Comportamental do Instituto Coração Valente
+                  Bem-vindo ao Sistema de Triagem Comportamental da ONG Coração Valente
                 </CardDescription>
               </CardHeader>
               <CardContent>

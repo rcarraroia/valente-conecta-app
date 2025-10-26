@@ -54,7 +54,7 @@ const AmbassadorCodeInput = ({
             <h4 className="font-medium text-blue-900 mb-2">Divisão da Doação:</h4>
             <div className="text-sm space-y-1">
               <div className="flex justify-between">
-                <span>Instituto Coração Valente (70%):</span>
+                <span>ONG Coração Valente (70%):</span>
                 <span className="font-medium">
                   {formatCurrency(splitPreview.instituteShare.toString())}
                 </span>

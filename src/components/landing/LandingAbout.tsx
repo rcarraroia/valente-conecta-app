@@ -11,7 +11,7 @@ const LandingAbout = () => {
             Quem Somos e o que Nos Move
           </h2>
           <p className="text-xl text-cv-gray-light max-w-3xl mx-auto leading-relaxed">
-            O Instituto Coração Valente é uma organização dedicada ao desenvolvimento integral de crianças e adolescentes com necessidades especiais, oferecendo suporte especializado e humanizado.
+            A ONG Coração Valente é uma organização dedicada ao desenvolvimento integral de crianças e adolescentes com necessidades especiais, oferecendo suporte especializado e humanizado.
           </p>
         </div>
 

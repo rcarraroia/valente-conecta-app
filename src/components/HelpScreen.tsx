@@ -54,7 +54,7 @@ const HelpScreen = ({ onBack, onNavigate }: HelpScreenProps) => {
             <Heart className="w-10 h-10 mx-auto mb-3 text-white" />
             <h2 className="text-lg font-bold mb-2">Faça a Diferença</h2>
             <p className="text-sm opacity-90 leading-relaxed">
-              Existem várias formas de apoiar o Instituto Coração Valente em nossa missão de acolher famílias.
+              Existem várias formas de apoiar a ONG Coração Valente em nossa missão de acolher famílias.
             </p>
           </CardContent>
         </Card>

@@ -1,0 +1,42 @@
+# LISTA COMPLETA DE TABELAS - Instituto Coração Valente
+# Extraído em: 2025-10-25 15:53:11
+# Total: 38 tabelas
+
+1. ambassador_links
+2. ambassador_performance
+3. analytics_engagement
+4. analytics_events
+5. analytics_performance
+6. analytics_summary
+7. appointments
+8. audit_log
+9. campaigns
+10. diagnosis_chat_sessions
+11. diagnosis_sessions
+12. diagnostics
+13. donations
+14. instituto_integration_config
+15. instituto_integration_logs
+16. instituto_integration_queue
+17. interacoes_agente
+18. library_categories
+19. library_resources
+20. link_clicks
+21. monitoring_alerts
+22. monitoring_health_checks
+23. news_articles
+24. onboarding_screens
+25. partners
+26. performance_summary
+27. pre_diagnosis_questions
+28. pre_diagnosis_sessions
+29. profiles
+30. relatorios_diagnostico
+31. schedules
+32. services
+33. subscriptions
+34. system_health_summary
+35. system_logs
+36. user_consent
+37. v_triagem_completa
+38. volunteer_applications

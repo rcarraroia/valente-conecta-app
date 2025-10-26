@@ -163,7 +163,7 @@ const VerifyReceipt = () => {
                   <ul className="text-sm text-blue-700 space-y-1">
                     <li>✓ Este recibo é válido para fins de comprovação de doação</li>
                     <li>✓ Pode ser utilizado para declaração de Imposto de Renda</li>
-                    <li>✓ Emitido pelo Instituto Coração Valente (CNPJ: 42.044.102/0001-59)</li>
+                    <li>✓ Emitido pela ONG Coração Valente (CNPJ: 42.044.102/0001-59)</li>
                   </ul>
                 </div>
 
@@ -187,7 +187,7 @@ const VerifyReceipt = () => {
         </Card>
 
         <div className="mt-6 text-center text-sm text-cv-gray-light">
-          <p>Instituto Coração Valente</p>
+          <p>ONG Coração Valente</p>
           <p>CNPJ: 42.044.102/0001-59</p>
           <p>contato@coracaovalente.org.br | (31) 8600-9095</p>
         </div>

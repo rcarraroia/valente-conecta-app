@@ -30,7 +30,7 @@ const HomeHero = ({ onNavigate }: HomeHeroProps) => {
           onClick={handleJourneyStart}
           className="bg-white text-cv-purple-dark hover:bg-cv-off-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 w-full touch-target"
           size="lg"
-          aria-label="Iniciar jornada de orientação no Instituto Coração Valente"
+          aria-label="Iniciar jornada de orientação na ONG Coração Valente"
         >
           <span>Inicie Sua Jornada</span>
           <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" aria-hidden="true" />

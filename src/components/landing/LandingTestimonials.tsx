@@ -2,13 +2,27 @@
 import React from 'react';
 import { Star, Quote, Heart, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const LandingTestimonials = () => {
+  const navigate = useNavigate();
+  
+  const handleAjudeNossaCausa = () => {
+    // Preservar código do embaixador se existir
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    
+    if (ref) {
+      navigate(`/?ref=${ref}`);
+    } else {
+      navigate('/');
+    }
+  };
   const testimonials = [
     {
       name: "Maria Santos",
       role: "Mãe do João, 8 anos",
-      content: "O Instituto Coração Valente transformou a vida do meu filho. Hoje ele se comunica melhor, está mais confiante e feliz. A equipe é maravilhosa e sempre nos acolhe com muito carinho.",
+      content: "A ONG Coração Valente transformou a vida do meu filho. Hoje ele se comunica melhor, está mais confiante e feliz. A equipe é maravilhosa e sempre nos acolhe com muito carinho.",
       rating: 5
     },
     {
@@ -40,7 +54,7 @@ const LandingTestimonials = () => {
             Histórias que Nos Motivam
           </h2>
           <p className="text-xl text-cv-gray-light max-w-3xl mx-auto leading-relaxed">
-            Cada família que passa pelo Instituto Coração Valente tem uma história única de superação e desenvolvimento. Conheça alguns depoimentos:
+            Cada família que passa pela ONG Coração Valente tem uma história única de superação e desenvolvimento. Conheça alguns depoimentos:
           </p>
         </div>
 
@@ -76,7 +90,7 @@ const LandingTestimonials = () => {
             Junte-se a nós nesta missão de promover o desenvolvimento pleno de crianças e adolescentes. Sua participação faz toda a diferença.
           </p>
           <Button
-            onClick={scrollToAbout}
+            onClick={handleAjudeNossaCausa}
             size="lg"
             className="bg-cv-coral hover:bg-cv-coral/90 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >

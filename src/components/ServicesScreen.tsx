@@ -59,7 +59,7 @@ const ServicesScreen = ({ onBack }: ServicesScreenProps) => {
         <Card className="bg-gradient-to-br from-cv-purple-soft to-cv-blue-heart text-white border-none">
           <CardContent className="p-6 text-center">
             <Heart className="w-12 h-12 mx-auto mb-4 text-white" />
-            <h2 className="text-xl font-bold mb-2">Instituto Coração Valente</h2>
+            <h2 className="text-xl font-bold mb-2">ONG Coração Valente</h2>
             <p className="opacity-90">
               Oferecemos apoio integral para famílias no processo de triagem comportamental e desenvolvimento, 
               com foco em acolhimento humanizado e orientação especializada.
