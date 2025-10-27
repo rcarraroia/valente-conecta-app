@@ -23,7 +23,7 @@ interface EmailResponse {
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const DEFAULT_FROM = 'Instituto Coração Valente <coracaovalenteorg@gmail.com>';
+const DEFAULT_FROM = 'Instituto Coração Valente <no-reply@coracaovalente.org.br>';
 const RESEND_API_URL = 'https://api.resend.com/emails';
 
 export async function sendEmail(options: EmailOptions): Promise<EmailResponse> {

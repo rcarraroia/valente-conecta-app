@@ -152,7 +152,7 @@ async function sendReceiptEmail(supabase: any, receipt: any): Promise<void> {
       to: receipt.donor_email,
       subject: receiptEmailSubject(receipt.receipt_number),
       html: emailHtml,
-      replyTo: 'coracaovalenteorg@gmail.com'
+      replyTo: 'contato@coracaovalente.org.br'
     });
 
     // Atualizar status de envio
