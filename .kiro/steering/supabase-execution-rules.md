@@ -2,7 +2,7 @@
 
 ## ⚠️ REGRA FUNDAMENTAL - EXECUÇÃO MANUAL OBRIGATÓRIA
 
-### CONTEXTO CRÍTICO
+### CONTEXTO CRÍTICO - "ESSE CONTEXTO SERÁ DELETADO"
 - **Kiro AI NÃO TEM ACESSO ao projeto real do Supabase**
 - **Kiro AI NÃO PODE EXECUTAR, CRIAR, ALTERAR ou MODIFICAR nada no banco de dados**
 - **Kiro AI APENAS TEM CAPACIDADE DE LEITURA/VERIFICAÇÃO via Python para análise**

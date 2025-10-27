@@ -42,10 +42,23 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '' // Usar anon key para permitir acesso público
     );
 
-    const { receiptId }: GeneratePDFRequest = await req.json();
+    // Aceitar tanto GET (query param) quanto POST (body)
+    let receiptId: string;
+    
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      receiptId = url.searchParams.get('receiptId') || '';
+    } else {
+      const body: GeneratePDFRequest = await req.json();
+      receiptId = body.receiptId;
+    }
+    
+    if (!receiptId) {
+      throw new Error('receiptId é obrigatório');
+    }
 
     // Buscar dados do recibo
     const { data: receipt, error } = await supabase
