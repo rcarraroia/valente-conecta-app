@@ -40,17 +40,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Usar service_role para acesso total (função interna)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '' // Usar anon key para permitir acesso público
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Aceitar tanto GET (query param) quanto POST (body)
     let receiptId: string;
+    let hash: string | null = null;
     
     if (req.method === 'GET') {
       const url = new URL(req.url);
       receiptId = url.searchParams.get('receiptId') || '';
+      hash = url.searchParams.get('hash'); // Hash de verificação para segurança
     } else {
       const body: GeneratePDFRequest = await req.json();
       receiptId = body.receiptId;
@@ -71,15 +74,27 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Recibo não encontrado');
     }
 
+    // 🔒 SEGURANÇA: Validar hash se fornecido (previne acesso não autorizado)
+    if (hash && hash !== receipt.verification_hash) {
+      throw new Error('Hash de verificação inválido');
+    }
+
+    // Verificar se PDF já existe no storage
+    if (receipt.pdf_url) {
+      console.log('✅ PDF já existe, redirecionando:', receipt.pdf_url);
+      return Response.redirect(receipt.pdf_url, 302);
+    }
+
     // Gerar HTML do recibo
     const html = generateReceiptHTML(receipt);
 
-    // Retornar HTML (por enquanto)
-    // TODO: Converter para PDF usando biblioteca apropriada
+    // 📄 RETORNAR HTML DIRETAMENTE (navegador renderiza como PDF)
+    // Usuário pode usar Ctrl+P para salvar como PDF
     return new Response(html, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
+        'Content-Disposition': `inline; filename="Recibo-${receipt.receipt_number}.html"`,
         ...corsHeaders,
       },
     });
@@ -87,12 +102,58 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('❌ Erro ao gerar PDF:', error);
     
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    // Retornar página de erro amigável
+    const errorHtml = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro - Recibo não encontrado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .error-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 { color: #e74c3c; margin-bottom: 20px; }
+        p { color: #666; line-height: 1.6; }
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>❌ Erro ao carregar recibo</h1>
+        <p>${error.message}</p>
+        <p>Se você recebeu este link por email, entre em contato conosco.</p>
+        <a href="https://coracaovalente.org.br" class="button">Voltar ao site</a>
+    </div>
+</body>
+</html>`;
+    
+    return new Response(errorHtml, {
+      status: 404,
+      headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
     });
   }
 };

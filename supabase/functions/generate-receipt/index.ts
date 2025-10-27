@@ -137,7 +137,8 @@ async function sendReceiptEmail(supabase: any, receipt: any): Promise<void> {
     console.log('📧 Enviando email do recibo para:', receipt.donor_email);
 
     const verificationUrl = `https://coracaovalente.org.br/verificar/${receipt.verification_hash}`;
-    const pdfUrl = receipt.pdf_url || `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-receipt-pdf?receiptId=${receipt.id}`;
+    // 🔒 Incluir hash na URL para segurança (previne acesso não autorizado)
+    const pdfUrl = receipt.pdf_url || `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-receipt-pdf?receiptId=${receipt.id}&hash=${receipt.verification_hash}`;
 
     const emailHtml = receiptEmailTemplate({
       donorName: receipt.donor_name,
