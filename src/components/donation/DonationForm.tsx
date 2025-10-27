@@ -297,9 +297,6 @@ const DonationForm = ({ onBack }: DonationFormProps) => {
               <p className="text-sm text-blue-800">
                 💜 Você está apoiando através do embaixador: <strong>{getAmbassadorCode()}</strong>
               </p>
-              <p className="text-xs text-blue-600 mt-1">
-                O embaixador receberá uma comissão desta doação automaticamente.
-              </p>
             </div>
           )}
 

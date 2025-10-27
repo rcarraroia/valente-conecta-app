@@ -60,21 +60,70 @@ const handler = async (req: Request): Promise<Response> => {
     let shouldNotify = false;
     
     switch (event) {
+      // Pagamento confirmado/recebido - GERAR RECIBO
       case 'PAYMENT_CONFIRMED':
       case 'PAYMENT_RECEIVED':
-        newStatus = 'received';
-        shouldNotify = true; // 🔔 Notificar quando pagamento for confirmado
-        console.log('✅ Pagamento confirmado - preparando notificação');
+      case 'PAYMENT_APPROVED_BY_RISK_ANALYSIS':
+        newStatus = 'completed';
+        shouldNotify = true;
+        console.log('✅ Pagamento confirmado - preparando notificação e geração de recibo');
         break;
+      
+      // Pagamento autorizado mas ainda não capturado
+      case 'PAYMENT_AUTHORIZED':
+        newStatus = 'pending';
+        console.log('💳 Pagamento autorizado - aguardando captura');
+        break;
+      
+      // Pagamento criado
+      case 'PAYMENT_CREATED':
+        newStatus = 'pending';
+        console.log('📝 Cobrança criada');
+        break;
+      
+      // Pagamento vencido
       case 'PAYMENT_OVERDUE':
         newStatus = 'overdue';
+        console.log('⏰ Cobrança vencida');
         break;
+      
+      // Pagamento cancelado/estornado
       case 'PAYMENT_DELETED':
       case 'PAYMENT_REFUNDED':
+      case 'PAYMENT_PARTIALLY_REFUNDED':
         newStatus = 'cancelled';
+        console.log('❌ Cobrança cancelada/estornada');
         break;
+      
+      // Pagamento em análise de risco
+      case 'PAYMENT_AWAITING_RISK_ANALYSIS':
+        newStatus = 'pending';
+        console.log('🔍 Pagamento em análise de risco');
+        break;
+      
+      // Pagamento reprovado
+      case 'PAYMENT_REPROVED_BY_RISK_ANALYSIS':
+        newStatus = 'cancelled';
+        console.log('⛔ Pagamento reprovado pela análise de risco');
+        break;
+      
+      // Chargeback
+      case 'PAYMENT_CHARGEBACK_REQUESTED':
+      case 'PAYMENT_CHARGEBACK_DISPUTE':
+        newStatus = 'cancelled';
+        console.log('⚠️ Chargeback solicitado/em disputa');
+        break;
+      
+      // Outros eventos que não alteram status
+      case 'PAYMENT_UPDATED':
+      case 'PAYMENT_CHECKOUT_VIEWED':
+      case 'PAYMENT_BANK_SLIP_VIEWED':
+        console.log('📋 Evento informativo:', event);
+        break;
+      
       default:
-        console.log('📋 Evento não requer atualização de status:', event);
+        console.log('📋 Evento não mapeado:', event);
+        console.warn('⚠️ EVENTO DESCONHECIDO - Verificar documentação Asaas:', event);
     }
 
     // 2. Atualizar status no banco de dados
@@ -105,37 +154,48 @@ const handler = async (req: Request): Promise<Response> => {
     if (shouldNotify && updatedDonation) {
       console.log('🧾 Gerando recibo automaticamente para doação:', updatedDonation.id);
       
-      try {
-        // Chamar função de geração de recibo
-        const receiptResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-receipt`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              donationId: updatedDonation.id,
-              sendEmail: true
-            })
+      // Verificar se já existe recibo para evitar duplicação
+      const { data: existingReceipt } = await supabase
+        .from('receipts')
+        .select('id, receipt_number')
+        .eq('donation_id', updatedDonation.id)
+        .maybeSingle();
+      
+      if (existingReceipt) {
+        console.log('ℹ️ Recibo já existe para esta doação:', existingReceipt.receipt_number);
+      } else {
+        try {
+          // Chamar função de geração de recibo
+          const receiptResponse = await fetch(
+            `${Deno.env.get('SUPABASE_URL')}/functions/v1/generate-receipt`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                donationId: updatedDonation.id,
+                sendEmail: true
+              })
+            }
+          );
+          
+          if (receiptResponse.ok) {
+            const receiptData = await receiptResponse.json();
+            console.log('✅ Recibo gerado com sucesso:', {
+              receiptNumber: receiptData.receipt?.receipt_number,
+              emailSent: receiptData.receipt?.email_sent
+            });
+          } else {
+            const errorData = await receiptResponse.text();
+            console.error('❌ Erro ao gerar recibo:', errorData);
           }
-        );
-        
-        if (receiptResponse.ok) {
-          const receiptData = await receiptResponse.json();
-          console.log('✅ Recibo gerado com sucesso:', {
-            receiptNumber: receiptData.receipt?.receipt_number,
-            emailSent: receiptData.receipt?.email_sent
-          });
-        } else {
-          const errorData = await receiptResponse.text();
-          console.error('❌ Erro ao gerar recibo:', errorData);
+          
+        } catch (receiptError: any) {
+          console.error('❌ Erro ao chamar função de recibo:', receiptError.message);
+          // Não falhar o webhook por causa de erro no recibo
         }
-        
-      } catch (receiptError: any) {
-        console.error('❌ Erro ao chamar função de recibo:', receiptError.message);
-        // Não falhar o webhook por causa de erro no recibo
       }
     }
 
